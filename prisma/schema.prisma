@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["mongoDb"] // this line is deprecated but doesn't break yet
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum UserType {
+  student
+  other
+}
+
+model User {
+  id         String         @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  email      String         @unique
+  password   String
+  phone      String
+  college    String
+  department String?
+  type       UserType       @default(student)
+
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  gigs        Gig[]         @relation("UserGigs")         // Posted gigs
+  applications Application[]                             // 👈 Applications made by this user
+
+  @@index([college])
+}
+
+model Gig {
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  description  String
+  budget       Int
+  category     String
+  college      String
+  isOpen       Boolean        @default(true)
+  status       String         @default("open")
+  createdAt    DateTime       @default(now())
+
+  postedById   String         @db.ObjectId
+  postedBy     User           @relation(fields: [postedById], references: [id], name: "UserGigs")
+
+  applications Application[]                             // 👈 Applications received for this gig
+}
+
+model Application {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  gigId      String   @db.ObjectId
+
+  reason     String?
+  experience String?
+  portfolio  String?
+  extra      String?
+
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id]) // 👈 Must match User.applications
+  gig        Gig      @relation(fields: [gigId], references: [id])  // 👈 Must match Gig.applications
+}
