@@ -4,25 +4,29 @@ import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
 
+interface DecodedToken {
+  id: string;
+  email?: string; // optional, add more fields if your token contains them
+  iat?: number;
+  exp?: number;
+}
+
 export async function GET(req: NextRequest) {
   try {
-    // Get the Authorization header
     const authHeader = req.headers.get('authorization');
-    const token = authHeader?.split(' ')[1]; // Extract token from Bearer <token>
+    const token = authHeader?.split(' ')[1];
 
     if (!token) {
       return NextResponse.json({ message: 'Unauthorized - No token provided' }, { status: 401 });
     }
 
-    // Verify the token using the same secret used to sign it
-    const decoded: any = jwt.verify(token, process.env.NEXTAUTH_SECRET!);
+    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET!) as DecodedToken;
 
     const userId = decoded?.id;
     if (!userId) {
       return NextResponse.json({ message: 'Unauthorized - Invalid token payload' }, { status: 401 });
     }
 
-    // Fetch gigs posted by this user
     const gigs = await prisma.gig.findMany({
       where: { postedById: userId },
       include: {
@@ -38,3 +42,5 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+

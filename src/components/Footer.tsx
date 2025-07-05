@@ -11,8 +11,8 @@ export default function Footer() {
 
         <nav className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-white/80">
           <Link href="#home" className="hover:text-white hover:underline transition">Home</Link>
-          <Link href="/post" className="hover:text-white hover:underline transition">Post Gig</Link>
-          <Link href="/gigs" className="hover:text-white hover:underline transition">Browse Gigs</Link>
+          <Link href="/post" className="hover:text-white hover:underline transition">Post</Link>
+          <Link href="/gigs" className="hover:text-white hover:underline transition">Apply</Link>
           <a href="#faq" className="hover:text-white hover:underline transition">FAQ</a>
           <a href="#contact" className="hover:text-white hover:underline transition">Contact</a>
         </nav>

@@ -49,7 +49,10 @@ export default function FaqPage() {
   };
 
   return (
-    <main id="faq" className="min-h-screen bg-white px-4 sm:px-6 md:px-24 py-16 sm:py-20 font-bricolage">
+    <main
+      id="faq"
+      className="min-h-screen bg-white px-4 sm:px-6 md:px-24 py-16 sm:py-20 font-bricolage"
+    >
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-center mb-14 sm:mb-16 text-transparent bg-clip-text bg-gradient-to-r from-[#4B55C3] to-[#6366F1]">
         Frequently Asked Questions
       </h1>
@@ -65,15 +68,15 @@ export default function FaqPage() {
             >
               <button
                 onClick={() => toggleIndex(index)}
-                className="w-full flex justify-between items-center px-5 sm:px-6 py-4 sm:py-5 text-left group focus:outline-none"
+                className="w-full flex items-center justify-between px-5 sm:px-6 py-4 sm:py-5 text-left group focus:outline-none"
                 aria-expanded={isOpen}
                 aria-controls={`faq-${index}`}
               >
-                <span className="text-base sm:text-lg md:text-xl font-semibold text-[#4B55C3] group-hover:text-[#6366F1] transition">
+                <span className="text-base sm:text-lg md:text-xl font-semibold text-[#4B55C3] group-hover:text-[#6366F1] transition w-full text-left">
                   {faq.question}
                 </span>
                 <ChevronDown
-                  className={`w-5 h-5 sm:w-6 sm:h-6 text-[#4B55C3] transition-transform duration-300 ${
+                  className={`ml-4 shrink-0 text-[#4B55C3] w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 ${
                     isOpen ? 'rotate-180' : ''
                   }`}
                 />

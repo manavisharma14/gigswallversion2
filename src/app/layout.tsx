@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
 import Navbar from "../components/Navbar";
 import { Bricolage_Grotesque } from 'next/font/google';
@@ -11,10 +11,6 @@ const bricolage = Bricolage_Grotesque({
 });
 
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -37,7 +33,7 @@ export default function RootLayout({
       >
         <Navbar />
         {children}
-        <Toaster position="top-right" toastOptions={{
+        <Toaster position="top-center" toastOptions={{
           duration: 3000,
           style: {
             borderRadius: '10px',

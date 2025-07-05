@@ -1,15 +1,10 @@
 'use client';
-
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Menu, X } from 'lucide-react'; // Icon library (or use any SVGs)
-
-const staticLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/post', label: 'Post' },
-  { href: '/gigs', label: 'Apply' },
-];
+import { Menu, X, LogIn } from 'lucide-react';
+import logo from "../../public/assets/logo.png"
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -26,7 +21,7 @@ export default function Navbar() {
           setLoggedIn(true);
           setUserName(parsedUser.name || '');
         } catch (e) {
-          console.error('Failed to parse user data from localStorage:', e);
+          console.error('Failed to parse user data:', e);
           setLoggedIn(false);
           setUserName('');
         }
@@ -44,94 +39,98 @@ export default function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    window.dispatchEvent(new Event('storageChanged'));
     window.location.href = '/signin';
   };
 
-  const navLinks = [
-    ...staticLinks,
-    ...(loggedIn ? [{ href: '/dashboard', label: 'Dashboard' }] : []),
-    ...(!loggedIn ? [{ href: '/signup', label: 'Sign In / Sign Up' }] : []),
-  ];
-
   return (
-<nav className="fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-7xl px-8 py-6 bg-white/90 shadow-xl border border-gray-200 backdrop-blur-xl rounded-full z-50 font-bricolage">
-  <div className="flex justify-between items-center w-full">
-    {/* Logo */}
-    <h1 className="text-2xl font-bold text-[#3B2ECC] tracking-tight">GigsWall</h1>
+    <nav className="fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-7xl px-6 py-4 bg-white/90 shadow-xl border border-gray-200 backdrop-blur-xl z-50 font-bricolage rounded-xl md:rounded-full">
+      <div className="flex justify-between items-center w-full">
+        {/* Logo only (no text) */}
+        <Link href="/" className="flex items-center">
+          <Image src={logo} alt="GigsWall Logo" width={130} height={130} priority />
+        </Link>
 
-    {/* Links */}
-    <ul className="hidden md:flex items-center space-x-8 text-[15px] font-medium text-gray-800">
-      <li><Link href="/">Home</Link></li>
-      <li><Link href="/post">Post</Link></li>
-      <li><Link href="/gigs">Apply</Link></li>
-      {loggedIn ? (
-        <>
-          <li className="text-[#3B2ECC]">Hi {userName || 'there'} 👋</li>
-          <li>
-            <button onClick={handleLogout} className="hover:text-red-600 transition">
-              Logout
-            </button>
-          </li>
-        </>
-      ) : (
-        <li>
-          <Link
-            href="/signup"
-            className="bg-[#3B2ECC] hover:bg-[#2d23b0] text-white font-semibold px-5 py-2 rounded-full transition"
-          >
-            Sign In / Sign Up
-          </Link>
-          
-        </li>
-      )}
-    </ul>
-
-    {/* Mobile Menu Icon */}
-    <div className="md:hidden">
-      <button onClick={() => setMenuOpen(!menuOpen)}>
-        {menuOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
-    </div>
-  </div>
-
-  {/* Mobile Dropdown */}
-  {menuOpen && (
-    <div className="md:hidden mt-4 bg-white border-t border-gray-200 py-4 px-6 shadow rounded-2xl">
-      <ul className="flex flex-col space-y-4 text-base font-medium text-gray-800">
-        <li><Link href="/" onClick={() => setMenuOpen(false)}>Home</Link></li>
-        <li><Link href="/post" onClick={() => setMenuOpen(false)}>Post</Link></li>
-        <li><Link href="/gigs" onClick={() => setMenuOpen(false)}>Apply</Link></li>
-        {loggedIn ? (
-          <>
-            <li className="text-[#3B2ECC]">Hi {userName || 'there'} 👋</li>
+        {/* Desktop Menu */}
+        <ul className="hidden md:flex items-center space-x-8 text-[16px] font-semibold text-gray-800">
+          <li><Link href="/" className="relative underline-hover">Home</Link></li>
+          <li><Link href="/#about" className="relative underline-hover">About</Link></li>
+          <li><Link href="/post" className="relative underline-hover">Post</Link></li>
+          <li><Link href="/gigs" className="relative underline-hover">Apply</Link></li>
+          {loggedIn && (
+            <li><Link href="/dashboard" className="relative underline-hover">Dashboard</Link></li>
+          )}
+          {loggedIn ? (
+            <>
+              <li className="text-[#4B55C3] font-semibold">Hi {userName || 'there'} 👋</li>
+              <li>
+                <button onClick={handleLogout} className="hover:text-red-600 transition font-semibold">
+                  Logout
+                </button>
+              </li>
+            </>
+          ) : (
             <li>
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setMenuOpen(false);
-                }}
-                className="hover:text-red-600 transition"
+              <Link
+                href="/signin"
+                className="flex items-center gap-2 bg-[#4B55C3] hover:bg-[#3d49ad] text-white font-semibold px-5 py-2 rounded-full transition"
               >
-                Logout
-              </button>
+                <LogIn size={18} />
+                Sign In
+              </Link>
             </li>
-          </>
-        ) : (
-          <li>
-            <Link
-              href="/signup"
-              onClick={() => setMenuOpen(false)}
-              className="bg-[#3B2ECC] text-white px-5 py-2 rounded-full"
-            >
-              Sign In / Sign Up
-            </Link>
-          </li>
-        )}
-      </ul>
-    </div>
-  )}
-</nav>
+          )}
+        </ul>
 
+        {/* Mobile Toggle */}
+        <div className="md:hidden">
+          <button onClick={() => setMenuOpen(!menuOpen)} className="text-[#4B55C3] p-2">
+            {menuOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
+        </div>
+      </div>
 
+      {/* Mobile Dropdown */}
+      {menuOpen && (
+        <div className="md:hidden absolute top-[70px] left-0 w-full bg-white shadow-xl px-6 py-5 border-t border-gray-200 z-40">
+          <ul className="flex flex-col space-y-4 text-base font-semibold text-gray-800">
+            <li><Link href="/" onClick={() => setMenuOpen(false)} className="relative underline-hover">Home</Link></li>
+            <li><Link href="/#about" onClick={() => setMenuOpen(false)} className="relative underline-hover">About</Link></li>
+            <li><Link href="/post" onClick={() => setMenuOpen(false)} className="relative underline-hover">Post</Link></li>
+            <li><Link href="/gigs" onClick={() => setMenuOpen(false)} className="relative underline-hover">Apply</Link></li>
+            {loggedIn && (
+              <li><Link href="/dashboard" onClick={() => setMenuOpen(false)} className="relative underline-hover">Dashboard</Link></li>
+            )}
+            {loggedIn ? (
+              <>
+                <li className="text-[#4B55C3]">Hi {userName || 'there'} 👋</li>
+                <li>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setMenuOpen(false);
+                    }}
+                    className="text-red-600 hover:underline text-left font-semibold"
+                  >
+                    Logout
+                  </button>
+                </li>
+              </>
+            ) : (
+              <li>
+                <Link
+                  href="/signin"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 bg-[#4B55C3] text-white px-5 py-2 rounded-full text-center"
+                >
+                  <LogIn size={18} />
+                  Sign In
+                </Link>
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+    </nav>
   );
 }

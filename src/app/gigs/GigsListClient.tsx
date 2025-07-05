@@ -13,14 +13,23 @@ interface Gig {
   createdAt: string;
 }
 
+interface ApplicationFormData {
+  reason: string;
+  experience: string;
+  portfolio: string;
+  extra: string;
+}
+
+
 export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
   const [selectedGig, setSelectedGig] = useState<Gig | null>(gigs[0] || null);
   const [showModal, setShowModal] = useState(false);
 
-  const handleSubmitApplication = (formData: any) => {
+  const handleSubmitApplication = (formData: ApplicationFormData) => {
     console.log('Application submitted:', { gigId: selectedGig?.id, ...formData });
     setShowModal(false);
   };
+  
 
   return (
     <div className="min-h-screen bg-white font-bricolage px-4 sm:px-6 md:px-12 py-10">

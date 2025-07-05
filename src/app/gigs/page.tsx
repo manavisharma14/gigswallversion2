@@ -23,7 +23,7 @@ export default async function GigsPage() {
 
   return (
     <div className="min-h-screen bg-white text-black pt-24 pb-20 px-4 sm:px-10 md:px-16 lg:px-24 font-bricolage">
-      <h1 className="text-3xl sm:text-4xl font-bold text-center mb-10 text-[#4B55C3]">
+      <h1 className="text-3xl sm:text-4xl mt-16 font-bold text-center mb-10 text-[#4B55C3]">
         Browse Gigs
       </h1>
       <GigsListClient gigs={gigs} />

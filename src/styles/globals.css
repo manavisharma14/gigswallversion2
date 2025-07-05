@@ -1,3 +1,6 @@
+@import "slick-carousel/slick/slick.css";
+@import "slick-carousel/slick/slick-theme.css";
+
 
 :root {
   --background: #ffffff;
@@ -18,13 +21,6 @@ html, body {
   background-color: white; /* Or your actual page bg */
 }
 
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
 body {
   background: var(--background);
@@ -72,4 +68,19 @@ body {
 
 .btn-green {
   @apply w-full bg-gigswall text-white font-bold py-2 rounded hover:brightness-90 transition duration-300;
+}
+
+
+/* globals.css */
+.underline-hover::after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 2px;
+  background-color: #4B55C3;
+  transition: width 0.3s ease;
+}
+
+.underline-hover:hover::after {
+  width: 100%;
 }
