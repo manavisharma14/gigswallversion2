@@ -1,3 +1,6 @@
+// app/gigs/page.tsx
+import { prisma } from '@/lib/prisma';
+import React from 'react';
 import GigsListClient from './GigsListClient';
 
 interface Gig {
@@ -7,25 +10,32 @@ interface Gig {
   budget: number;
   description: string;
   status: string;
-  createdAt: string;
-}
-
-async function getGigs(): Promise<Gig[]> {
-  const res = await fetch('http://localhost:3000/api/gigs', { cache: 'no-store' });
-
-  if (!res.ok) throw new Error('Failed to fetch gigs');
-  const data = await res.json();
-  return data.gigs;
+  createdAt: string;    // keep as string
 }
 
 export default async function GigsPage() {
-  const gigs = await getGigs();
+  // only pull exactly the fields your UI needs
+  const rawGigs = await prisma.gig.findMany({
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      title: true,
+      category: true,
+      budget: true,
+      description: true,
+      status: true,
+      createdAt: true,
+    },
+  });
+
+  // convert Date → ISO string
+  const gigs: Gig[] = rawGigs.map((g) => ({
+    ...g,
+    createdAt: g.createdAt.toISOString(),
+  }));
 
   return (
-    <div className="min-h-screen bg-white text-black pt-24 pb-20 px-4 sm:px-10 md:px-16 lg:px-24 font-bricolage">
-      <h1 className="text-3xl sm:text-4xl mt-16 font-bold text-center mb-10 text-[#4B55C3]">
-        Browse Gigs
-      </h1>
+    <div> … your wrapper … 
       <GigsListClient gigs={gigs} />
     </div>
   );
