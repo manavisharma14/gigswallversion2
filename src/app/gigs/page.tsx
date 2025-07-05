@@ -1,4 +1,4 @@
-// app/gigs/page.tsx
+
 import { prisma } from '@/lib/prisma';
 import React from 'react';
 import GigsListClient from './GigsListClient';
@@ -10,7 +10,7 @@ interface Gig {
   budget: number;
   description: string;
   status: string;
-  createdAt: string;    // keep as string
+  createdAt: string;    
 }
 
 export default async function GigsPage() {
