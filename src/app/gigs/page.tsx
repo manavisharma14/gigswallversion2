@@ -35,7 +35,7 @@ export default async function GigsPage() {
   }));
 
   return (
-    <div> … your wrapper … 
+    <div className='mt-28'> 
       <GigsListClient gigs={gigs} />
     </div>
   );
