@@ -1,4 +1,3 @@
-
 import { prisma } from '@/lib/prisma';
 import React from 'react';
 import GigsListClient from './GigsListClient';

@@ -8,44 +8,72 @@ const JWT_SECRET = process.env.NEXTAUTH_SECRET!;
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const {
+      name,
+      email,
+      password,
+      phone,
+      college,
+      department,
+      gradYear,
+      aim,
+      skills,
+      bio,
+      role,
+    } = await req.json();
 
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return NextResponse.json({ error: "Email already registered." }, { status: 409 });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return NextResponse.json({ message: "Invalid password" }, { status: 401 });
-    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        phone,
+        college,
+        department,
+        gradYear,
+        aim,
+        skills,
+        bio,
+        role,
+      },
+    });
 
     const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-      },
+      { id: user.id, email: user.email, name: user.name },
       JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    return NextResponse.json({
-      message: "Login successful",
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        college: user.college,
-        phone: user.phone,
-        department: user.department,
-        createdAt: user.createdAt,
+    return NextResponse.json(
+      {
+        message: "Signup successful",
+        token,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          college: user.college,
+          phone: user.phone,
+          department: user.department,
+          gradYear: user.gradYear,
+          aim: user.aim,
+          skills: user.skills,
+          bio: user.bio,
+          role: user.role,
+          createdAt: user.createdAt,
+        },
       },
-    }, { status: 200 });
-
+      { status: 201 }
+    );
   } catch (err) {
-    console.error("Login error:", err);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    console.error("Signup error:", err);
+    return NextResponse.json({ error: "Server error during signup." }, { status: 500 });
   }
 }

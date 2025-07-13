@@ -1,0 +1,263 @@
+'use client';
+
+import {
+  UserIcon,
+  BriefcaseIcon,
+  ClipboardDocumentCheckIcon,
+  PencilIcon,
+  Bars3Icon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
+import { useState } from 'react';
+
+type Gig = {
+  id: string;
+  title: string;
+  description: string;
+  applications?: {
+    id: string;
+    reason: string;
+    user?: {
+      name: string;
+      email: string;
+    };
+  }[];
+};
+
+type Application = {
+  id: string;
+  reason: string;
+  status: string;
+  gig?: {
+    title: string;
+  };
+};
+
+type User = {
+  name?: string;
+  email?: string;
+  college?: string;
+  createdAt?: string;
+};
+
+export default function DashboardClient({
+  user,
+  postedGigs,
+  appliedGigs,
+}: {
+  user: User;
+  postedGigs: Gig[];
+  appliedGigs: Application[];
+}) {
+  const [active, setActive] = useState('Profile');
+  const [username, setUsername] = useState(user?.name || '');
+  const [editingName, setEditingName] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const menuItems = [
+    { name: 'Profile', icon: UserIcon },
+    { name: 'Posted Gigs', icon: BriefcaseIcon },
+    { name: 'Applied Gigs', icon: ClipboardDocumentCheckIcon },
+  ];
+
+  const saveUsername = () => {
+    const updated = { ...user, name: username };
+    localStorage.setItem('user', JSON.stringify(updated));
+    setEditingName(false);
+  };
+
+  const handleDelete = async (gigId: string, gigTitle: string) => {
+    const confirmDelete = confirm(`Are you sure you want to delete "${gigTitle}"?`);
+    if (!confirmDelete) return;
+  
+    const token = localStorage.getItem("token");
+  
+    const res = await fetch(`/api/dashboard/posted/${gigId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  
+    const result = await res.json();
+    if (res.ok) {
+      alert("Gig deleted successfully.");
+      window.location.reload();
+    } else {
+      alert(result.message || "Failed to delete gig.");
+    }
+  };
+  
+
+  const renderContent = () => {
+    if (active === 'Profile') {
+      return (
+        <div className="bg-white rounded-2xl shadow-lg mt-20 p-6 md:p-8 max-w-3xl mx-auto text-center space-y-4">
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            {editingName ? (
+              <>
+                <input
+                  className="border rounded-md px-2 py-1 text-center text-lg font-bold text-[#3B2ECC]"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  autoFocus
+                />
+                <button
+                  onClick={saveUsername}
+                  className="text-sm bg-[#3B2ECC] text-white px-3 py-1 rounded-md"
+                >
+                  Save
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-[#3B2ECC]">
+                  Welcome, {username || 'User'}
+                </h2>
+                <button onClick={() => setEditingName(true)}>
+                  <PencilIcon className="h-5 w-5 text-[#3B2ECC]" />
+                </button>
+              </>
+            )}
+          </div>
+          <p className="text-gray-700">📧 <span className="font-medium">{user?.email || 'N/A'}</span></p>
+          {user?.college && (
+            <p className="text-gray-600">🎓 College: <span className="font-medium">{user.college}</span></p>
+          )}
+          <p className="text-gray-600">
+            📅 Joined: <span className="font-medium">{user?.createdAt?.split('T')[0] || 'Unknown'}</span>
+          </p>
+          <div className="pt-4 border-t mt-4 text-left space-y-2">
+            <h3 className="text-xl font-semibold text-[#3B2ECC]">Activity Overview</h3>
+            <ul className="list-disc list-inside text-gray-700 space-y-1">
+              <li>Total Gigs Posted: {postedGigs.length}</li>
+              <li>Total Gigs Applied: {appliedGigs.length}</li>
+              <li>Accepted Gigs: {appliedGigs.filter(g => g.status === 'Accepted').length}</li>
+            </ul>
+          </div>
+        </div>
+      );
+    }
+
+    if (active === 'Posted Gigs') {
+      return (
+        <section className="space-y-6 mt-20 px-1">
+          <h2 className="text-2xl md:text-3xl font-bold text-[#3B2ECC] mb-4 text-center md:text-left">
+            Your Posted Gigs
+          </h2>
+          {postedGigs.length === 0 ? (
+            <p className="text-center text-gray-600">No gigs posted yet.</p>
+          ) : (
+            postedGigs.map(gig => (
+              <div key={gig.id} className="relative bg-white p-5 md:p-6 rounded-xl shadow-md border">
+                <h3 className="font-semibold text-lg text-[#4B55C3]">{gig.title}</h3>
+                <p className="text-gray-700 mb-2">{gig.description}</p>
+
+                <button
+                  onClick={() => handleDelete(gig.id, gig.title)}
+                  className="absolute top-3 right-3 text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full"
+                >
+                  Delete
+                </button>
+
+                <details className="text-sm text-gray-700 mt-2">
+                  <summary className="cursor-pointer text-[#4B55C3] font-semibold">
+                    Applicants ({gig.applications?.length || 0})
+                  </summary>
+                  {gig.applications?.length ? (
+                    <ul className="mt-3 space-y-4">
+                      {gig.applications.map((app) => (
+                        <li key={app.id} className="p-3 border rounded-lg bg-gray-50 shadow-sm">
+                          <p className="text-[#3B2ECC] font-medium">{app.user?.name || 'Anonymous'}</p>
+                          <p className="text-xs text-gray-600">📧 {app.user?.email}</p>
+                          <p className="text-xs text-gray-600">📝 {app.reason}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs mt-2 text-gray-500">No applicants yet.</p>
+                  )}
+                </details>
+              </div>
+            ))
+          )}
+        </section>
+      );
+    }
+
+    return (
+      <section className="space-y-6 mt-20 px-1">
+        <h2 className="text-2xl md:text-3xl font-bold text-[#3B2ECC] mb-4 text-center md:text-left">
+          Gigs You’ve Applied To
+        </h2>
+        {appliedGigs.length === 0 ? (
+          <p className="text-center text-gray-600">You haven’t applied to any gigs yet.</p>
+        ) : (
+          appliedGigs.map(app => (
+            <div key={app.id} className="bg-white p-5 md:p-6 rounded-xl shadow-md border">
+              <h3 className="font-semibold text-lg text-[#4B55C3]">{app.gig?.title}</h3>
+              <p className="text-sm text-gray-600">Reason: {app.reason}</p>
+            </div>
+          ))
+        )}
+      </section>
+    );
+  };
+
+  return (
+    <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-[#E9ECFF] to-[#F6F8FF] font-bricolage">
+      {/* Mobile Sidebar */}
+      <div className="md:hidden mt-28">
+        <div className="flex justify-between items-center px-4">
+          <button onClick={() => setSidebarOpen(prev => !prev)}>
+            {sidebarOpen
+              ? <XMarkIcon className="h-6 w-6" />
+              : <Bars3Icon className="h-6 w-6 text-[#3B2ECC]" />}
+          </button>
+        </div>
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-50 flex flex-col" onClick={() => setSidebarOpen(false)}>
+            <div className="flex-1 bg-black/40 backdrop-blur-sm" />
+            <div className="bg-[#4B55C3] text-white px-4 py-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+              {menuItems.map(item => (
+                <button
+                  key={item.name}
+                  onClick={() => {
+                    setActive(item.name);
+                    setSidebarOpen(false);
+                  }}
+                  className={`flex items-center w-full px-3 py-2 mb-2 rounded-lg transition
+                    ${active === item.name ? 'bg-white text-[#3B2ECC]' : 'hover:bg-[#5A4ED3]'}`}
+                >
+                  <item.icon className={`h-5 w-5 mr-3 ${active === item.name ? 'text-[#3B2ECC]' : 'text-white'}`} />
+                  {item.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex md:flex-col md:w-64 bg-[#4B55C3] text-white py-12 px-4 space-y-4 shadow-xl">
+        <div className="text-2xl font-extrabold px-2 mb-8">GigsWall</div>
+        {menuItems.map(item => (
+          <button
+            key={item.name}
+            onClick={() => setActive(item.name)}
+            className={`flex items-center gap-4 w-full text-left px-4 py-3 rounded-lg transition
+              ${active === item.name ? 'bg-white text-[#4B55C3] font-semibold shadow-md' : 'hover:bg-white/10'}`}
+          >
+            <item.icon className={`h-6 w-6 ${active === item.name ? 'text-[#4B55C3]' : 'text-white'}`} />
+            <span className="text-lg">{item.name}</span>
+          </button>
+        ))}
+      </aside>
+
+      {/* Main Section */}
+      <main className="flex-1 px-4 md:px-10 pb-10 mt-6 md:mt-8 overflow-y-auto">
+        {renderContent()}
+      </main>
+    </div>
+  );
+}

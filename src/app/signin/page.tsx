@@ -1,5 +1,10 @@
-import AuthSlider from '@/components/AuthSlider';
+import AuthSlider from "@/components/auth/AuthSlider";
 
-export default function SigninPage() {
+export const metadata = {
+  title: "Sign In | GigsWall",
+  description: "Login to GigsWall and manage your student gigs.",
+};
+
+export default function SignInPage() {
   return <AuthSlider defaultLoginMode={true} />;
 }
