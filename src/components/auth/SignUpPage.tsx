@@ -1,15 +1,15 @@
-// components/auth/SignUpPage.tsx
-"use client";
+'use client';
 
 import SignupStepOne from "./SignupStepOne";
 import SignupStepTwo from "./SignupStepTwo";
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 export default function SignUpPage() {
   const router = useRouter();
   const [signupStep, setSignupStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -26,17 +26,42 @@ export default function SignUpPage() {
     role: "both",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-      ...(name === "college" && value !== "Others" ? { otherCollege: "" } : {}),
-    }));
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        ...(name === "college" && value !== "Others" ? { otherCollege: "" } : {}),
+      }));
+    },
+    []
+  );
+
+  useEffect(() => {
+    // Auto scroll to top on step change
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [signupStep]);
+
+  const validateRequiredFields = () => {
+    const requiredFields = ["name", "email", "password", "college", "gradYear"];
+    for (const field of requiredFields) {
+      if (!formData[field as keyof typeof formData]) return false;
+    }
+    if (formData.college === "Others" && !formData.otherCollege) return false;
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateRequiredFields()) {
+      toast.error("Please fill all required fields.", { id: "missing-fields" });
+      return;
+    }
+
+    setIsLoading(true);
+
     const payload = {
       ...formData,
       college: formData.college === "Others" ? formData.otherCollege : formData.college,
@@ -55,20 +80,21 @@ export default function SignUpPage() {
         if (data.token) {
           document.cookie = `token=${data.token}; path=/`;
           document.cookie = `user=${encodeURIComponent(JSON.stringify(data.user))}; path=/`;
-
           localStorage.setItem("token", data.token);
           localStorage.setItem("user", JSON.stringify(data.user));
           localStorage.setItem("userId", data.user.id);
           window.dispatchEvent(new Event("storageChanged"));
         }
 
-        toast.success("Account created successfully 🚀");
+        toast.success("Account created successfully 🚀", { id: "signup-success" });
         router.push("/dashboard");
       } else {
-        toast.error(data?.error || "Something went wrong.");
+        toast.error(data?.error || "Something went wrong.", { id: "signup-error" });
       }
-    } catch  {
-      toast.error("Signup failed.");
+    } catch {
+      toast.error("Signup failed.", { id: "signup-server-error" });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -81,7 +107,7 @@ export default function SignUpPage() {
           <SignupStepOne formData={formData} handleChange={handleChange} />
           <button
             type="button"
-            className="w-full bg-[#4B3BB3] hover:bg-[#372e91] text-white font-bold py-2 rounded-full transition duration-200"
+            className="w-full bg-[#6B7FFF] hover:bg-[#5A6FEF] text-white font-bold py-2 rounded-full transition duration-200"
             onClick={() => setSignupStep(2)}
           >
             Next →
@@ -102,9 +128,14 @@ export default function SignUpPage() {
             </button>
             <button
               type="submit"
-              className="w-full bg-[#6B7FFF] hover:bg-[#5A6FEF] text-white font-bold py-2 rounded-full"
+              disabled={isLoading}
+              className={`w-full font-bold py-2 rounded-full transition duration-200 ${
+                isLoading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#6B7FFF] hover:bg-[#5A6FEF] text-white"
+              }`}
             >
-              SIGN UP
+              {isLoading ? "Signing Up..." : "SIGN UP"}
             </button>
           </div>
         </>

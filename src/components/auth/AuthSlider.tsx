@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import SignUpPage from "./SignUpPage";
-import SignInPage from "./SignInPage";
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import SignUpPage from './SignUpPage';
+import SignInPage from './SignInPage';
 
 export default function AuthSlider({ defaultLoginMode }: { defaultLoginMode: boolean }) {
   const router = useRouter();
@@ -11,12 +11,12 @@ export default function AuthSlider({ defaultLoginMode }: { defaultLoginMode: boo
   const [isSignIn, setIsSignIn] = useState(defaultLoginMode);
 
   useEffect(() => {
-    setIsSignIn(pathname === "/signin");
+    setIsSignIn(pathname === '/signin');
   }, [pathname]);
 
   const toggleMode = () => {
     setIsSignIn(!isSignIn);
-    router.push(!isSignIn ? "/signin" : "/signup");
+    router.push(!isSignIn ? '/signin' : '/signup');
   };
 
   return (
@@ -25,10 +25,10 @@ export default function AuthSlider({ defaultLoginMode }: { defaultLoginMode: boo
         
         {/* Left Side - Branding & Toggle */}
         <div className="w-full md:w-1/2 bg-[#4B55C3] text-white p-8 flex flex-col justify-center items-center">
-          <h2 className="text-3xl font-bold font-bricolage mb-4 text-center">
+          <h2 className="text-3xl font-bold font-bricolage mb-10 text-center">
             {isSignIn ? "Welcome Back! ✨" : "Hello Friend! 🚀"}
           </h2>
-          <p className="text-base font-bricolage text-center">
+          <p className="text-base font-bricolage text-center mt-3">
             {isSignIn
               ? "Don't have an account yet? Join the GigsWall community!"
               : "Already have an account? Log in to manage and apply for gigs."}

@@ -23,21 +23,22 @@ const SignInPage = () => {
       const data = await res.json();
 
       if (res.ok) {
+        // Save auth info
         document.cookie = `token=${data.token}; path=/`;
         document.cookie = `user=${encodeURIComponent(JSON.stringify(data.user))}; path=/`;
-
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('userId', data.user.id);
 
+        // Notify and redirect
         window.dispatchEvent(new Event('storageChanged'));
-        toast.success('Welcome back!');
+        toast.success('Welcome back!', { id: 'login-success' });
         router.push('/dashboard');
       } else {
-        toast.error(data.error || 'Login failed');
+        toast.error(data.error || 'Login failed', { id: 'login-error' });
       }
     } catch {
-      toast.error('Server error');
+      toast.error('Server error', { id: 'server-error' });
     }
   };
 

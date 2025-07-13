@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { sendGigApplicationEmail } from '@/lib/emailSender';
 
 const prisma = new PrismaClient();
-
 
 export async function POST(
   req: NextRequest,
   context: { params: Promise<{ gigId: string }> }
 ) {
-  const { gigId } = await context.params; 
-  const body = await req.json();   
+  const { gigId } = await context.params;
+  const body = await req.json();
   return applyToGig(req, gigId, body);
 }
-       
+
 async function applyToGig(
   req: NextRequest,
   gigId: string,
@@ -24,9 +24,9 @@ async function applyToGig(
   }: { reason: string; experience: string; portfolio?: string; extra?: string }
 ) {
   const authHeader = req.headers.get('authorization');
-  const token      = authHeader?.split(' ')[1] ?? '';
-  const payload    = JSON.parse(atob(token.split('.')[1] ?? '{}'));
-  const userId     = payload?.id;
+  const token = authHeader?.split(' ')[1] ?? '';
+  const payload = JSON.parse(atob(token.split('.')[1] ?? '{}'));
+  const userId = payload?.id;
 
   if (!userId)
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -52,28 +52,35 @@ async function applyToGig(
     data: { userId, gigId, reason, experience, portfolio, extra },
   });
 
+  // Get user and poster info
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const gigPoster = await prisma.user.findUnique({ where: { id: gig.postedById } });
+
+  // Send email to the gig poster
+  if (gigPoster?.email && user?.name && user?.email) {
+    await sendGigApplicationEmail({
+      to: gigPoster.email,
+      gigTitle: gig.title,
+      applicantName: user.name,
+      applicantEmail: user.email,
+    });
+  }
+
   return NextResponse.json(
     { message: 'Application submitted', application },
     { status: 201 }
   );
 }
 
-
-
-
-
-
 export async function DELETE(
   req: NextRequest,
   context: { params: Promise<{ gigId: string }> }
 ) {
-  const { gigId } = await context.params; // <-- await the promise, as you prefer
+  const { gigId } = await context.params;
   return deleteGig(req, gigId);
 }
 
-/* ───────── actual delete logic ───────── */
 async function deleteGig(req: NextRequest, gigId: string) {
-  /* --- auth --- */
   const token = req.headers.get('authorization')?.split(' ')[1] ?? '';
   const payload = JSON.parse(atob(token.split('.')[1] ?? '{}'));
   const userId: string | undefined = payload?.id;
@@ -82,7 +89,6 @@ async function deleteGig(req: NextRequest, gigId: string) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  /* --- find gig --- */
   const gig = await prisma.gig.findUnique({ where: { id: gigId } });
   if (!gig) {
     return NextResponse.json({ message: 'Gig not found' }, { status: 404 });
@@ -95,7 +101,6 @@ async function deleteGig(req: NextRequest, gigId: string) {
     );
   }
 
-  /* --- delete --- */
   await prisma.gig.delete({ where: { id: gigId } });
   return NextResponse.json({ message: 'Gig deleted successfully' }, { status: 200 });
 }

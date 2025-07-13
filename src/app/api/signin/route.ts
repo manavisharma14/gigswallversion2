@@ -8,59 +8,41 @@ const JWT_SECRET = process.env.NEXTAUTH_SECRET!;
 
 export async function POST(req: Request) {
   try {
-    const {
-      name,
-      email,
-      password,
-      phone,
-      college,
-      department,
-      gradYear,
-      aim,
-      skills,
-      bio,
-      role,
-    } = await req.json();
+    const { email, password } = await req.json();
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      return NextResponse.json({ error: "Email already registered." }, { status: 409 });
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: "Please provide email and password." },
+        { status: 400 }
+      );
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return NextResponse.json({ error: "User not found." }, { status: 404 });
+    }
 
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        phone,
-        college,
-        department,
-        gradYear,
-        aim,
-        skills,
-        bio,
-        role,
-      },
-    });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return NextResponse.json({ error: "Incorrect password." }, { status: 401 });
+    }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email, name: user.name },
+      { id: user.id, email: user.email },
       JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "7d" }
     );
 
     return NextResponse.json(
       {
-        message: "Signup successful",
+        message: "Login successful",
         token,
         user: {
           id: user.id,
           name: user.name,
           email: user.email,
-          college: user.college,
           phone: user.phone,
+          college: user.college,
           department: user.department,
           gradYear: user.gradYear,
           aim: user.aim,
@@ -70,10 +52,14 @@ export async function POST(req: Request) {
           createdAt: user.createdAt,
         },
       },
-      { status: 201 }
+      { status: 200 }
     );
-  } catch (err) {
-    console.error("Signup error:", err);
-    return NextResponse.json({ error: "Server error during signup." }, { status: 500 });
+
+  } catch (error) {
+    console.error("❌ Login Error:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

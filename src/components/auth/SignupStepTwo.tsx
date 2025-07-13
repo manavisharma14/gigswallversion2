@@ -60,22 +60,22 @@ export default function SignupStepTwo({ formData, handleChange }: SignupStepTwoP
         value={formData.gradYear}
         onChange={handleChange}
       />
-      <input
+      {/* <input
         type="text"
         name="aim"
         placeholder="Your Aim"
         className="input w-full text-[#1a1a1a]"
         value={formData.aim}
         onChange={handleChange}
-      />
-      <input
+      /> */}
+      {/* <input
         type="text"
         name="skills"
         placeholder="Skills you're interested in"
         className="input w-full text-[#1a1a1a]"
         value={formData.skills}
         onChange={handleChange}
-      />
+      /> */}
       <textarea
         name="bio"
         placeholder="Short bio (optional)"
