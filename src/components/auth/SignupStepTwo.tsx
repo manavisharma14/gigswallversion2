@@ -1,10 +1,29 @@
-"use client";
+'use client';
 
 import { Listbox } from "@headlessui/react";
 import { ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { Fragment } from "react";
 
-const roles = [
+interface RoleOption {
+  label: string;
+  value: string;
+}
+
+interface SignupStepTwoProps {
+  formData: {
+    department: string;
+    gradYear: string;
+    aim: string;
+    skills: string;
+    bio: string;
+    role: string;
+    college: string;
+    otherCollege?: string;
+  };
+  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+}
+
+const roles: RoleOption[] = [
   { label: "Looking & Posting", value: "both" },
   { label: "Looking for Gigs", value: "finder" },
   { label: "Posting Gigs", value: "poster" },
@@ -12,15 +31,15 @@ const roles = [
 
 const colleges = ["MIT Manipal", "MIT Bangalore", "Others"];
 
-export default function SignupStepTwo({ formData, handleChange }: any) {
+export default function SignupStepTwo({ formData, handleChange }: SignupStepTwoProps) {
   const selectedRole = roles.find((r) => r.value === formData.role) || roles[0];
 
-  const handleRoleChange = (role: any) => {
-    handleChange({ target: { name: "role", value: role.value } });
+  const handleRoleChange = (role: RoleOption) => {
+    handleChange({ target: { name: "role", value: role.value } } as React.ChangeEvent<HTMLInputElement>);
   };
 
   const handleCollegeChange = (college: string) => {
-    handleChange({ target: { name: "college", value: college } });
+    handleChange({ target: { name: "college", value: college } } as React.ChangeEvent<HTMLInputElement>);
   };
 
   return (
@@ -130,7 +149,7 @@ export default function SignupStepTwo({ formData, handleChange }: any) {
           name="otherCollege"
           placeholder="Enter your college name"
           className="input w-full mt-2 text-[#1a1a1a]"
-          value={formData.otherCollege}
+          value={formData.otherCollege || ""}
           onChange={handleChange}
           required
         />

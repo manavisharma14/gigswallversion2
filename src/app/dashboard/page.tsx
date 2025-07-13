@@ -16,7 +16,7 @@ export default async function DashboardPage() {
   if (userCookie) {
     try {
       user = JSON.parse(decodeURIComponent(userCookie));
-    } catch (e) {
+    } catch{
       console.error('Invalid user cookie format');
     }
   }

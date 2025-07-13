@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 
+// Category options
 const categories = [
   '🎨 Creative & Design',
   '💻 Tech & Development',
@@ -19,18 +20,37 @@ const categories = [
   '📊 Data Entry & Analysis',
 ];
 
+// Type definitions
+type GigForm = {
+  title: string;
+  description: string;
+  category: string;
+  budget: string;
+  postedById?: string;
+  college?: string;
+};
+
+type FormErrors = {
+  title?: string;
+  description?: string;
+  category?: string;
+  budget?: string;
+};
+
 export default function PostGigClient() {
   const router = useRouter();
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<GigForm>({
     title: '',
     description: '',
     category: '',
     budget: '',
   });
 
+  const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
 
+  // Load user info from localStorage
   useEffect(() => {
     const token = localStorage.getItem('token');
     const storedUserId = localStorage.getItem('userId');
@@ -45,6 +65,30 @@ export default function PostGigClient() {
     }
   }, []);
 
+  const validateForm = () => {
+    const newErrors: FormErrors = {};
+
+    if (!form.title.trim() || form.title.length < 5 || form.title.length > 100) {
+      newErrors.title = 'Title must be 5–100 characters.';
+    }
+
+    if (!form.description.trim() || form.description.length < 50) {
+      newErrors.description = 'Description should be at least 50 characters.';
+    }
+
+    if (!form.category) {
+      newErrors.category = 'Please select a category.';
+    }
+
+    const budgetNum = Number(form.budget);
+    if (!budgetNum || isNaN(budgetNum) || budgetNum < 100 || budgetNum > 100000) {
+      newErrors.budget = 'Enter a valid budget (₹100 to ₹100000).';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -53,6 +97,8 @@ export default function PostGigClient() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateForm()) return;
 
     const token = localStorage.getItem('token');
     const userId = localStorage.getItem('userId');
@@ -97,34 +143,30 @@ export default function PostGigClient() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Title */}
           <div>
-            <label htmlFor="title" className="block mb-1 font-semibold text-[#4B55C3]">
-              Gig Title
-            </label>
+            <label className="block mb-1 font-semibold text-[#4B55C3]">Gig Title</label>
             <input
               name="title"
               type="text"
               value={form.title}
               onChange={handleChange}
               placeholder="e.g., Logo Design for Club"
-              required
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#4B55C3] focus:outline-none placeholder-gray-500"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#4B55C3] focus:outline-none"
             />
+            {errors.title && <p className="text-sm text-red-600 mt-1">{errors.title}</p>}
           </div>
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="block mb-1 font-semibold text-[#4B55C3]">
-              Description
-            </label>
+            <label className="block mb-1 font-semibold text-[#4B55C3]">Description</label>
             <textarea
               name="description"
               value={form.description}
               onChange={handleChange}
               placeholder="Describe what the gig involves..."
               rows={4}
-              required
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#4B55C3] focus:outline-none placeholder-gray-500"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#4B55C3] focus:outline-none"
             />
+            {errors.description && <p className="text-sm text-red-600 mt-1">{errors.description}</p>}
           </div>
 
           {/* Category */}
@@ -133,20 +175,13 @@ export default function PostGigClient() {
             <Listbox value={form.category} onChange={(val) => setForm({ ...form, category: val })}>
               <div className="relative mt-1">
                 <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-3 pl-4 pr-10 text-left border border-gray-300 focus:ring-2 focus:ring-[#4B55C3] focus:outline-none">
-                  <span className="block truncate">
-                    {form.category || 'Select Category'}
-                  </span>
+                  <span className="block truncate">{form.category || 'Select Category'}</span>
                   <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                    <ChevronUpDownIcon className="h-5 w-5 text-[#4B55C3]" aria-hidden="true" />
+                    <ChevronUpDownIcon className="h-5 w-5 text-[#4B55C3]" />
                   </span>
                 </Listbox.Button>
 
-                <Transition
-                  as={Fragment}
-                  leave="transition ease-in duration-100"
-                  leaveFrom="opacity-100"
-                  leaveTo="opacity-0"
-                >
+                <Transition as={Fragment}>
                   <Listbox.Options className="absolute z-10 mt-1 max-h-80 w-full overflow-auto rounded-md bg-white text-base shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                     {categories.map((option) => (
                       <Listbox.Option
@@ -161,7 +196,9 @@ export default function PostGigClient() {
                         {({ selected }) => (
                           <span className={`${selected ? 'font-medium' : 'font-normal'}`}>
                             {option}
-                            {selected && <CheckIcon className="w-5 h-5 inline ml-2 text-[#4B55C3]" />}
+                            {selected && (
+                              <CheckIcon className="w-5 h-5 inline ml-2 text-[#4B55C3]" />
+                            )}
                           </span>
                         )}
                       </Listbox.Option>
@@ -170,22 +207,21 @@ export default function PostGigClient() {
                 </Transition>
               </div>
             </Listbox>
+            {errors.category && <p className="text-sm text-red-600 mt-1">{errors.category}</p>}
           </div>
 
           {/* Budget */}
           <div>
-            <label htmlFor="budget" className="block mb-1 font-semibold text-[#4B55C3]">
-              Budget (₹)
-            </label>
+            <label className="block mb-1 font-semibold text-[#4B55C3]">Budget (₹)</label>
             <input
               name="budget"
               type="number"
               value={form.budget}
               onChange={handleChange}
               placeholder="e.g., 1000"
-              required
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#4B55C3] focus:outline-none placeholder-gray-500"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#4B55C3] focus:outline-none"
             />
+            {errors.budget && <p className="text-sm text-red-600 mt-1">{errors.budget}</p>}
           </div>
 
           {/* Submit Button */}

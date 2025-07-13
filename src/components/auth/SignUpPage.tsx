@@ -67,7 +67,7 @@ export default function SignUpPage() {
       } else {
         toast.error(data?.error || "Something went wrong.");
       }
-    } catch (err) {
+    } catch  {
       toast.error("Signup failed.");
     }
   };
