@@ -1,6 +1,7 @@
 import { Mail, Lock, Phone, User, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
+// Reusable styling
 const inputClass =
   "w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#6B7FFF] text-[#4B3BB3] placeholder-gray-400 bg-white";
 
@@ -28,7 +29,7 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
     setShowPassword((prev) => !prev);
   };
 
-  const evaluatePasswordStrength = (password: string) => {
+  const evaluatePasswordStrength = (password: string): number => {
     let score = 0;
     if (password.length >= 8) score++;
     if (/[A-Z]/.test(password)) score++;
@@ -51,6 +52,7 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
 
   return (
     <>
+      {/* Name Field */}
       <div className="relative mb-4">
         <User className={iconClass} size={20} />
         <input
@@ -64,6 +66,7 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
         />
       </div>
 
+      {/* Email Field */}
       <div className="relative mb-4">
         <Mail className={iconClass} size={20} />
         <input
@@ -77,6 +80,7 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
         />
       </div>
 
+      {/* Password Field */}
       <div className="relative mb-2">
         <Lock className={iconClass} size={20} />
         <input
@@ -96,19 +100,24 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
         </div>
       </div>
 
+      {/* Password Strength Bars */}
       {showStrength && (
-        <div className="mb-4 mt-1 flex justify-center gap-2">
-          {[0, 1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className={`h-2 w-10 rounded-md transition-all duration-300 ${
-                i < strengthLevel ? barColors[strengthLevel - 1] : "bg-gray-200"
-              }`}
-            ></div>
-          ))}
+        <div className="mb-4 mt-1 flex justify-end gap-[6px] pr-1">
+          {[1, 2, 3, 4].map((bar) => {
+            const filled = strengthLevel >= bar;
+            return (
+              <div
+                key={bar}
+                className={`w-5 h-1.5 rounded-full transition-colors duration-300 ${
+                  filled ? barColors[bar - 1] : "bg-gray-300"
+                }`}
+              ></div>
+            );
+          })}
         </div>
       )}
 
+      {/* Phone Field */}
       <div className="relative mb-4">
         <Phone className={iconClass} size={20} />
         <input

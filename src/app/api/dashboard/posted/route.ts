@@ -1,32 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import jwt from 'jsonwebtoken';
-
-const prisma = new PrismaClient();
-
-interface DecodedToken {
-  id: string;
-  email?: string; // optional, add more fields if your token contains them
-  iat?: number;
-  exp?: number;
-}
+import { prisma } from '@/lib/prisma'; // Use singleton
+import { getUserFromToken } from '@/lib/getUserFromToken'; // Update path as needed
 
 export async function GET(req: NextRequest) {
+  const userOrResponse = await getUserFromToken(req);
+  if (typeof userOrResponse !== 'object' || !('userId' in userOrResponse)) {
+    return userOrResponse as NextResponse;
+  }
+
+  const { userId } = userOrResponse;
+
+  // Validate userId as MongoDB ObjectId
+  if (!userId || !/^[0-9a-fA-F]{24}$/.test(userId)) {
+    return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
+  }
+
   try {
-    const authHeader = req.headers.get('authorization');
-    const token = authHeader?.split(' ')[1];
-
-    if (!token) {
-      return NextResponse.json({ message: 'Unauthorized - No token provided' }, { status: 401 });
-    }
-
-    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET!) as DecodedToken;
-
-    const userId = decoded?.id;
-    if (!userId) {
-      return NextResponse.json({ message: 'Unauthorized - Invalid token payload' }, { status: 401 });
-    }
-
     const gigs = await prisma.gig.findMany({
       where: { postedById: userId },
       include: {
@@ -38,9 +27,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ gigs });
   } catch (error) {
-    console.error('Error in /api/dashboard/posted:', error);
+    console.error('Error in /api/dashboard/posted:', error instanceof Error ? error.message : error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
-
-

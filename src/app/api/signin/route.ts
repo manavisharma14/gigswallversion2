@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Please provide email and password." },
+        { error: "Please provide email, password" },
         { status: 400 }
       );
     }
@@ -21,17 +21,19 @@ export async function POST(req: Request) {
     if (!user) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
+    
+
+
+
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return NextResponse.json({ error: "Incorrect password." }, { status: 401 });
     }
 
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     return NextResponse.json(
       {
@@ -54,7 +56,6 @@ export async function POST(req: Request) {
       },
       { status: 200 }
     );
-
   } catch (error) {
     console.error("❌ Login Error:", error);
     return NextResponse.json(

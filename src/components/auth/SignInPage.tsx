@@ -3,7 +3,13 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+
+const inputClass =
+  'w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#6B7FFF] text-[#4B3BB3] placeholder-gray-400 bg-white';
+
+const iconClass =
+  'absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3]';
 
 const SignInPage = () => {
   const [email, setEmail] = useState('');
@@ -23,14 +29,12 @@ const SignInPage = () => {
       const data = await res.json();
 
       if (res.ok) {
-        // Save auth info
         document.cookie = `token=${data.token}; path=/`;
         document.cookie = `user=${encodeURIComponent(JSON.stringify(data.user))}; path=/`;
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('userId', data.user.id);
 
-        // Notify and redirect
         window.dispatchEvent(new Event('storageChanged'));
         toast.success('Welcome back!', { id: 'login-success' });
         router.push('/dashboard');
@@ -43,42 +47,50 @@ const SignInPage = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-md px-4">
-      <h2 className="text-2xl font-bold text-[#4B3BB3] text-center">Login</h2>
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md p-8 ">
+        <h2 className="text-2xl font-bold text-[#4B3BB3] text-center">Login</h2>
 
-      <input
-        type="email"
-        placeholder="Email"
-        className="w-full border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B7FFF]"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-
-      <div className="relative">
-        <input
-          type={showPassword ? 'text' : 'password'}
-          placeholder="Password"
-          className="w-full border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B7FFF] pr-10"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <div
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer"
-          onClick={() => setShowPassword((prev) => !prev)}
-        >
-          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+        {/* Email Input */}
+        <div className="relative">
+          <Mail className={iconClass} size={20} />
+          <input
+            type="email"
+            placeholder="Email"
+            className={inputClass}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
         </div>
-      </div>
 
-      <button
-        type="submit"
-        className="w-full bg-[#6B7FFF] hover:bg-[#5A6FEF] text-white font-bold py-2 rounded-full"
-      >
-        SIGN IN
-      </button>
-    </form>
+        {/* Password Input */}
+        <div className="relative">
+          <Lock className={iconClass} size={20} />
+          <input
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Password"
+            className={inputClass}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <div
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3] cursor-pointer"
+            onClick={() => setShowPassword((prev) => !prev)}
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          className="w-full bg-[#6B7FFF] hover:bg-[#5A6FEF] text-white font-bold py-2 rounded-full transition"
+        >
+          SIGN IN
+        </button>
+      </form>
+    </div>
   );
 };
 

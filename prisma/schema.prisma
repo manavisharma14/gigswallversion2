@@ -1,6 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-1.0.x"] // optional for deployment
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
@@ -13,19 +13,26 @@ enum UserType {
   other
 }
 
+// 💡 OPTIONAL: Enforce consistent status values using enum
+enum ApplicationStatus {
+  pending
+  accepted
+  rejected
+}
+
 model User {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
+  name        String?
   email       String   @unique
   password    String
-  phone       String
-  college     String
+  phone       String?
+  college     String?
   department  String?
   gradYear    String?
   aim         String?
   skills      String?
   bio         String?
-  role        String?   // "poster", "finder", or "both"
+  role        String?
   type        UserType  @default(student)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -50,14 +57,20 @@ model Gig {
 }
 
 model Application {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String   @db.ObjectId
-  gigId      String   @db.ObjectId
+  id         String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String             @db.ObjectId
+  gigId      String             @db.ObjectId
   reason     String?
   experience String?
   portfolio  String?
   extra      String?
-  createdAt  DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id])
-  gig        Gig      @relation(fields: [gigId], references: [id])
+  status     ApplicationStatus  @default(pending) // use String if not using enum
+  createdAt  DateTime           @default(now())
+
+  user       User               @relation(fields: [userId], references: [id])
+  gig        Gig                @relation(fields: [gigId], references: [id])
 }
+
+
+
+

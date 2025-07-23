@@ -1,6 +1,11 @@
+/* eslint-disable */
+
+// GigsListClient.tsx
 'use client';
 import React, { useState } from 'react';
 import ApplyModal from '@/components/ApplyModal';
+import { Info } from 'lucide-react';
+
 
 interface Gig {
   id: string;
@@ -22,6 +27,7 @@ interface ApplicationFormData {
 export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
   const [selectedGig, setSelectedGig] = useState<Gig | null>(gigs[0] || null);
   const [showModal, setShowModal] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
 
   const handleSubmitApplication = (formData: ApplicationFormData) => {
     console.log('Application submitted:', {
@@ -31,18 +37,49 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
     setShowModal(false);
   };
 
+  const checkCanApply = async (gigId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const payload = JSON.parse(atob(token?.split('.')[1] ?? '{}'));
+      const userType = payload?.userType;
+      const role = payload?.role; // Add role from token
+
+      // First check: If role is 'external' or userType is 'other', deny application
+      if (role === 'external' || userType === 'other') {
+        setErrors((prev) => ({ ...prev, [gigId]: 'Only students with applicable roles can apply for gigs' }));
+        setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 1000);
+        return;
+      }
+
+      const response = await fetch(`/api/gigs/${gigId}/can-apply`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setErrors((prev) => ({ ...prev, [gigId]: null }));
+        setShowModal(true);
+      } else {
+        setErrors((prev) => ({ ...prev, [gigId]: data.message }));
+        setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 1000);
+      }
+    } catch (error) {
+      setErrors((prev) => ({ ...prev, [gigId]: 'An error occurred while checking eligibility.' }));
+      setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 1000);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-white font-bricolage px-4 sm:px-6 md:px-12 py-10">
-      {selectedGig &&
-        selectedGig.status.toLowerCase() === 'open' &&
-        showModal && (
-          <ApplyModal
-            gigId={selectedGig.id}
-            gigTitle={selectedGig.title}
-            onClose={() => setShowModal(false)}
-            onSubmit={handleSubmitApplication}
-          />
-        )}
+    <div className="min-h-screen bg-white font-bricolage mt-14 px-4 sm:px-6 md:px-12 py-10">
+      {selectedGig && selectedGig.status.toLowerCase() === 'open' && showModal && (
+        <ApplyModal
+          gigId={selectedGig.id}
+          gigTitle={selectedGig.title}
+          onClose={() => setShowModal(false)}
+          onSubmit={handleSubmitApplication}
+        />
+      )}
 
       <div className="flex flex-col md:grid md:grid-cols-3 gap-8">
         {/* Gig List */}
@@ -58,17 +95,14 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
                   isSelected ? 'bg-gray-50' : ''
                 }`}
               >
-                <h3 className="font-bold text-gray-900 text-base">
-                  {gig.title}
-                </h3>
+                <h3 className="font-bold text-gray-900 text-base">{gig.title}</h3>
                 <p className="text-xs text-gray-500">{gig.category}</p>
                 <p
                   className={`mt-1 font-bold text-sm ${
                     isOpen ? 'text-[#4B55C3]' : 'text-red-500'
                   }`}
                 >
-                  {isOpen ? 'Open' : 'Closed'} • ₹
-                  {gig.budget.toLocaleString()}
+                  {isOpen ? 'Open' : 'Closed'} • ₹{gig.budget.toLocaleString()}
                 </p>
               </div>
             );
@@ -111,12 +145,42 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
               </div>
 
               {selectedGig.status.toLowerCase() === 'open' && (
-                <button
-                  onClick={() => setShowModal(true)}
-                  className="mt-4 bg-[#4B55C3] hover:bg-[#6D7BE4] text-white px-6 py-2 rounded-md text-sm font-medium transition"
-                >
-                  Apply Now
-                </button>
+                <div className="relative inline-block">
+<div className="flex items-center gap-2 relative">
+  {/* Apply Now Button */}
+  <button
+    onClick={() => checkCanApply(selectedGig.id)}
+    className="bg-[#4B55C3] hover:bg-[#6D7BE4] text-white px-6 py-2 rounded-md text-sm font-medium transition"
+  >
+    Apply Now
+  </button>
+
+  {/* Info icon + tooltip beside it */}
+  <div className="relative group flex items-center">
+    <Info className="w-4 h-4 text-[#4B55C3] dark:text-[#A991F7] cursor-pointer" />
+
+    <div
+      className="absolute left-full ml-2 top-1/2 -translate-y-1/2
+                 bg-[#EFF2FF] dark:bg-[#2D245C] text-[#4B55C3] dark:text-[#A991F7]
+                 text-xs px-3 py-1 rounded-md shadow-md whitespace-normal z-50
+                 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto
+                 transition w-[220px] max-w-xs"
+    >
+      Only verified students can apply. If you're hiring, post a gig instead.
+    </div>
+  </div>
+</div>
+
+
+
+
+
+                  {errors[selectedGig.id] && (
+                    <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-red-100 text-red-700 text-xs p-1 rounded-md whitespace-nowrap">
+                      {errors[selectedGig.id]}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           ) : (

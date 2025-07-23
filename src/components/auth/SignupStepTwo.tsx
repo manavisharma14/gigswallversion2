@@ -1,8 +1,9 @@
+/* eslint-disable */
+
 'use client';
 
 import { Listbox } from "@headlessui/react";
 import { ChevronUpDownIcon } from "@heroicons/react/20/solid";
-import { Fragment } from "react";
 
 interface RoleOption {
   label: string;
@@ -21,6 +22,7 @@ interface SignupStepTwoProps {
     otherCollege?: string;
   };
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  setFormData: React.Dispatch<React.SetStateAction<any>>;
 }
 
 const roles: RoleOption[] = [
@@ -31,64 +33,73 @@ const roles: RoleOption[] = [
 
 const colleges = ["MIT Manipal", "MIT Bangalore", "Others"];
 
-export default function SignupStepTwo({ formData, handleChange }: SignupStepTwoProps) {
+const inputClass =
+  "w-full pl-4 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#6B7FFF] text-[#4B3BB3] placeholder-gray-400 bg-white";
+
+const dropdownBtnClass =
+  "w-full cursor-default rounded-lg border border-gray-300 bg-white py-2 pl-4 pr-10 text-left text-[#4B3BB3] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6B7FFF] sm:text-sm";
+
+const dropdownOptionClass = (active: boolean) =>
+  `relative cursor-pointer select-none py-2 pl-4 pr-4 ${
+    active ? "bg-[#EEF0FF] text-[#4B3BB3]" : "text-[#1a1a1a]"
+  }`;
+
+export default function SignupStepTwo({
+  formData,
+  handleChange,
+  setFormData,
+}: SignupStepTwoProps) {
   const selectedRole = roles.find((r) => r.value === formData.role) || roles[0];
 
   const handleRoleChange = (role: RoleOption) => {
-    handleChange({ target: { name: "role", value: role.value } } as React.ChangeEvent<HTMLInputElement>);
+    setFormData((prev: any) => ({
+      ...prev,
+      role: role.value,
+    }));
   };
 
   const handleCollegeChange = (college: string) => {
-    handleChange({ target: { name: "college", value: college } } as React.ChangeEvent<HTMLInputElement>);
+    setFormData((prev: any) => ({
+      ...prev,
+      college,
+      ...(college !== "Others" ? { otherCollege: "" } : {}),
+    }));
   };
 
   return (
-    <>
+    <div className="space-y-4 text-[#1a1a1a]">
       <input
         type="text"
         name="department"
         placeholder="Department"
-        className="input w-full text-[#1a1a1a]"
+        className={inputClass}
         value={formData.department}
         onChange={handleChange}
       />
+
       <input
         type="text"
         name="gradYear"
         placeholder="Graduation Year"
-        className="input w-full text-[#1a1a1a]"
+        className={inputClass}
         value={formData.gradYear}
         onChange={handleChange}
       />
-      {/* <input
-        type="text"
-        name="aim"
-        placeholder="Your Aim"
-        className="input w-full text-[#1a1a1a]"
-        value={formData.aim}
-        onChange={handleChange}
-      /> */}
-      {/* <input
-        type="text"
-        name="skills"
-        placeholder="Skills you're interested in"
-        className="input w-full text-[#1a1a1a]"
-        value={formData.skills}
-        onChange={handleChange}
-      /> */}
+
       <textarea
         name="bio"
         placeholder="Short bio (optional)"
-        className="input w-full text-[#1a1a1a]"
+        className={inputClass}
         value={formData.bio}
         onChange={handleChange}
+        rows={3}
       />
 
       {/* Role Dropdown */}
-      <div className="w-full mt-2 text-[#1a1a1a]">
+      <div className="w-full">
         <Listbox value={selectedRole} onChange={handleRoleChange}>
           <div className="relative">
-            <Listbox.Button className="w-full cursor-default rounded-md border border-gray-300 bg-white py-2 pl-4 pr-10 text-left text-[#1a1a1a] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6B7FFF] sm:text-sm">
+            <Listbox.Button className={dropdownBtnClass}>
               {selectedRole.label}
               <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                 <ChevronUpDownIcon className="h-5 w-5 text-[#4B3BB3]" aria-hidden="true" />
@@ -99,11 +110,7 @@ export default function SignupStepTwo({ formData, handleChange }: SignupStepTwoP
                 <Listbox.Option
                   key={idx}
                   value={role}
-                  className={({ active }) =>
-                    `relative cursor-pointer select-none py-2 pl-4 pr-4 ${
-                      active ? "bg-[#EEF0FF] text-[#4B3BB3]" : "text-[#1a1a1a]"
-                    }`
-                  }
+                  className={({ active }) => dropdownOptionClass(active)}
                 >
                   {role.label}
                 </Listbox.Option>
@@ -114,10 +121,10 @@ export default function SignupStepTwo({ formData, handleChange }: SignupStepTwoP
       </div>
 
       {/* College Dropdown */}
-      <div className="w-full mt-2 text-[#1a1a1a]">
+      <div className="w-full">
         <Listbox value={formData.college} onChange={handleCollegeChange}>
           <div className="relative">
-            <Listbox.Button className="w-full cursor-default rounded-md border border-gray-300 bg-white py-2 pl-4 pr-10 text-left text-[#1a1a1a] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6B7FFF] sm:text-sm">
+            <Listbox.Button className={dropdownBtnClass}>
               {formData.college || "Select College"}
               <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                 <ChevronUpDownIcon className="h-5 w-5 text-[#4B3BB3]" aria-hidden="true" />
@@ -128,11 +135,7 @@ export default function SignupStepTwo({ formData, handleChange }: SignupStepTwoP
                 <Listbox.Option
                   key={idx}
                   value={college}
-                  className={({ active }) =>
-                    `relative cursor-pointer select-none py-2 pl-4 pr-4 ${
-                      active ? "bg-[#EEF0FF] text-[#4B3BB3]" : "text-[#1a1a1a]"
-                    }`
-                  }
+                  className={({ active }) => dropdownOptionClass(active)}
                 >
                   {college}
                 </Listbox.Option>
@@ -142,18 +145,17 @@ export default function SignupStepTwo({ formData, handleChange }: SignupStepTwoP
         </Listbox>
       </div>
 
-      {/* Conditional "Other College" input */}
       {formData.college === "Others" && (
         <input
           type="text"
           name="otherCollege"
           placeholder="Enter your college name"
-          className="input w-full mt-2 text-[#1a1a1a]"
+          className={`${inputClass} mt-2`}
           value={formData.otherCollege || ""}
           onChange={handleChange}
           required
         />
       )}
-    </>
+    </div>
   );
 }
