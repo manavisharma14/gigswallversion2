@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "mongodb" 
   url      = env("DATABASE_URL")
 }
 
@@ -41,20 +41,6 @@ model User {
   applications Application[]
 }
 
-model Gig {
-  id           String         @id @default(auto()) @map("_id") @db.ObjectId
-  title        String
-  description  String
-  budget       Int
-  category     String
-  college      String
-  isOpen       Boolean        @default(true)
-  status       String         @default("open")
-  createdAt    DateTime       @default(now())
-  postedById   String         @db.ObjectId
-  postedBy     User           @relation(fields: [postedById], references: [id], name: "UserGigs")
-  applications Application[]
-}
 
 model Application {
   id         String             @id @default(auto()) @map("_id") @db.ObjectId
@@ -71,6 +57,37 @@ model Application {
   gig        Gig                @relation(fields: [gigId], references: [id])
 }
 
+
+
+model Gig {
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  description  String
+  budget       Int
+  category     String
+  college      String
+  isOpen       Boolean        @default(true)
+  status       String         @default("open")
+  createdAt    DateTime       @default(now())
+  postedById   String         @db.ObjectId
+  postedBy     User           @relation(fields: [postedById], references: [id], name: "UserGigs")
+  applications Application[]
+  
+  // This defines the reverse relation
+  messages     Message[]      @relation("GigMessages")
+}
+
+model Message {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  gigId       String   @db.ObjectId
+  message     String
+  sender      String
+  recipient   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  gig         Gig      @relation("GigMessages", fields: [gigId], references: [id])
+}
 
 
 

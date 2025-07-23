@@ -20,11 +20,11 @@ export default function AuthSlider({ defaultLoginMode }: { defaultLoginMode: boo
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-gradient-to-br from-[#3B4CCA] via-[#667EEA] to-[#A991F7]">
-      <div className="flex flex-col md:flex-row w-full">
+    <div className="flex min-h-screen w-full bg-gradient-to-br from-[#3B4CCA] via-[#667EEA] to-[#A991F7] overflow-hidden">
+      <div className="flex flex-col md:flex-row w-full max-w-full min-h-screen">
 
         {/* Left Panel */}
-        <div className="w-full md:w-2/5 flex flex-col justify-center items-center bg-[#4B55C3] text-white px-6 py-12 md:py-20 text-center">
+        <div className="w-full md:w-2/5 flex flex-col justify-center items-center bg-[#4B55C3] text-white px-6 py-12 md:py-20 text-center max-w-full">
           <div className="max-w-md">
             <h2 className="text-3xl sm:text-4xl font-bold font-bricolage mb-4">
               {isSignIn ? "Welcome Back! ✨" : "Hello Friend! 🚀"}
@@ -44,7 +44,7 @@ export default function AuthSlider({ defaultLoginMode }: { defaultLoginMode: boo
         </div>
 
         {/* Right Panel */}
-        <div className="w-full md:w-3/5 flex justify-center items-center bg-white/90 p-6 sm:p-12">
+        <div className="w-full md:w-3/5 flex justify-center items-center bg-white/90 p-6 sm:p-12 max-w-full overflow-hidden">
           <div className="w-full max-w-xl">
             {isSignIn ? <SignInPage /> : <SignUpPage />}
           </div>

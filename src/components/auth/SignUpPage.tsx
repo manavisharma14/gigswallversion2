@@ -156,7 +156,7 @@ export default function SignUpPage() {
             type="button"
             onClick={() => setIsStudent(true)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-              isStudent ? "bg-[#6B7FFF] text-white" : "bg-[#E5E4FB] text-[#4B3BB3] dark:bg-[#2F2A60] dark:text-white"
+              isStudent ? "bg-[#6B7FFF] text-white" : "bg-[#E5E4FB] text-[#4B3BB3]"
             }`}
           >
             Student
@@ -165,7 +165,7 @@ export default function SignUpPage() {
             type="button"
             onClick={() => setIsStudent(false)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-              !isStudent ? "bg-[#6B7FFF] text-white" : "bg-[#E5E4FB] text-[#4B3BB3] dark:bg-[#2F2A60] dark:text-white"
+              !isStudent ? "bg-[#6B7FFF] text-white" : "bg-[#E5E4FB] text-[#4B3BB3]"
             }`}
           >
             Not a Student
@@ -225,7 +225,7 @@ export default function SignUpPage() {
               {/* Email Input */}
               <div className="relative">
                 <Mail
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3] dark:text-[#A991F7]"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3]"
                   size={20}
                 />
                 <input
@@ -235,14 +235,14 @@ export default function SignUpPage() {
                   onChange={handleChange}
                   placeholder="Email"
                   required
-                  className="w-full border border-gray-300 dark:border-gray-600 px-4 py-2 pl-10 rounded-md bg-white dark:bg-gray-800 text-black dark:text-white"
+                  className="w-full border border-gray-300 px-4 py-2 pl-10 rounded-md bg-white text-black"
                 />
               </div>
 
               {/* Password Input */}
               <div className="relative">
                 <Lock
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3] dark:text-[#A991F7]"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3]"
                   size={20}
                 />
                 <input
@@ -252,47 +252,42 @@ export default function SignUpPage() {
                   onChange={handleChange}
                   placeholder="Password"
                   required
-                  className="w-full border border-gray-300 dark:border-gray-600 px-4 py-2 pl-10 pr-10 rounded-md bg-white dark:bg-gray-800 text-black dark:text-white"
+                  className="w-full border border-gray-300 px-4 py-2 pl-10 pr-10 rounded-md bg-white text-black"
                 />
                 <div
                   onClick={togglePassword}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3] dark:text-[#A991F7] cursor-pointer"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3] cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </div>
               </div>
 
               {/* Password Strength */}
-              {/* Password Strength Bars */}
-{/* Password Strength Inline Bars (4 bars, small, right aligned) */}
-{/* Password Strength Bars - Slim Rectangular */}
-{formData.password && (
-  <div className="flex justify-end gap-1 mt-1 pr-1">
-    {[1, 2, 3, 4].map((bar) => {
-      const filled =
-        (passwordStrength === "Strong" && bar <= 4) ||
-        (passwordStrength === "Medium" && bar <= 3) ||
-        (passwordStrength === "Weak" && bar <= 2);
+              {formData.password && (
+                <div className="flex justify-end gap-1 mt-1 pr-1">
+                  {[1, 2, 3, 4].map((bar) => {
+                    const filled =
+                      (passwordStrength === "Strong" && bar <= 4) ||
+                      (passwordStrength === "Medium" && bar <= 3) ||
+                      (passwordStrength === "Weak" && bar <= 2);
 
-      return (
-        <div
-          key={bar}
-          className={`w-6 h-1 rounded-sm ${
-            filled
-              ? passwordStrength === "Strong"
-                ? "bg-green-500"
-                : passwordStrength === "Medium"
-                ? "bg-yellow-400"
-                : "bg-red-500"
-              : "bg-gray-300"
-          }`}
-        ></div>
-      );
-    })}
-  </div>
-)}
-
-
+                    return (
+                      <div
+                        key={bar}
+                        className={`w-6 h-1 rounded-sm ${
+                          filled
+                            ? passwordStrength === "Strong"
+                              ? "bg-green-500"
+                              : passwordStrength === "Medium"
+                              ? "bg-yellow-400"
+                              : "bg-red-500"
+                            : "bg-gray-300"
+                        }`}
+                      ></div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <button
@@ -311,11 +306,13 @@ export default function SignUpPage() {
       </form>
 
       {/* Info text below everything */}
-      <p className="mt-4 text-xs text-center max-w-xs mx-auto font-medium text-[#4B3BB3] dark:text-[#A991F7]">
-        {isStudent
-          ? "* Students can apply to gigs and post their own gigs."
-          : "* You're signing up as a client. You can post gigs, hire students, and manage your tasks through the dashboard."}
-      </p>
+      <p className="mt-8 text-sm font-bold text-center max-w-xs mx-auto text-[#5A6CFF]">
+  {isStudent
+    ? "* Students can apply to gigs and post their own gigs."
+    : "* You're signing up as a client. You can post gigs, hire students, and manage your tasks through the dashboard."}
+</p>
+
+
     </div>
   );
 }

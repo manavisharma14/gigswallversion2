@@ -91,16 +91,14 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
               <div
                 key={gig.id}
                 onClick={() => setSelectedGig(gig)}
-                className={`px-4 py-3 border-b border-gray-200 cursor-pointer transition ${
-                  isSelected ? 'bg-gray-50' : ''
-                }`}
+                className={`px-4 py-3 border-b border-gray-200 cursor-pointer transition ${isSelected ? 'bg-gray-50' : ''
+                  }`}
               >
                 <h3 className="font-bold text-gray-900 text-base">{gig.title}</h3>
                 <p className="text-xs text-gray-500">{gig.category}</p>
                 <p
-                  className={`mt-1 font-bold text-sm ${
-                    isOpen ? 'text-[#4B55C3]' : 'text-red-500'
-                  }`}
+                  className={`mt-1 font-bold text-sm ${isOpen ? 'text-[#4B55C3]' : 'text-red-500'
+                    }`}
                 >
                   {isOpen ? 'Open' : 'Closed'} • ₹{gig.budget.toLocaleString()}
                 </p>
@@ -146,35 +144,30 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
 
               {selectedGig.status.toLowerCase() === 'open' && (
                 <div className="relative inline-block">
-<div className="flex items-center gap-2 relative">
-  {/* Apply Now Button */}
-  <button
-    onClick={() => checkCanApply(selectedGig.id)}
-    className="bg-[#4B55C3] hover:bg-[#6D7BE4] text-white px-6 py-2 rounded-md text-sm font-medium transition"
-  >
-    Apply Now
-  </button>
+                  <div className="flex items-center gap-2 relative">
+                    {/* Apply Now Button */}
+                    <button
+                      onClick={() => checkCanApply(selectedGig.id)}
+                      className="bg-[#4B55C3] hover:bg-[#6D7BE4] text-white px-6 py-2 rounded-md text-sm font-medium transition"
+                    >
+                      Apply Now
+                    </button>
 
-  {/* Info icon + tooltip beside it */}
-  <div className="relative group flex items-center">
-    <Info className="w-4 h-4 text-[#4B55C3] dark:text-[#A991F7] cursor-pointer" />
+                    {/* Info icon + tooltip beside it */}
+                    <div className="relative group flex items-center">
+                      <Info className="w-4 h-4 text-[#4B55C3] cursor-pointer" />
 
-    <div
-      className="absolute left-full ml-2 top-1/2 -translate-y-1/2
-                 bg-[#EFF2FF] dark:bg-[#2D245C] text-[#4B55C3] dark:text-[#A991F7]
+                      <div
+                        className="absolute left-full ml-2 top-1/2 -translate-y-1/2
+                 bg-[#EFF2FF]  text-[#4B55C3] 
                  text-xs px-3 py-1 rounded-md shadow-md whitespace-normal z-50
                  opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto
                  transition w-[220px] max-w-xs"
-    >
-      Only verified students can apply. If you're hiring, post a gig instead.
-    </div>
-  </div>
-</div>
-
-
-
-
-
+                      >
+                        Only verified students can apply. If you're hiring, post a gig instead.
+                      </div>
+                    </div>
+                  </div>
                   {errors[selectedGig.id] && (
                     <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-red-100 text-red-700 text-xs p-1 rounded-md whitespace-nowrap">
                       {errors[selectedGig.id]}

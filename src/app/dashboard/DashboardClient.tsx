@@ -1,41 +1,37 @@
 'use client';
 
-import {
-  UserIcon,
-  BriefcaseIcon,
-  ClipboardDocumentCheckIcon,
-  PencilIcon,
-  Bars3Icon,
-  XMarkIcon,
-  TrashIcon,
-} from '@heroicons/react/24/outline';
 import { useState } from 'react';
+import ChatComponent from '../../components/ChatComponent';
+import { UserIcon, BriefcaseIcon, ClipboardDocumentCheckIcon, PencilIcon, Bars3Icon, XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 type Gig = {
   id: string;
   title: string;
   description: string;
-  applications?: {
-    id: string;
-    reason: string;
-    status: string;
-    user?: {
-      name: string;
-      email: string;
-    };
-  }[];
+  budget: number;
+  category: string;
+  college: string;
+  isOpen: boolean;
+  status: string;
+  createdAt: string;
+  postedById: string;
+  postedBy?: User;
+  applications?: Application[];
+  applicantId?: string;
 };
 
 type Application = {
   id: string;
   reason: string;
   status: string;
-  gig?: {
-    title: string;
-  };
+  gigId: string;
+  userId: string;
+  user?: User;
+  gig?: Gig;
 };
 
 type User = {
+  id: string;
   name?: string;
   email?: string;
   college?: string;
@@ -57,6 +53,7 @@ export default function DashboardClient({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [gigToDelete, setGigToDelete] = useState<{ id: string; title: string } | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [openChatForGig, setOpenChatForGig] = useState<string | null>(null); // Store the gigId for the chat modal
 
   const menuItems = [
     { name: 'Profile', icon: UserIcon },
@@ -94,6 +91,10 @@ export default function DashboardClient({
     }
 
     setGigToDelete(null);
+  };
+
+  const toggleChat = (gigId: string) => {
+    setOpenChatForGig(prevState => prevState === gigId ? null : gigId); // Toggle only the clicked gig's chat
   };
 
   const renderContent = () => {
@@ -155,82 +156,107 @@ export default function DashboardClient({
           {postedGigs.length === 0 ? (
             <p className="text-center text-gray-600">No gigs posted yet.</p>
           ) : (
-            postedGigs.map(gig => (
-              <div key={gig.id} className="relative bg-white p-5 md:p-6 rounded-xl shadow-md border">
-                <h3 className="font-semibold text-lg text-[#4B55C3]">{gig.title}</h3>
-                <p className="text-gray-700 mb-2">{gig.description}</p>
+            postedGigs.map((gig, index) => {
+              const gigKey = `${gig.id}-${index}`;
+              const recipient = gig.postedById === user.id ? gig.applicantId : gig.postedById;
 
-                <button
-                  onClick={() => setGigToDelete({ id: gig.id, title: gig.title })}
-                  className="absolute top-3 right-3 text-red-500 hover:text-red-600"
-                  title="Delete gig"
-                >
-                  <TrashIcon className="h-5 w-5" />
-                </button>
+              return (
+                <div key={gigKey} className="relative bg-white p-5 md:p-6 rounded-xl shadow-md border">
+                  <h3 className="font-semibold text-lg text-[#4B55C3]">{gig.title}</h3>
+                  <p className="text-gray-700 mb-2">{gig.description}</p>
 
-                <details className="text-sm text-gray-700 mt-2">
-                  <summary className="cursor-pointer text-[#4B55C3] font-semibold">
-                    Applicants ({gig.applications?.length || 0})
-                  </summary>
-                  {gig.applications?.length ? (
-                    <ul className="mt-3 space-y-4">
-                      {gig.applications.map((app) => (
-                        <li key={app.id} className="p-3 border rounded-lg bg-gray-50 shadow-sm">
-                          <p className="text-[#3B2ECC] font-medium">{app.user?.name || 'Anonymous'}</p>
-                          <p className="text-xs text-gray-600">📧 {app.user?.email}</p>
-                          <p className="text-xs text-gray-600">📝 {app.reason}</p>
+                  <button
+                    onClick={() => setGigToDelete({ id: gig.id, title: gig.title })}
+                    className="absolute top-3 right-3 text-red-500 hover:text-red-600"
+                    title="Delete gig"
+                  >
+                    <TrashIcon className="h-5 w-5" />
+                  </button>
 
-                          {/* Status Buttons */}
-                          <div className="flex gap-2 mt-2">
-                            {['pending', 'accepted', 'rejected'].map((statusOption) => (
+                  <details className="text-sm text-gray-700 mt-2">
+                    <summary className="cursor-pointer text-[#4B55C3] font-semibold">
+                      Applicants ({gig.applications?.length || 0})
+                    </summary>
+                    {gig.applications?.length ? (
+                      <ul className="mt-3 space-y-4">
+                        {gig.applications.map((app, appIndex) => {
+                          const appKey = `${app.id}-${gig.id}-${appIndex}`;
+                          const recipient = gig.postedById === user.id ? app.userId : gig.postedById;
+
+                          return (
+                            <li key={appKey} className="p-3 border rounded-lg bg-gray-50 shadow-sm">
+                              <p className="text-[#3B2ECC] font-medium">{app.user?.name || 'Anonymous'}</p>
+                              <p className="text-xs text-gray-600">📧 {app.user?.email}</p>
+                              <p className="text-xs text-gray-600">📝 {app.reason}</p>
+
+                              <div className="flex gap-2 mt-2">
+                                {['pending', 'accepted', 'rejected'].map((statusOption) => (
+                                  <button
+                                    key={statusOption}
+                                    onClick={async () => {
+                                      const token = localStorage.getItem('token');
+                                      const res = await fetch(`/api/applications/${app.id}/status`, {
+                                        method: 'PATCH',
+                                        headers: {
+                                          'Content-Type': 'application/json',
+                                          Authorization: `Bearer ${token}`,
+                                        },
+                                        body: JSON.stringify({ status: statusOption }),
+                                      });
+                                      const result = await res.json();
+                                      if (res.ok) {
+                                        setToast({ message: `Marked as ${statusOption}.`, type: 'success' });
+                                        setTimeout(() => {
+                                          setToast(null);
+                                          window.location.reload();
+                                        }, 2000);
+                                      } else {
+                                        setToast({ message: result.message || 'Failed to update status.', type: 'error' });
+                                        setTimeout(() => setToast(null), 3000);
+                                      }
+                                    }}
+                                    className={`text-xs px-3 py-1 rounded-md font-medium border ${
+                                      app.status === statusOption
+                                        ? statusOption === 'accepted'
+                                          ? 'bg-green-100 border-green-600 text-green-700'
+                                          : statusOption === 'rejected'
+                                          ? 'bg-red-100 border-red-600 text-red-700'
+                                          : 'bg-yellow-100 border-yellow-600 text-yellow-700'
+                                        : 'text-gray-500 border-gray-300 hover:bg-gray-100'
+                                    }`}
+                                  >
+                                    {statusOption}
+                                  </button>
+                                ))}
+                              </div>
+
+                              {/* Chat Section for Each Applicant */}
                               <button
-                                key={statusOption}
-                                onClick={async () => {
-                                  const token = localStorage.getItem('token');
-                                  const res = await fetch(`/api/applications/${app.id}/status`, {
-                                    method: 'PATCH',
-                                    headers: {
-                                      'Content-Type': 'application/json',
-                                      Authorization: `Bearer ${token}`,
-                                    },
-                                    body: JSON.stringify({ status: statusOption }),
-                                  });
-                                  const result = await res.json();
-                                  if (res.ok) {
-                                    setToast({ message: `Marked as ${statusOption}.`, type: 'success' });
-                                    setTimeout(() => {
-                                      setToast(null);
-                                      window.location.reload();
-                                    }, 2000);
-                                  } else {
-                                    setToast({ message: result.message || 'Failed to update status.', type: 'error' });
-                                    setTimeout(() => setToast(null), 3000);
-                                  }
-                                }}
-                                className={`text-xs px-3 py-1 rounded-md font-medium border ${
-                                  app.status === statusOption
-                                    ? statusOption === 'accepted'
-                                      ? 'bg-green-100 border-green-600 text-green-700'
-                                      : statusOption === 'rejected'
-                                      ? 'bg-red-100 border-red-600 text-red-700'
-                                      : 'bg-yellow-100 border-yellow-600 text-yellow-700'
-                                    : 'text-gray-500 border-gray-300 hover:bg-gray-100'
-                                }`}
+                                onClick={() => toggleChat(gig.id)}
+                                className="text-[#3B2ECC] hover:underline mt-3"
                               >
-                                {statusOption}
+                                Open Chat
                               </button>
-                            ))}
-                          </div>
 
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-xs mt-2 text-gray-500">No applicants yet.</p>
-                  )}
-                </details>
-              </div>
-            ))
+                              {gig.id && openChatForGig === gig.id && (
+                                <ChatComponent
+                                  gigId={gig.id}
+                                  applicantId={user.id}
+                                  posterId={gig.postedById}
+                                  recipient={recipient}
+                                />
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <p className="text-xs mt-2 text-gray-500">No applicants yet.</p>
+                    )}
+                  </details>
+                </div>
+              );
+            })
           )}
         </section>
       );
@@ -244,20 +270,46 @@ export default function DashboardClient({
         {appliedGigs.length === 0 ? (
           <p className="text-center text-gray-600">You haven’t applied to any gigs yet.</p>
         ) : (
-          appliedGigs.map(app => (
-            <div key={app.id} className="bg-white p-5 md:p-6 rounded-xl shadow-md border">
-              <h3 className="font-semibold text-lg text-[#4B55C3]">{app.gig?.title}</h3>
-              <p className="text-sm text-gray-600">Reason: {app.reason}</p>
-              <p className="text-sm mt-2">
-                Status: <span className={`font-semibold ${
-                  app.status === 'accepted' ? 'text-green-600' :
-                  app.status === 'rejected' ? 'text-red-600' : 'text-yellow-600'
-                }`}>
-                  {app.status}
-                </span>
-              </p>
-            </div>
-          ))
+          appliedGigs.map((app) => {
+            const gig = app.gig;
+            
+            if (!gig) {
+              return null;
+            }
+            // Set recipient to the gig poster for applied gigs
+            const recipient = gig.postedBy?.id || gig.postedById;
+
+            console.log('Gig:', gig);
+            console.log('Recipient: (gigs you have applied to)', recipient);
+
+            return (
+              <div key={`${app.id}-${gig.id}`} className="bg-white p-5 md:p-6 rounded-xl shadow-md border">
+                <h3 className="font-semibold text-lg text-[#4B55C3]">{gig.title}</h3>
+                <p className="text-sm text-gray-600">Reason: {app.reason}</p>
+                <p className="text-sm mt-2">
+                  Status:{' '}
+                  <span
+                    className={`font-semibold ${
+                      app.status === 'accepted'
+                        ? 'text-green-600'
+                        : app.status === 'rejected'
+                        ? 'text-red-600'
+                        : 'text-yellow-600'
+                    }`}
+                  >
+                    {app.status}
+                  </span>
+                </p>
+                {/* Chat Section */}
+                <button onClick={() => toggleChat(gig.id)} className="text-[#3B2ECC] hover:underline mt-3">
+                  Open Chat
+                </button>
+                {gig.id && openChatForGig === gig.id && (
+                  <ChatComponent gigId={gig.id} applicantId={user.id} posterId={gig.postedById} recipient={recipient} />
+                )}
+              </div>
+            );
+          })
         )}
       </section>
     );
@@ -268,9 +320,6 @@ export default function DashboardClient({
       {toast && (
         <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ${toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>{toast.message}</div>
       )}
-      {/* Sidebar logic */}
-
-      {/* Mobile Sidebar */}
       <div className="md:hidden mt-28">
         <div className="flex justify-between items-center px-4">
           <button onClick={() => setSidebarOpen(prev => !prev)}>
@@ -302,7 +351,6 @@ export default function DashboardClient({
         )}
       </div>
 
-      {/* Desktop Sidebar */}
       <aside className="hidden md:flex md:flex-col md:w-64 bg-[#4B55C3] text-white py-12 px-4 space-y-4 shadow-xl">
         <div className="text-2xl font-extrabold px-2 mb-8">GigsWall</div>
         {menuItems.map(item => (
@@ -317,13 +365,10 @@ export default function DashboardClient({
           </button>
         ))}
       </aside>
-
-      {/* Main Section */}
       <main className="flex-1 px-4 md:px-10 pb-10 mt-6 md:mt-8 overflow-y-auto">
         {renderContent()}
       </main>
 
-      {/* ✅ Delete Modal */}
       {gigToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4 text-center">
