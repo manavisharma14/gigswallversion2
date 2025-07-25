@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,6 +12,7 @@ import {
   Bars3Icon,
   XMarkIcon,
   TrashIcon,
+  CameraIcon,
 } from '@heroicons/react/24/outline';
 
 type Gig = {
@@ -43,10 +46,17 @@ type User = {
   name?: string;
   role: string;
   email?: string;
+  phone?: string;
   college?: string;
+  department?: string;
+  gradYear?: string;
+  aim?: string;
+  skills?: string;
+  bio?: string;
+  type?: 'student' | 'other'; // or `UserType` enum if you're using it
   createdAt?: string;
+  updatedAt?: string;
 };
-
 export default function DashboardClient({
   user,
   postedGigs,
@@ -57,7 +67,8 @@ export default function DashboardClient({
   appliedGigs: Application[];
 }) {
   const [active, setActive] = useState('Profile');
-  const [username, setUsername] = useState(user?.name || '');
+  const [profile, setProfile] = useState<User>(user); // includes extended fields
+const [username, setUsername] = useState(user?.name || '');
   const [editingName, setEditingName] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [gigToDelete, setGigToDelete] = useState<{ id: string; title: string } | null>(null);
@@ -66,12 +77,32 @@ export default function DashboardClient({
   const [chatEligibilityMap, setChatEligibilityMap] = useState<Record<string, boolean>>({});
   const [chatAllowed, setChatAllowed] = useState({});
 
+  
+
   // Save userId to localStorage for ChatComponent
   useEffect(() => {
-    if (typeof window !== 'undefined' && user?.id) {
-      localStorage.setItem('userId', user.id);
-    }
-  }, [user?.id]);
+    const fetchProfile = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      console.log('Fetching profile with token:', token);
+  
+      const res = await fetch('/api/dashboard/profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+      });
+  
+      if (res.ok) {
+        const data = await res.json();
+        setProfile(data);
+        setUsername(data.name || '');
+      } else {
+        console.error('Failed to fetch profile:', await res.text());
+      }
+    };
+  
+    fetchProfile();
+  }, []);
 
   const menuItems = [
     { name: 'Profile', icon: UserIcon },
@@ -140,61 +171,100 @@ export default function DashboardClient({
     const data = await res.json();
     return data.exists; // assumes your backend returns { exists: true/false }
   };
+
+
   
   const renderContent = () => {
     if (active === 'Profile') {
+      console.log(
+        'Rendering Profile',
+        profile.college,
+        profile.department,
+        profile.gradYear,
+        profile.phone,
+        profile.skills,
+        profile.aim,
+        profile.bio
+      );
+    
+      const ProfileItem = ({ label, value }: { label: string; value: string | undefined }) => (
+        <div>
+          <p className="text-xs text-gray-500">{label}</p>
+          <p className="font-medium text-gray-900">{value || 'N/A'}</p>
+        </div>
+      );
+    
+      const isStudent = profile.role?.toLowerCase() === 'student';
+    
       return (
-        <div className="bg-white rounded-2xl shadow-lg mt-20 p-6 md:p-8 max-w-3xl mx-auto text-center space-y-4">
-          <div className="flex items-center justify-center gap-2 flex-wrap">
-            {editingName ? (
-              <>
-                <input
-                  className="border rounded-md px-2 py-1 text-center text-lg font-bold text-[#3B2ECC]"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  autoFocus
+        <div className="max-w-5xl mx-auto mt-12 px-4 mt-40">
+          <div className="bg-white rounded-3xl shadow-xl grid grid-cols-1 md:grid-cols-3 overflow-hidden">
+            
+            {/* Left: Profile Card */}
+            <div className="bg-[#4B55C3] text-white flex flex-col items-center py-10 px-6">
+              <div className="relative w-28 h-28 rounded-full border-4 border-white overflow-hidden">
+                <img
+                  src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${username}`}
+                  alt="avatar"
+                  className="w-full h-full object-cover"
                 />
-                <button
-                  onClick={saveUsername}
-                  className="text-sm bg-[#3B2ECC] text-white px-3 py-1 rounded-md"
-                >
-                  Save
-                </button>
-              </>
-            ) : (
-              <>
-                <h2 className="text-2xl md:text-3xl font-extrabold text-[#3B2ECC]">
-                  Welcome, {username || 'User'}
-                </h2>
-                <button onClick={() => setEditingName(true)}>
-                  <PencilIcon className="h-5 w-5 text-[#3B2ECC]" />
-                </button>
-              </>
-            )}
-          </div>
-          <p className="text-gray-700">📧 <span className="font-medium">{user?.email || 'N/A'}</span></p>
-          {user?.college && (
-            <p className="text-gray-600">🎓 College: <span className="font-medium">{user.college}</span></p>
-          )}
-          <p className="text-gray-600">
-            📅 Joined: <span className="font-medium">{user?.createdAt?.split('T')[0] || 'Unknown'}</span>
-          </p>
-          <div className="pt-4 border-t mt-4 text-left space-y-2">
-            <h3 className="text-xl font-semibold text-[#3B2ECC]">Activity Overview</h3>
-            <ul className="list-disc list-inside text-gray-700 space-y-1">
-              <li>Total Gigs Posted: {postedGigs.length}</li>
-              {user.role.toLowerCase() === 'student' && (
-    <>
-      <li>Total Gigs Applied: {appliedGigs.length}</li>
-      <li>Accepted Gigs: {appliedGigs.filter(g => g.status === 'accepted').length}</li>
-    </>
-  )}
-            </ul>
+                <label className="absolute bottom-0 right-0 p-1 bg-white rounded-full shadow-md cursor-pointer">
+                  <CameraIcon className="w-5 h-5 text-[#3B2ECC]" />
+                  <input type="file" hidden />
+                </label>
+              </div>
+    
+              {/* Name & Email */}
+              <div className="mt-4 text-center">
+                <div className="flex justify-center items-center gap-2">
+                  <h2 className="text-xl font-bold">{username}</h2>
+                  <button onClick={() => setEditingName(true)}>
+                    <PencilIcon className="w-5 h-5" />
+                  </button>
+                </div>
+                <p className="text-sm opacity-90">{profile?.email}</p>
+              </div>
+            </div>
+    
+            {/* Right: Conditional Profile Details */}
+            <div className="col-span-2 p-8 space-y-6">
+              {isStudent ? (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                    <ProfileItem label="College" value={profile.college} />
+                    <ProfileItem label="Department" value={profile.department} />
+                    <ProfileItem label="Graduation Year" value={profile.gradYear} />
+                    <ProfileItem label="Phone" value={profile.phone} />
+                    <ProfileItem label="Skills" value={profile.skills || "N/A"} />
+                    <ProfileItem label="Aim" value={profile.aim || "N/A"} />
+                    <ProfileItem label="Bio" value={profile.bio || "N/A"} />
+                    <ProfileItem label="Joined On" value={profile.createdAt?.split("T")[0]} />
+                  </div>
+    
+                  <div className="border-t pt-6">
+                    <h3 className="text-lg font-semibold text-[#3B2ECC] mb-2">
+                      Activity Overview
+                    </h3>
+                    <ul className="text-sm text-gray-700 space-y-1">
+                      <li>Total Gigs Posted: {postedGigs.length}</li>
+                      <li>Total Gigs Applied: {appliedGigs.length}</li>
+                      <li>
+                        Accepted Gigs:{" "}
+                        {appliedGigs.filter((g) => g.status === "accepted").length}
+                      </li>
+                    </ul>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <ProfileItem label="Total Gigs Posted" value={String(postedGigs.length)} />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       );
     }
-
     if (active === 'Posted Gigs') {
       return (
         <section className="space-y-6 mt-20 px-1">

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 
 export interface DecodedToken {
   id: string;
+  userId?: string; // Added userId property
   email?: string;
   role?: string;
   iat?: number;

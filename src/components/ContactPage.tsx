@@ -9,10 +9,32 @@ export default function ContactUsPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Message sent!');
-    setForm({ name: '', email: '', message: '' });
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(form),
+      });
+
+      if(res.ok){
+        console.log("email sent")
+      }
+  
+      if (!res.ok) {
+        alert('Something went wrong. Please try again.');
+        return;
+      }
+  
+      alert('Message sent!');
+      setForm({ name: '', email: '', message: '' });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Error sending message. Please try again.');
+    }
   };
 
   return (

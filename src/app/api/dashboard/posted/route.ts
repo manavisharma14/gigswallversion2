@@ -10,7 +10,6 @@ export async function GET(req: NextRequest) {
 
   const { userId } = userOrResponse;
 
-  // Validate userId as MongoDB ObjectId
   if (!userId || !/^[0-9a-fA-F]{24}$/.test(userId)) {
     return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
   }
@@ -25,7 +24,27 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ gigs });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        college: true,
+        department: true,
+        gradYear: true,
+        aim: true,
+        skills: true,
+        bio: true,
+        role: true,
+        type: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return NextResponse.json({ gigs, user });
   } catch (error) {
     console.error('Error in /api/dashboard/posted:', error instanceof Error ? error.message : error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

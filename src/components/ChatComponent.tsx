@@ -106,7 +106,7 @@ const ChatComponent = ({
     return () => {
       socketRef.current?.off('receive_message', handleReceiveMessage);
     };
-  }, [gigId, recipient, userId]);
+  }, [gigId, recipient, userId, roomId]);
 
   const sendMessage = () => {
     if (!message.trim() || !socketRef.current?.connected) return;

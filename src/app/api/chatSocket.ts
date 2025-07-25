@@ -1,8 +1,9 @@
-import { Server } from "socket.io";
+import { Server as HTTPServer } from "http";
+import { Server as IOServer } from "socket.io";
 
 // Setup Socket.IO server on an HTTP server
-export function createSocketServer(server: any) {
-    const io = new Server(server);
+export function createSocketServer(server: HTTPServer) {
+    const io = new IOServer(server);
 
     io.on("connection", (socket) => {
         console.log("A user connected");
@@ -15,7 +16,6 @@ export function createSocketServer(server: any) {
 
         // Send message
         socket.on("send_message", (message: { gigId: string, sender: string, text: string }) => {
-            // Ensure the message structure is correct
             if (!message.gigId || !message.sender || !message.text) {
                 console.error("Invalid message structure");
                 return;
@@ -23,15 +23,13 @@ export function createSocketServer(server: any) {
 
             console.log(`Message received from ${message.sender} for gig ${message.gigId}: ${message.text}`);
 
-            // Broadcast the message to the room (gigId)
             io.to(message.gigId).emit("receive_message", {
                 sender: message.sender,
                 text: message.text,
                 timestamp: new Date().toISOString(),
             });
-        }); 
+        });
 
-        // Disconnect handler
         socket.on("disconnect", () => {
             console.log("User disconnected");
         });

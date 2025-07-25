@@ -20,10 +20,13 @@ const SignInPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/signin', {
+      const res = await fetch('/api/auth/signin', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  credentials: 'include', // ✅ THIS IS CRUCIAL
+  body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
@@ -65,23 +68,34 @@ const SignInPage = () => {
         </div>
 
         {/* Password Input */}
-        <div className="relative">
-          <Lock className={iconClass} size={20} />
-          <input
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Password"
-            className={inputClass}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <div
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3] cursor-pointer"
-            onClick={() => setShowPassword((prev) => !prev)}
-          >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </div>
-        </div>
+        {/* Password Input */}
+<div className="relative">
+  <Lock className={iconClass} size={20} />
+  <input
+    type={showPassword ? 'text' : 'password'}
+    placeholder="Password"
+    className={inputClass}
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    required
+  />
+  <div
+    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3] cursor-pointer"
+    onClick={() => setShowPassword((prev) => !prev)}
+  >
+    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+  </div>
+</div>
+
+{/* Forgot Password Link */}
+<div className="text-right">
+  <span
+    onClick={() => router.push('/forgot-password')}
+    className="text-sm text-[#4B3BB3] hover:underline cursor-pointer"
+  >
+    Forgot Password?
+  </span>
+</div>
 
         <button
           type="submit"
