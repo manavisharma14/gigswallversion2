@@ -9,6 +9,8 @@ import Footer from '@/components/Footer';
 import WhatAreGigs from '@/components/WhatAreGigs';
 
 export default function HomePage() {
+
+  
   return (
     <main>
       <Hero />

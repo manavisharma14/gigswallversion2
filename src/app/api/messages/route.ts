@@ -1,16 +1,36 @@
 import { prisma } from '../../../lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
+// POST a new message
 export async function POST(req: NextRequest) {
-  const { gigId, message, sender, recipient } = await req.json();
+  const { gigId, roomId, message, sender, recipient } = await req.json();
 
-  if (!gigId || !message || !sender || !recipient) {
+  if (!gigId || !roomId || !message || !sender || !recipient) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
   try {
+    // Prevent duplicate message in same room by same sender
+    const existingMessage = await prisma.message.findFirst({
+      where: {
+        roomId,
+        gigId,
+        message,
+        sender,
+        recipient,
+        createdAt: {
+          gte: new Date(Date.now() - 5000), // prevent duplicates within 5s
+        },
+      },
+    });
+
+    if (existingMessage) {
+      return NextResponse.json({ error: 'Duplicate message' }, { status: 400 });
+    }
+
+    // Create message
     const newMessage = await prisma.message.create({
-      data: { gigId, message, sender, recipient },
+      data: { gigId, roomId, message, sender, recipient },
     });
 
     return NextResponse.json(newMessage, { status: 201 });
@@ -20,17 +40,18 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// GET messages by roomId
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
-  const gigId = searchParams.get('gigId'); // Correct way to get query parameters
+  const roomId = searchParams.get('roomId');
 
-  if (!gigId) {
-    return NextResponse.json({ error: 'Missing gigId parameter' }, { status: 400 });
+  if (!roomId) {
+    return NextResponse.json({ error: 'Missing roomId parameter' }, { status: 400 });
   }
 
   try {
     const messages = await prisma.message.findMany({
-      where: { gigId },
+      where: { roomId },
       orderBy: { createdAt: 'asc' },
     });
 

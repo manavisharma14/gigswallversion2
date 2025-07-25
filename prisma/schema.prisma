@@ -80,6 +80,7 @@ model Gig {
 model Message {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   gigId       String   @db.ObjectId
+  roomId      String 
   message     String
   sender      String
   recipient   String

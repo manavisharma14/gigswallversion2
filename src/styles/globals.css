@@ -12,7 +12,7 @@ html, body {
   background-color: white; /* Set the background color to white or any default color */
   height: 100%;
   overflow-x: hidden; /* Prevent horizontal overflow */
-  overflow-y: hidden; /* Prevent vertical overflow */
+  /* overflow-y: hidden; Prevent vertical overflow */
 }
 
 /* Keyframes for animation */
@@ -70,82 +70,94 @@ body {
   @apply bg-white text-black;
 }
 
-
-
-
-
-
-
-
-
-
+/* Modal and Chat Box Styling */
 .modal {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 500px;
-  z-index: 1000;
+  bottom: 20px;
+  right: 20px;
+  width: 300px;
+  max-width: 100%;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
+/* Chat Box */
 .chat-box {
   display: flex;
   flex-direction: column;
+  padding: 15px;
   height: 400px;
-  max-height: 80vh;
+  max-height: 60vh;
   overflow-y: auto;
+  position: relative;
+}
+
+/* Input Area */
+.input-area {
+  display: flex;
+  margin-top: 10px;
+  justify-content: space-between;
+}
+
+.input-message {
+  width: 80%;
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  background-color: #fafafa; /* Light background */
+}
+
+.send-btn {
+  width: 15%;
+  padding: 8px;
+  background-color: #3B2ECC;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.send-btn:hover {
+  background-color: #2e1bb7;
 }
 
 .messages {
   flex-grow: 1;
+  overflow-y: auto;
   margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Adds space between messages */
 }
 
+/* Message Styling */
 .message {
+  max-width: 75%;  /* Ensure message width is content-driven */
+  margin-bottom: 5px;
   padding: 10px;
-  margin: 5px 0;
-  border-radius: 8px;
-  max-width: 80%;
+  border-radius: 12px;
+  font-size: 14px;
+  word-wrap: break-word;  /* Ensure text wraps properly */
+  background-color: #f3f3f3; /* Light background for messages */
+  align-self: flex-start; /* Align messages to the left by default */
+  display: inline-block;  /* Make sure messages are individual blocks */
 }
 
-.sent {
-  background-color: #e1f5fe; /* Light blue for sent messages */
+/* For Sent Messages */
+.message.sent {
+  background-color: #3B2ECC;
+  color: white;
   align-self: flex-end;
 }
 
-.received {
-  background-color: #f3f3f3; /* Light gray for received messages */
+/* For Received Messages */
+.message.received {
+  background-color: #e4e6eb;
+  color: black;
   align-self: flex-start;
 }
-
-.input-area {
-  display: flex;
-  align-items: center;
-}
-
-.input-area input {
-  flex-grow: 1;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  margin-right: 10px;
-}
-
-.input-area button {
-  padding: 10px 15px;
-  background-color: #3b4cca;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.input-area button:hover {
-  background-color: #2a3b99;
-}
-
-
