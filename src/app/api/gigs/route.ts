@@ -1,10 +1,10 @@
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { sendNewGigEmail } from "../../../lib/email/sendNewGigEmail" // Make sure path is correct
 
-const prisma = new PrismaClient();
+
 
 export async function GET() {
   try {
