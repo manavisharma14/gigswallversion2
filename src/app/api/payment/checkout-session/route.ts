@@ -1,11 +1,11 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-06-30.basil",
-});
-
 export async function POST(req: Request) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: "2025-06-30.basil",
+  });
+
   const { amount, gigTitle } = await req.json();
 
   try {
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
           product_data: {
             name: gigTitle,
           },
-          unit_amount: amount * 100, // Stripe expects amount in cents
+          unit_amount: amount * 100,
         },
         quantity: 1,
       }],
