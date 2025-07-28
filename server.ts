@@ -19,9 +19,11 @@ const httpServer = http.createServer((req, res) => {
 
 const io = new Server(httpServer, {
   cors: {
-    origin : '*',           
-    methods: ['GET', 'POST']
-  }
+    origin: ["https://gigswallversion2.vercel.app", "http://localhost:3000"],
+    methods: ['GET', 'POST'],
+    credentials: true, // ✅ ADD THIS
+  },
+  transports: ["websocket"], // ✅ Force WebSocket
 });
 
 
