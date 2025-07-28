@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -88,6 +90,23 @@ const ChatComponent = ({
 
     socketRef.current.off('receive_message', handleReceiveMessage);
     socketRef.current.on('receive_message', handleReceiveMessage);
+
+
+    const handleOpenChat = async (gigId: string, posterId: string, applicantId: string) => {
+  try {
+    const res = await fetch(`/api/check-message-exists?gigId=${gigId}&posterId=${posterId}&applicantId=${applicantId}`);
+    const data = await res.json();
+
+    if (data.exists) {
+      setOpenChatForGig(gigId); // or setOpenChatRoom(roomId)
+    } else {
+      alert("❌ The poster has not initiated the chat yet.");
+    }
+  } catch (err) {
+    console.error("Error checking chat existence:", err);
+    alert("Something went wrong. Please try again.");
+  }
+};
 
     const fetchMessages = async () => {
       try {

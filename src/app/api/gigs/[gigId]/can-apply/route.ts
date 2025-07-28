@@ -13,14 +13,12 @@ export async function GET(
   const authHeader = req.headers.get('authorization');
   const token = authHeader?.split(' ')[1] ?? '';
   let userId: string | undefined;
-  let userType: string | undefined;
-  let role: string | undefined;
+  let type: string | undefined;
 
   try {
     const payload = JSON.parse(atob(token.split('.')[1] ?? '{}'));
     userId = payload?.id;
-    userType = payload?.userType;
-    role = payload?.role; // Add role from token
+    type = payload?.type;
   } catch {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
@@ -29,10 +27,13 @@ export async function GET(
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  // First check: If role is 'external' or userType is 'other', deny application
-  if (role === 'external' || userType === 'other') {
+  // ❌ Deny access if type is "other"
+  if (type === 'other') {
     return NextResponse.json(
-      { message: 'Only verified students can apply for gigs. If you are looking to hire, you can post a gig instead.' },
+      {
+        message:
+          'Only verified students can apply for gigs. If you are looking to hire, you can post a gig instead.',
+      },
       { status: 403 }
     );
   }
@@ -66,5 +67,8 @@ export async function GET(
     );
   }
 
-  return NextResponse.json({ message: 'You can apply to this gig.' }, { status: 200 });
+  return NextResponse.json(
+    { message: 'You can apply to this gig.' },
+    { status: 200 }
+  );
 }

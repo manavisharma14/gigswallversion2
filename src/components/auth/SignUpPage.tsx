@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useState, useCallback, FormEvent, ChangeEvent } from "react";
@@ -5,22 +7,21 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import SignupStepOne from "./SignupStepOne";
 import SignupStepTwo from "./SignupStepTwo";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { signIn } from "next-auth/react";
+import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 
-type FormData = {
+interface FormData {
   name: string;
   email: string;
   password: string;
   phone: string;
   department: string;
   college: string;
-  otherCollege: string;
+  otherCollege?: string;
   gradYear: string;
-  aim: string;
-  skills: string;
-  bio: string;
-  role: "student" | "external";
-};
+  type: "student" | "other";
+  gigPreference: string;
+}
 
 type PasswordStrength = "Weak" | "Medium" | "Strong";
 
@@ -55,15 +56,14 @@ export default function SignUpPage() {
     college: "",
     otherCollege: "",
     gradYear: "",
-    aim: "",
-    skills: "",
-    bio: "",
-    role: "student",
+    type: "student",
+    gigPreference: "finder",
   });
 
   const handleChange = useCallback(
     (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
       const { name, value } = e.target;
+
       setFormData((prev) => ({
         ...prev,
         [name]: value,
@@ -93,7 +93,6 @@ export default function SignUpPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-
     if (!validateRequiredFields()) {
       toast.error("Please fill all required fields.", { id: "missing-fields" });
       return;
@@ -103,7 +102,7 @@ export default function SignUpPage() {
 
     const payload = {
       ...formData,
-      role: isStudent ? "student" : "external",
+      type: isStudent ? "student" : "other",
       college: isStudent
         ? formData.college === "Others"
           ? formData.otherCollege
@@ -147,15 +146,18 @@ export default function SignUpPage() {
   return (
     <div className="w-full max-w-md mx-auto min-h-screen overflow-hidden flex flex-col px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-16">
       {/* Header */}
-      <div className="w-full flex flex-col items-center justify-start mt-8 sm:mt-8">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#4B3BB3] text-center mb-4">
+      <div className="w-full flex flex-col items-center justify-start mt-8">
+        <h2 className="text-3xl font-bold text-[#4B3BB3] text-center mb-4">
           Create Account
         </h2>
         <div className="flex gap-2 mb-2">
           <button
             type="button"
-            onClick={() => setIsStudent(true)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+            onClick={() => {
+              setIsStudent(true);
+              setFormData((prev) => ({ ...prev, type: "student" }));
+            }}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               isStudent ? "bg-[#6B7FFF] text-white" : "bg-[#E5E4FB] text-[#4B3BB3]"
             }`}
           >
@@ -163,8 +165,11 @@ export default function SignUpPage() {
           </button>
           <button
             type="button"
-            onClick={() => setIsStudent(false)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+            onClick={() => {
+              setIsStudent(false);
+              setFormData((prev) => ({ ...prev, type: "other" }));
+            }}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               !isStudent ? "bg-[#6B7FFF] text-white" : "bg-[#E5E4FB] text-[#4B3BB3]"
             }`}
           >
@@ -174,7 +179,7 @@ export default function SignUpPage() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="w-full flex-1 space-y-6 mt-10 sm:mt-8">
+      <form onSubmit={handleSubmit} className="w-full flex-1 space-y-6 mt-10">
         {isStudent ? (
           <>
             {signupStep === 1 && (
@@ -207,7 +212,7 @@ export default function SignUpPage() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className={`w-full font-bold py-2 rounded-full transition duration-200 ${
+                    className={`w-full font-bold py-2 rounded-full ${
                       isLoading
                         ? "bg-gray-400 cursor-not-allowed"
                         : "bg-[#6B7FFF] hover:bg-[#5A6FEF] text-white"
@@ -222,12 +227,21 @@ export default function SignUpPage() {
         ) : (
           <>
             <div className="space-y-4">
-              {/* Email Input */}
               <div className="relative">
-                <Mail
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3]"
-                  size={20}
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3]" size={20} />
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Name"
+                  className="w-full border border-gray-300 px-4 py-2 pl-10 rounded-md bg-white text-black"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
                 />
+              </div>
+
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3]" size={20} />
                 <input
                   type="email"
                   name="email"
@@ -239,12 +253,8 @@ export default function SignUpPage() {
                 />
               </div>
 
-              {/* Password Input */}
               <div className="relative">
-                <Lock
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3]"
-                  size={20}
-                />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3]" size={20} />
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
@@ -262,7 +272,6 @@ export default function SignUpPage() {
                 </div>
               </div>
 
-              {/* Password Strength */}
               {formData.password && (
                 <div className="flex justify-end gap-1 mt-1 pr-1">
                   {[1, 2, 3, 4].map((bar) => {
@@ -293,7 +302,7 @@ export default function SignUpPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full mt-4 font-bold py-2 rounded-full transition duration-200 ${
+              className={`w-full mt-4 font-bold py-2 rounded-full ${
                 isLoading
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-[#6B7FFF] hover:bg-[#5A6FEF] text-white"
@@ -305,14 +314,11 @@ export default function SignUpPage() {
         )}
       </form>
 
-      {/* Info text below everything */}
-      <p className="mt-8 text-sm font-bold text-center max-w-xs mx-auto text-[#5A6CFF]">
-  {isStudent
-    ? "* Students can apply to gigs and post their own gigs."
-    : "* You're signing up as a client. You can post gigs, hire students, and manage your tasks through the dashboard."}
-</p>
-
-
+      <p className="mt-8 text-sm font-bold text-center text-[#5A6CFF]">
+        {isStudent
+          ? "* Students can apply to gigs and post their own gigs."
+          : "* You're signing up as a client. You can post gigs, hire students, and manage your tasks through the dashboard."}
+      </p>
     </div>
   );
 }

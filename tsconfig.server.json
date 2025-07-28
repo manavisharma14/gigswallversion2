@@ -1,0 +1,11 @@
+// tsconfig.server.json
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+      "noEmit": false,
+      "outDir": "dist",
+      "target": "ES2020",
+      "module": "esnext"   // or "commonjs" – just be consistent
+    },
+    "include": ["server.ts"]
+  }

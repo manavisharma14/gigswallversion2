@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest) {
   const userOrResponse = await getUserFromToken(req);
-  if ('userId' in userOrResponse === false) return userOrResponse as NextResponse;
+  if (!('userId' in userOrResponse)) return userOrResponse as NextResponse;
 
   const { userId } = userOrResponse;
 
@@ -21,24 +21,29 @@ export async function GET(req: NextRequest) {
             budget: true,
             category: true,
             college: true,
+            createdAt: true,
             postedBy: {
               select: {
                 id: true,
                 name: true,
               },
             },
-            
-            
-            createdAt: true,
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
 
-    return NextResponse.json({ applications }, { status: 200 });
+    // Filter out any applications where gig or postedBy is null (in case of broken foreign keys)
+    const validApplications = applications.filter(
+      (app) => app.gig && app.gig.postedBy
+    );
+
+    return NextResponse.json({ applications: validApplications }, { status: 200 });
   } catch (err) {
-    console.error('Error fetching applied gigs:', err);
+    console.error('❌ Error fetching applied gigs:', err);
     return NextResponse.json({ message: 'Server error' }, { status: 500 });
   }
 }

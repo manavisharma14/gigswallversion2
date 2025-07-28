@@ -43,17 +43,18 @@ type Application = {
 
 type User = {
   id: string;
-  name?: string;
-  role: string;
-  email?: string;
+  name: string;
+  email: string;
+  password?: string; // Usually omitted when sending to frontend
   phone?: string;
-  college?: string;
-  department?: string;
-  gradYear?: string;
-  aim?: string;
-  skills?: string;
-  bio?: string;
-  type?: 'student' | 'other'; // or `UserType` enum if you're using it
+  college: string;
+  department: string;
+  gradYear: string;
+  gigPreference?: 'finder' | 'poster' | 'both'; // from Prisma enum
+  type?: 'student' | 'other'; // matches UserType enum
+  isVerified?: boolean;
+  otpCode?: string;
+  otpExpires?: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -82,23 +83,21 @@ const [username, setUsername] = useState(user?.name || '');
   // Save userId to localStorage for ChatComponent
   useEffect(() => {
     const fetchProfile = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      console.log('Fetching profile with token:', token);
+
+     const token = localStorage.getItem('token');   // may be null
   
       const res = await fetch('/api/dashboard/profile', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
+       headers: token ? { Authorization: `Bearer ${token}` } : {},
+       credentials: 'include',           // ❷ send the cookie
       });
   
-      if (res.ok) {
-        const data = await res.json();
-        setProfile(data);
-        setUsername(data.name || '');
-      } else {
-        console.error('Failed to fetch profile:', await res.text());
+      if (!res.ok) {
+        console.error('Failed profile:', await res.text());
+        return;
       }
+      const data = await res.json();
+      setProfile(data);
+      setUsername(data.name ?? '');
     };
   
     fetchProfile();
@@ -107,7 +106,7 @@ const [username, setUsername] = useState(user?.name || '');
   const menuItems = [
     { name: 'Profile', icon: UserIcon },
     { name: 'Posted Gigs', icon: BriefcaseIcon },
-    ...(user.role === 'student' ? [{ name: 'Applied Gigs', icon: ClipboardDocumentCheckIcon }] : []),
+    ...(user?.type === 'student' ? [{ name: 'Applied Gigs', icon: ClipboardDocumentCheckIcon }] : []),
   ];
 
   const saveUsername = () => {
@@ -176,16 +175,7 @@ const [username, setUsername] = useState(user?.name || '');
   
   const renderContent = () => {
     if (active === 'Profile') {
-      console.log(
-        'Rendering Profile',
-        profile.college,
-        profile.department,
-        profile.gradYear,
-        profile.phone,
-        profile.skills,
-        profile.aim,
-        profile.bio
-      );
+
     
       const ProfileItem = ({ label, value }: { label: string; value: string | undefined }) => (
         <div>
@@ -194,7 +184,17 @@ const [username, setUsername] = useState(user?.name || '');
         </div>
       );
     
-      const isStudent = profile.role?.toLowerCase() === 'student';
+      
+      if (!profile) {
+        console.log(profile)
+        return (
+          <div className="mt-40 text-center text-gray-500">
+            Loading profile…
+          </div>
+        );
+      }
+      // 🛡️ 2. NOW IT’S SAFE TO USE profile.type
+      const isStudent = profile.type === 'student';
     
       return (
         <div className="max-w-5xl mx-auto mt-12 px-4 mt-40">
@@ -223,6 +223,7 @@ const [username, setUsername] = useState(user?.name || '');
                   </button>
                 </div>
                 <p className="text-sm opacity-90">{profile?.email}</p>
+
               </div>
             </div>
     
@@ -235,9 +236,6 @@ const [username, setUsername] = useState(user?.name || '');
                     <ProfileItem label="Department" value={profile.department} />
                     <ProfileItem label="Graduation Year" value={profile.gradYear} />
                     <ProfileItem label="Phone" value={profile.phone} />
-                    <ProfileItem label="Skills" value={profile.skills || "N/A"} />
-                    <ProfileItem label="Aim" value={profile.aim || "N/A"} />
-                    <ProfileItem label="Bio" value={profile.bio || "N/A"} />
                     <ProfileItem label="Joined On" value={profile.createdAt?.split("T")[0]} />
                   </div>
     
@@ -256,9 +254,10 @@ const [username, setUsername] = useState(user?.name || '');
                   </div>
                 </>
               ) : (
-                <div className="space-y-4">
-                  <ProfileItem label="Total Gigs Posted" value={String(postedGigs.length)} />
-                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+  <ProfileItem label="Total Gigs Posted" value={String(postedGigs.length)} />
+  <ProfileItem label="Joined On" value={profile.createdAt?.split("T")[0]} />
+</div>
               )}
             </div>
           </div>
@@ -405,7 +404,7 @@ const [username, setUsername] = useState(user?.name || '');
     // Applied Gigs View
 
     if (active === 'Applied Gigs') {
-      if (user.role !== 'student') return null;
+      if (user.type !== 'student') return null;
     return (
       <section className="space-y-6 mt-20 px-1">
         <h2 className="text-2xl md:text-3xl font-bold text-[#3B2ECC] mb-4 text-center md:text-left">

@@ -5,7 +5,7 @@
 import { Listbox } from "@headlessui/react";
 import { ChevronUpDownIcon } from "@heroicons/react/20/solid";
 
-interface RoleOption {
+interface PreferenceOption {
   label: string;
   value: string;
 }
@@ -14,10 +14,7 @@ interface SignupStepTwoProps {
   formData: {
     department: string;
     gradYear: string;
-    aim: string;
-    skills: string;
-    bio: string;
-    role: string;
+    gigPreference: string;
     college: string;
     otherCollege?: string;
   };
@@ -25,7 +22,7 @@ interface SignupStepTwoProps {
   setFormData: React.Dispatch<React.SetStateAction<any>>;
 }
 
-const roles: RoleOption[] = [
+const preferences: PreferenceOption[] = [
   { label: "Looking & Posting", value: "both" },
   { label: "Looking for Gigs", value: "finder" },
   { label: "Posting Gigs", value: "poster" },
@@ -49,12 +46,12 @@ export default function SignupStepTwo({
   handleChange,
   setFormData,
 }: SignupStepTwoProps) {
-  const selectedRole = roles.find((r) => r.value === formData.role) || roles[0];
+  const selectedPreference = preferences.find((r) => r.value === formData.gigPreference) || preferences[0];
 
-  const handleRoleChange = (role: RoleOption) => {
+  const handlePreferenceChange = (pref: PreferenceOption) => {
     setFormData((prev: any) => ({
       ...prev,
-      role: role.value,
+      gigPreference: pref.value,
     }));
   };
 
@@ -75,6 +72,7 @@ export default function SignupStepTwo({
         className={inputClass}
         value={formData.department}
         onChange={handleChange}
+        required
       />
 
       <input
@@ -84,35 +82,27 @@ export default function SignupStepTwo({
         className={inputClass}
         value={formData.gradYear}
         onChange={handleChange}
+        required
       />
 
-      <textarea
-        name="bio"
-        placeholder="Short bio (optional)"
-        className={inputClass}
-        value={formData.bio}
-        onChange={handleChange}
-        rows={3}
-      />
-
-      {/* Role Dropdown */}
+      {/* Gig Preference Dropdown */}
       <div className="w-full">
-        <Listbox value={selectedRole} onChange={handleRoleChange}>
+        <Listbox value={selectedPreference} onChange={handlePreferenceChange}>
           <div className="relative">
             <Listbox.Button className={dropdownBtnClass}>
-              {selectedRole.label}
+              {selectedPreference.label}
               <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                 <ChevronUpDownIcon className="h-5 w-5 text-[#4B3BB3]" aria-hidden="true" />
               </span>
             </Listbox.Button>
             <Listbox.Options className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 sm:text-sm">
-              {roles.map((role, idx) => (
+              {preferences.map((pref, idx) => (
                 <Listbox.Option
                   key={idx}
-                  value={role}
+                  value={pref}
                   className={({ active }) => dropdownOptionClass(active)}
                 >
-                  {role.label}
+                  {pref.label}
                 </Listbox.Option>
               ))}
             </Listbox.Options>

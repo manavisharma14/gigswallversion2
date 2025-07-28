@@ -55,7 +55,13 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' }); // Clears cookie
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
+  
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.dispatchEvent(new Event('storageChanged'));

@@ -1,11 +1,10 @@
 /* eslint-disable */
-
 // GigsListClient.tsx
 'use client';
+
 import React, { useState } from 'react';
 import ApplyModal from '@/components/ApplyModal';
 import { Info } from 'lucide-react';
-
 
 interface Gig {
   id: string;
@@ -41,13 +40,15 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
     try {
       const token = localStorage.getItem('token');
       const payload = JSON.parse(atob(token?.split('.')[1] ?? '{}'));
-      const userType = payload?.userType;
-      const role = payload?.role; // Add role from token
+      const userType = payload?.type;
 
-      // First check: If role is 'external' or userType is 'other', deny application
-      if (role === 'external' || userType === 'other') {
-        setErrors((prev) => ({ ...prev, [gigId]: 'Only students with applicable roles can apply for gigs' }));
-        setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 1000);
+      // Disallow applying if userType is not student
+      if (userType !== 'student') {
+        setErrors((prev) => ({
+          ...prev,
+          [gigId]: 'Only verified students can apply for gigs.',
+        }));
+        setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 2000);
         return;
       }
 
@@ -62,11 +63,14 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
         setShowModal(true);
       } else {
         setErrors((prev) => ({ ...prev, [gigId]: data.message }));
-        setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 1000);
+        setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 2000);
       }
     } catch (error) {
-      setErrors((prev) => ({ ...prev, [gigId]: 'An error occurred while checking eligibility.' }));
-      setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 1000);
+      setErrors((prev) => ({
+        ...prev,
+        [gigId]: 'An error occurred while checking eligibility.',
+      }));
+      setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 2000);
     }
   };
 
@@ -145,7 +149,6 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
               {selectedGig.status.toLowerCase() === 'open' && (
                 <div className="relative inline-block">
                   <div className="flex items-center gap-2 relative">
-                    {/* Apply Now Button */}
                     <button
                       onClick={() => checkCanApply(selectedGig.id)}
                       className="bg-[#4B55C3] hover:bg-[#6D7BE4] text-white px-6 py-2 rounded-md text-sm font-medium transition"
@@ -153,17 +156,9 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
                       Apply Now
                     </button>
 
-                    {/* Info icon + tooltip beside it */}
                     <div className="relative group flex items-center">
                       <Info className="w-4 h-4 text-[#4B55C3] cursor-pointer" />
-
-                      <div
-                        className="absolute left-full ml-2 top-1/2 -translate-y-1/2
-                 bg-[#EFF2FF]  text-[#4B55C3] 
-                 text-xs px-3 py-1 rounded-md shadow-md whitespace-normal z-50
-                 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto
-                 transition w-[220px] max-w-xs"
-                      >
+                      <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-[#EFF2FF] text-[#4B55C3] text-xs px-3 py-1 rounded-md shadow-md whitespace-normal z-50 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition w-[220px] max-w-xs">
                         Only verified students can apply. If you're hiring, post a gig instead.
                       </div>
                     </div>

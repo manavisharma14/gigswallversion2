@@ -34,11 +34,8 @@ export async function GET(req: NextRequest) {
         college: true,
         department: true,
         gradYear: true,
-        aim: true,
-        skills: true,
-        bio: true,
-        role: true,
         type: true,
+        gigPreference: true, // ✅ ADD THIS LINE
         createdAt: true,
         updatedAt: true,
       },

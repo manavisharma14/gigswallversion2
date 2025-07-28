@@ -3,18 +3,16 @@ import { NextResponse } from 'next/server';
 
 export interface DecodedToken {
   id: string;
-  userId?: string; // Added userId property
   email?: string;
-  role?: string;
+  type?: 'student' | 'other'; 
   iat?: number;
   exp?: number;
 }
 
-export async function getUserFromToken(req: Request): Promise<{ userId: string } | Response> {
+export async function getUserFromToken(req: Request): Promise<{ userId: string; type?: 'student' | 'other' } | Response> {
   const authHeader = req.headers.get('authorization');
   const cookieHeader = req.headers.get('cookie');
 
-  // ✅ Try getting token from Authorization header first, then fallback to cookies
   const token =
     authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] :
     cookieHeader?.split('; ').find((c) => c.trim().startsWith('token='))?.split('=')[1];
@@ -35,13 +33,14 @@ export async function getUserFromToken(req: Request): Promise<{ userId: string }
     }) as DecodedToken;
 
     const userId = decoded?.id;
+    const type = decoded?.type;
 
     if (!userId) {
       console.error('❌ Invalid token: missing user ID');
       return NextResponse.json({ message: 'Unauthorized - Invalid token payload' }, { status: 401 });
     }
 
-    return { userId };
+    return { userId, type };
   } catch (error) {
     if (error instanceof TokenExpiredError) {
       console.error('⏰ Token expired:', error.message);

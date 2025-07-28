@@ -20,25 +20,33 @@ enum ApplicationStatus {
   rejected
 }
 
-model User {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        String?
-  email       String   @unique
-  password    String
-  phone       String?
-  college     String?
-  department  String?
-  gradYear    String?
-  aim         String?
-  skills      String?
-  bio         String?
-  role        String?
-  type        UserType  @default(student)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+enum GigPreference {
+  finder
+  poster
+  both
+}
 
-  gigs         Gig[]         @relation("UserGigs")
-  applications Application[]
+model User {
+  id             String     @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  email          String     @unique
+  password       String
+  college        String?
+  department     String?
+  gradYear       String?
+  gigPreference GigPreference?
+  type           UserType   @default(student) // Defines who the user is (student vs external)
+  phone          String?
+
+  isVerified     Boolean    @default(false)    // Email verification status
+  otpCode        String?                       // Hashed OTP
+  otpExpires     DateTime?                     // OTP expiration time
+  
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  gigs           Gig[]      @relation("UserGigs") // Gigs posted by this user
+  applications   Application[]                    // Applications submitted by this user
 }
 
 
@@ -92,3 +100,10 @@ model Message {
 
 
 
+model PendingUser {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  email      String   @unique
+  otpCode    String
+  otpExpires DateTime
+  createdAt  DateTime @default(now())
+}

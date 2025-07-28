@@ -5,8 +5,13 @@ import { getUserFromToken } from '@/lib/getUserFromToken'; // your custom token 
 export async function GET(req: NextRequest) {
   const result = await getUserFromToken(req);
 
-  if ('userId' in result === false) {
-    return result; // return the error response from getUserFromToken
+  if (result instanceof Response) return result;
+  
+  console.log('📥 Profile Request:', result);
+
+  // If result is a Response (an error), return it directly
+  if (result instanceof Response) {
+    return result;
   }
 
   const { userId } = result;
@@ -18,16 +23,12 @@ export async function GET(req: NextRequest) {
         id: true,
         name: true,
         email: true,
-        role: true,
         createdAt: true,
         college: true,
         department: true,
         gradYear: true,
         phone: true,
-        skills: true,
-        aim: true,
-        bio: true,
-        type: true, // include this if you want conditional rendering on frontend
+        type: true,
       },
     });
 
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(user, { status: 200 });
   } catch (error) {
-    console.error('Error fetching profile:', error);
+    console.error('❌ Error fetching profile:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
