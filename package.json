@@ -2,19 +2,23 @@
   "name": "gigswallv2",
   "version": "0.1.0",
   "private": true,
+
   
-    "scripts": {
-  "dev": "concurrently -k -n NEXT,SOCKET -c cyan,magenta \"next dev\" \"node --loader ts-node/esm start.ts\"",
+  "scripts": {
 
-  "build": "next build && npm run build:socket",
-  "build:socket": "tsc -p tsconfig.server.json",
+    "dev": "concurrently -n NEXT,SOCKET -c cyan,magenta \"next dev\" \"ts-node start.ts\"",
 
-  "start": "next start",                        
-  "start:socket": "node dist/server.js",        
 
-  "lint": "next lint",
-  "postinstall": "prisma generate"
-},
+    "build:socket": "tsc -p tsconfig.server.json",
+    "start": "node dist/server.js",
+
+
+    "build": "next build",
+    "lint":  "next lint",
+
+
+    "postinstall": "prisma generate"
+  },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
     "@heroicons/react": "^2.2.0",

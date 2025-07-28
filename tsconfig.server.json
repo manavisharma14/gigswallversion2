@@ -1,11 +1,12 @@
-// tsconfig.server.json
 {
-    "extends": "./tsconfig.json",
     "compilerOptions": {
-      "noEmit": false,
-      "outDir": "dist",
       "target": "ES2020",
-      "module": "esnext"   // or "commonjs" – just be consistent
+      "module": "CommonJS",            // <- generate require(...)
+      "outDir": "dist",
+      "rootDir": ".",                  // server.ts is in repo root
+      "esModuleInterop": true,
+      "strict": true,
+      "skipLibCheck": true
     },
-    "include": ["server.ts"]
+    "include": ["server.ts"]           // add more backend files if needed
   }
