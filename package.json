@@ -4,21 +4,20 @@
   "private": true,
 
   
-  "scripts": {
+"scripts": {
 
-    "dev": "concurrently -n NEXT,SOCKET -c cyan,magenta \"next dev\" \"ts-node start.ts\"",
-
-
-    "build:socket": "tsc -p tsconfig.server.json",
-    "start": "node dist/server.js",
+  "dev": "concurrently -n NEXT,SOCKET -c cyan,magenta \"next dev\" \"ts-node start.ts\"",
 
 
-    "build": "next build",
-    "lint":  "next lint",
+  "build": "rm -rf dist && tsc -p tsconfig.server.json",   
+  "start": "node dist/server.js",                         
 
 
-    "postinstall": "prisma generate"
-  },
+  "build:web": "next build",
+
+  "lint": "next lint",
+  "postinstall": "prisma generate"
+},
   "dependencies": {
     "@headlessui/react": "^2.2.4",
     "@heroicons/react": "^2.2.0",
