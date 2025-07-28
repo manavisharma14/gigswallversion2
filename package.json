@@ -5,26 +5,22 @@
 
   
   
+  
     "scripts": {
 
       "dev": "concurrently -n NEXT,SOCKET -c cyan,magenta \"next dev\" \"ts-node start.ts\"",
   
 
-      "build": "rm -rf dist && tsc -p tsconfig.server.json",
-  
+      "build": "next build && tsc -p tsconfig.server.json",
 
-      "build:web": "next build",
   
-
-      "start": "node dist/server.js",
-  
-
-      "start:prod": "npm run build && node dist/server.js",
-  
+      "start": "next start",              
+      "start:socket": "node dist/server.js", 
 
       "lint": "next lint",
       "postinstall": "prisma generate"
     },
+  
   
   "dependencies": {
     "@headlessui/react": "^2.2.4",
