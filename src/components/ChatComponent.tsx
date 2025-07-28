@@ -53,7 +53,7 @@ const ChatComponent = ({
 
     // Initialize socket only once
     if (!socketRef.current) {
-      socketRef.current = io('http://localhost:4000', {
+      socketRef.current = io('https://gigswallversion2.onrender.com', {
         transports: ['websocket'],
         reconnection: true,
       });
