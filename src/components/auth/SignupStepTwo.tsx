@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 'use client';
 
 import { Listbox } from "@headlessui/react";
@@ -10,16 +8,12 @@ interface PreferenceOption {
   value: string;
 }
 
+import { FormDataType } from "@/types/formTypes";
+
 interface SignupStepTwoProps {
-  formData: {
-    department: string;
-    gradYear: string;
-    gigPreference: string;
-    college: string;
-    otherCollege?: string;
-  };
+  formData: FormDataType;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
+  setFormData: React.Dispatch<React.SetStateAction<FormDataType>>;
 }
 
 const preferences: PreferenceOption[] = [
@@ -49,14 +43,14 @@ export default function SignupStepTwo({
   const selectedPreference = preferences.find((r) => r.value === formData.gigPreference) || preferences[0];
 
   const handlePreferenceChange = (pref: PreferenceOption) => {
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
       gigPreference: pref.value,
     }));
   };
 
   const handleCollegeChange = (college: string) => {
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
       college,
       ...(college !== "Others" ? { otherCollege: "" } : {}),

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { Mail, Lock, Phone, User, Eye, EyeOff, ShieldCheck } from "lucide-react";
@@ -62,26 +60,34 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
       await axios.post("/api/auth/send-otp", { email: formData.email });
       toast.success("OTP sent successfully!");
       setOtpSent(true);
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || "Failed to send OTP");
+    } catch (err: unknown) {
+      const errorMessage =
+        axios.isAxiosError(err) && err.response?.data?.error
+          ? err.response.data.error
+          : "Failed to send OTP";
+      toast.error(errorMessage);
     }
   };
-
+  
   const verifyOtp = async () => {
     try {
       const res = await axios.post("/api/auth/verify-otp", {
         email: formData.email,
         otp,
       });
-
+  
       if (res.data.success) {
         toast.success("OTP verified!");
         setOtpVerified(true);
       } else {
         toast.error("Invalid OTP");
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || "Failed to verify OTP");
+    } catch (err: unknown) {
+      const errorMessage =
+        axios.isAxiosError(err) && err.response?.data?.error
+          ? err.response.data.error
+          : "Failed to verify OTP";
+      toast.error(errorMessage);
     }
   };
 

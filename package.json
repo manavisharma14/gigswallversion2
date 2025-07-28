@@ -5,18 +5,17 @@
   
     "scripts": {
 
-      "dev": "concurrently -k -n NEXT,SOCKET -c cyan,magenta \"next dev\" \"ts-node server.ts\"",
+"dev": "concurrently -k -n NEXT,SOCKET -c cyan,magenta \"next dev\" \"node --loader ts-node/esm start.ts\"",
 
-      "build":  "next build && tsc -p tsconfig.server.json",
-      "start":  "concurrently -k -n NEXT,SOCKET -c cyan,magenta \"next start\" \"node dist/server.js\"",
-  
+    "build": "next build && tsc -p tsconfig.server.json",
+    "start": "concurrently -k -n NEXT,SOCKET -c cyan,magenta \"next start\" \"node dist/server.js\"",
 
-      "build:socket": "tsc -p tsconfig.server.json",  
-      "start:socket": "node dist/server.js",         
-  
-      "lint": "next lint",
-      "postinstall": "prisma generate"
-    
+
+    "build:socket": "tsc -p tsconfig.server.json",
+    "start:socket": "node dist/server.js",
+
+    "lint": "next lint",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",

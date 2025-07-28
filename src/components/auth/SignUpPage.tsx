@@ -1,16 +1,17 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useState, useCallback, FormEvent, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import SignupStepOne from "./SignupStepOne";
-import SignupStepTwo from "./SignupStepTwo";
-import { signIn } from "next-auth/react";
+import SignupStepTwo from "@/components/auth/SignupStepTwo";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 
-interface FormData {
+// ✅ Remove this: it was causing ambiguity/conflicts
+// import { FormDataType } from "@/types/formTypes"; 
+
+// ✅ Keep this definition as your working form type
+export interface FormData {
   name: string;
   email: string;
   password: string;
@@ -145,7 +146,6 @@ export default function SignUpPage() {
 
   return (
     <div className="w-full max-w-md mx-auto min-h-screen overflow-hidden flex flex-col px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-16">
-      {/* Header */}
       <div className="w-full flex flex-col items-center justify-start mt-8">
         <h2 className="text-3xl font-bold text-[#4B3BB3] text-center mb-4">
           Create Account
@@ -178,7 +178,6 @@ export default function SignUpPage() {
         </div>
       </div>
 
-      {/* Form */}
       <form onSubmit={handleSubmit} className="w-full flex-1 space-y-6 mt-10">
         {isStudent ? (
           <>
@@ -239,7 +238,6 @@ export default function SignUpPage() {
                   required
                 />
               </div>
-
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3]" size={20} />
                 <input
@@ -252,7 +250,6 @@ export default function SignUpPage() {
                   className="w-full border border-gray-300 px-4 py-2 pl-10 rounded-md bg-white text-black"
                 />
               </div>
-
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3]" size={20} />
                 <input
@@ -271,7 +268,6 @@ export default function SignUpPage() {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </div>
               </div>
-
               {formData.password && (
                 <div className="flex justify-end gap-1 mt-1 pr-1">
                   {[1, 2, 3, 4].map((bar) => {
@@ -279,7 +275,6 @@ export default function SignUpPage() {
                       (passwordStrength === "Strong" && bar <= 4) ||
                       (passwordStrength === "Medium" && bar <= 3) ||
                       (passwordStrength === "Weak" && bar <= 2);
-
                     return (
                       <div
                         key={bar}
@@ -298,7 +293,6 @@ export default function SignUpPage() {
                 </div>
               )}
             </div>
-
             <button
               type="submit"
               disabled={isLoading}

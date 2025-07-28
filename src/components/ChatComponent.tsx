@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 type ChatMessage = {
@@ -35,11 +33,11 @@ const ChatComponent = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
 
-
-
-  console.log('PROPS:', { gigId, applicantId, posterId, recipient });
-
-  const roomId = `${gigId}_${posterId}_${applicantId}`;
+  const roomId = useMemo(() => `${gigId}_${posterId}_${applicantId}`, [
+    gigId,
+    posterId,
+    applicantId,
+  ]);
 
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId');
@@ -53,6 +51,7 @@ const ChatComponent = ({
   useEffect(() => {
     if (!gigId || !recipient || !userId || !roomId) return;
 
+    // Initialize socket only once
     if (!socketRef.current) {
       socketRef.current = io('http://localhost:4000', {
         transports: ['websocket'],
@@ -88,25 +87,7 @@ const ChatComponent = ({
       });
     };
 
-    socketRef.current.off('receive_message', handleReceiveMessage);
     socketRef.current.on('receive_message', handleReceiveMessage);
-
-
-    const handleOpenChat = async (gigId: string, posterId: string, applicantId: string) => {
-  try {
-    const res = await fetch(`/api/check-message-exists?gigId=${gigId}&posterId=${posterId}&applicantId=${applicantId}`);
-    const data = await res.json();
-
-    if (data.exists) {
-      setOpenChatForGig(gigId); // or setOpenChatRoom(roomId)
-    } else {
-      alert("❌ The poster has not initiated the chat yet.");
-    }
-  } catch (err) {
-    console.error("Error checking chat existence:", err);
-    alert("Something went wrong. Please try again.");
-  }
-};
 
     const fetchMessages = async () => {
       try {
@@ -124,8 +105,10 @@ const ChatComponent = ({
 
     return () => {
       socketRef.current?.off('receive_message', handleReceiveMessage);
+      socketRef.current?.disconnect();
+      socketRef.current = null;
     };
-  }, [gigId, recipient, userId, roomId]);
+  }, [gigId, recipient, userId, roomId, setOpenChatForGig]);
 
   const sendMessage = () => {
     if (!message.trim() || !socketRef.current?.connected) return;
@@ -140,7 +123,6 @@ const ChatComponent = ({
     };
 
     socketRef.current.emit('send_message', newMessage);
-    // setMessages((prev) => [...prev, newMessage]);
     setMessage('');
   };
 
@@ -151,12 +133,16 @@ const ChatComponent = ({
     }
   };
 
+  const handleCloseChat = () => {
+    setOpenChatForGig(null);
+  };
+
   return (
     <div className="fixed bottom-5 right-5 bg-white border shadow-lg rounded-xl w-80 z-50">
       <div className="flex justify-between items-center px-4 py-2 border-b">
         <p className="font-semibold text-[#3B2ECC]">Chat</p>
         <button
-          onClick={() => setOpenChatForGig(null)}
+          onClick={handleCloseChat}
           className="text-gray-500 hover:text-red-600 text-xl"
         >
           ✖
