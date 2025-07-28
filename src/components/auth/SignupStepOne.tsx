@@ -69,6 +69,7 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
     }
   };
   
+  // comment
   const verifyOtp = async () => {
     try {
       const res = await axios.post("/api/auth/verify-otp", {
