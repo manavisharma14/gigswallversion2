@@ -1,44 +1,52 @@
+// app/api/dashboard/profile/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getUserFromToken } from '@/lib/getUserFromToken'; // your custom token decoder
+import { getUserFromToken } from '@/lib/getUserFromToken';
 
 export async function GET(req: NextRequest) {
-  const result = await getUserFromToken(req);
+  // ── 1.  Auth ─────────────────────────────────────────────
+  const auth = await getUserFromToken(req);
 
-  if (result instanceof Response) return result;
-  
-  console.log('📥 Profile Request:', result);
-
-  // If result is a Response (an error), return it directly
-  if (result instanceof Response) {
-    return result;
+  if (auth instanceof Response) {
+    // getUserFromToken already built the error response
+    return auth;
   }
 
-  const { userId } = result;
+  const { userId, type } = auth;          // <- log & validate
+  console.log('[profile] decoded token →', { userId, type });
 
+  if (!userId) {
+    return NextResponse.json(
+      { message: 'Missing userId in token' },
+      { status: 400 }
+    );
+  }
+
+  // ── 2.  DB fetch ─────────────────────────────────────────
   try {
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where:  { id: userId },             // for MongoDB Prisma this is a string
       select: {
-        id: true,
-        name: true,
-        email: true,
-        createdAt: true,
-        college: true,
-        department: true,
-        gradYear: true,
-        phone: true,
-        type: true,
+        id:  true,
+        name:true,
+        email:true,
+        createdAt:true,
+        college:true,
+        department:true,
+        gradYear:true,
+        phone:true,
+        type:true,
       },
     });
 
     if (!user) {
+      console.warn('[profile] no user row for', userId);
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
     return NextResponse.json(user, { status: 200 });
-  } catch (error) {
-    console.error('❌ Error fetching profile:', error);
+  } catch (err) {
+    console.error('[profile] DB error:', err);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
