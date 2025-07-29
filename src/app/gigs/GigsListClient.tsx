@@ -37,40 +37,52 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
   };
 
   const checkCanApply = async (gigId: string) => {
+    const token = localStorage.getItem('token');
+  
+    // ✅ Handle unauthenticated user
+    if (!token) {
+      setErrors((prev) => ({
+        ...prev,
+        [gigId]: 'Please sign in to apply for gigs.',
+      }));
+      setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 2500);
+      return;
+    }
+  
     try {
-      const token = localStorage.getItem('token');
-      const payload = JSON.parse(atob(token?.split('.')[1] ?? '{}'));
+      const payload = JSON.parse(atob(token.split('.')[1] ?? '{}'));
       const userType = payload?.type;
-
-      // Disallow applying if userType is not student
+  
+      // ✅ Check if user is a student
       if (userType !== 'student') {
         setErrors((prev) => ({
           ...prev,
           [gigId]: 'Only verified students can apply for gigs.',
         }));
-        setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 2000);
+        setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 2500);
         return;
       }
-
+  
       const response = await fetch(`/api/gigs/${gigId}/can-apply`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
-
+  
       const data = await response.json();
       if (response.ok) {
         setErrors((prev) => ({ ...prev, [gigId]: null }));
         setShowModal(true);
       } else {
         setErrors((prev) => ({ ...prev, [gigId]: data.message }));
-        setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 2000);
+        setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 2500);
       }
     } catch (error) {
+      console.error('Eligibility check failed:', error);
       setErrors((prev) => ({
         ...prev,
-        [gigId]: 'An error occurred while checking eligibility.',
+        [gigId]: 'An unexpected error occurred. Please try again.',
       }));
-      setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 2000);
+      setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 2500);
     }
   };
 
