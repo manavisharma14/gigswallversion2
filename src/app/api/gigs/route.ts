@@ -1,5 +1,3 @@
-export const runtime = 'nodejs';
-
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendNewGigEmail } from "../../../lib/email/sendNewGigEmail" // Make sure path is correct
