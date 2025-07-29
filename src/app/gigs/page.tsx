@@ -1,6 +1,12 @@
-import { prisma } from '@/lib/prisma';
+export const dynamic = 'force-dynamic'; 
+
+
 import React from 'react';
 import GigsListClient from './GigsListClient';
+
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 interface Gig {
   id: string;
