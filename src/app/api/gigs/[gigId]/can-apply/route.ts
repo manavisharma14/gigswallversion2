@@ -37,6 +37,7 @@ export async function GET(
       { status: 403 }
     );
   }
+  // a
 
   const gig = await prisma.gig.findUnique({ where: { id: gigId } });
   if (!gig) {
