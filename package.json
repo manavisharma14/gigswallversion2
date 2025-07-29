@@ -8,17 +8,10 @@
   
   
     "scripts": {
-      "dev":   "concurrently -n NEXT,SOCKET -c cyan,magenta \"next dev\" \"ts-node start.ts\"",
-  
-      "build":     "next build",                 
-      "postbuild": "tsc -p tsconfig.server.json", 
-  
-      "start":        "next start",
-      "start:socket": "node dist/server.js",
-  
-      "lint": "next lint",
-      "postinstall": "prisma generate"
-    }
+  "dev": "next dev",
+  "build": "next build && tsc -p tsconfig.server.json",
+  "start": "node dist/server.js"
+}
   ,
   
   
