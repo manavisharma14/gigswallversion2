@@ -1,12 +1,7 @@
 export const dynamic = 'force-dynamic'; 
 
-
 import React from 'react';
 import GigsListClient from './GigsListClient';
-
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
 
 interface Gig {
   id: string;
@@ -15,29 +10,15 @@ interface Gig {
   budget: number;
   description: string;
   status: string;
-  createdAt: string;    
+  createdAt: string; // already string when fetched from API
 }
 
 export default async function GigsPage() {
-  // only pull exactly the fields your UI needs
-  const rawGigs = await prisma.gig.findMany({
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      title: true,
-      category: true,
-      budget: true,
-      description: true,
-      status: true,
-      createdAt: true,
-    },
-  });
+  const rawGigs = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/gigs`, {
+    cache: 'no-store',
+  }).then(res => res.json()).then(data => data.gigs);
 
-  // convert Date → ISO string
-  const gigs: Gig[] = rawGigs.map((g) => ({
-    ...g,
-    createdAt: g.createdAt.toISOString(),
-  }));
+  const gigs: Gig[] = rawGigs; // No need to map unless renaming fields
 
   return (
     <div className='mt-28'> 
