@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma'; // Adjust path if needed
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 // Use dynamic routing feature of Next.js to extract `id` directly
 export async function PATCH(req: NextRequest, 
