@@ -467,6 +467,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Timestamp } from "firebase/firestore";
+
 import {
   collection,
   query,
@@ -480,7 +482,7 @@ interface ChatMessage {
   message: string;
   sender: string;
   recipient: string;
-  timestamp?: any;
+  timestamp?: Timestamp;
 }
 
 const ChatComponent = ({
@@ -535,7 +537,7 @@ const ChatComponent = ({
       console.log("[ChatComponent] Unsubscribing from room:", roomId);
       unsub();
     };
-  }, [userId, roomId]);
+  }, [userId, roomId, gigId, applicantId, posterId]);
 
   const handleSend = async () => {
     if (!message.trim()) return;
