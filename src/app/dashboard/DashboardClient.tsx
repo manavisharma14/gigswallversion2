@@ -71,8 +71,8 @@ export default function DashboardClient({
   appliedGigs: Application[];
 }) {
   const [active, setActive] = useState('Profile');
-  const [profile, setProfile] = useState<User>(user); // includes extended fields
-const [username, setUsername] = useState(user?.name || '');
+  // const [profile, setProfile] = useState<User>(user); // includes extended fields
+// const [username, setUsername] = useState(user?.name || '');
   const [editingName, setEditingName] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [gigToDelete, setGigToDelete] = useState<{ id: string; title: string } | null>(null);
@@ -81,30 +81,32 @@ const [username, setUsername] = useState(user?.name || '');
   const [chatEligibilityMap, setChatEligibilityMap] = useState<Record<string, boolean>>({});
   const [chatAllowed, setChatAllowed] = useState({});
 
+  const profile = user;
+
   
 
   // Save userId to localStorage for ChatComponent
-  useEffect(() => {
-    const fetchProfile = async () => {
+  // useEffect(() => {
+  //   const fetchProfile = async () => {
 
-     const token = localStorage.getItem('token');   // may be null
+  //    const token = localStorage.getItem('token');   // may be null
   
-      const res = await fetch('/api/dashboard/profile', {
-       headers: token ? { Authorization: `Bearer ${token}` } : {},
-       credentials: 'include',           // ❷ send the cookie
-      });
+  //     const res = await fetch('/api/dashboard/profile', {
+  //      headers: token ? { Authorization: `Bearer ${token}` } : {},
+  //      credentials: 'include',           // ❷ send the cookie
+  //     });
   
-      if (!res.ok) {
-        console.error('Failed profile:', await res.text());
-        return;
-      }
-      const data = await res.json();
-      setProfile(data);
-      setUsername(data.name ?? '');
-    };
+  //     if (!res.ok) {
+  //       console.error('Failed profile:', await res.text());
+  //       return;
+  //     }
+  //     const data = await res.json();
+  //     setProfile(data);
+  //     setUsername(data.name ?? '');
+  //   };
   
-    fetchProfile();
-  }, []);
+  //   fetchProfile();
+  // }, []);
 
   const menuItems = [
     { name: 'Profile', icon: UserIcon },
@@ -113,7 +115,7 @@ const [username, setUsername] = useState(user?.name || '');
   ];
 
   const saveUsername = () => {
-    const updated = { ...user, name: username };
+    const updated = { ...user, name: user.name };
     localStorage.setItem('user', JSON.stringify(updated));
     setEditingName(false);
   };
@@ -209,7 +211,7 @@ const [username, setUsername] = useState(user?.name || '');
             <div className="bg-[#4B55C3] text-white flex flex-col items-center py-10 px-6">
               <div className="relative w-28 h-28 rounded-full border-4 border-white overflow-hidden">
                 <img
-                  src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${username}`}
+                  src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user.name}`}
                   alt="avatar"
                   className="w-full h-full object-cover"
                 />
@@ -222,7 +224,7 @@ const [username, setUsername] = useState(user?.name || '');
               {/* Name & Email */}
               <div className="mt-4 text-center">
                 <div className="flex justify-center items-center gap-2">
-                  <h2 className="text-xl font-bold">{username}</h2>
+                  <h2 className="text-xl font-bold">{user.name}</h2>
                   <button onClick={() => setEditingName(true)}>
                     <PencilIcon className="w-5 h-5" />
                   </button>

@@ -133,7 +133,8 @@ export default function SignUpPage() {
         }
 
         toast.success("Account created successfully 🚀", { id: "signup-success" });
-        router.push("/dashboard");
+        window.location.href = '/dashboard'; 
+        router.refresh(); // Ensure the dashboard is refreshed with new user data
       } else {
         toast.error(data?.error || "Something went wrong.", { id: "signup-error" });
       }

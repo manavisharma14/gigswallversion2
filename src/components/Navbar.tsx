@@ -12,38 +12,16 @@ import {
   UserCircle
 } from 'lucide-react';
 import logo from '../../public/assets/logo.png';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [userName, setUserName] = useState('');
+  const { user } = useAuth();
+  const loggedIn = !!user;
+  const userName = user?.name || '';
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const updateAuthState = () => {
-      const user = localStorage.getItem('user');
-      if (user) {
-        try {
-          const parsedUser = JSON.parse(user);
-          setLoggedIn(true);
-          setUserName(parsedUser.name || '');
-        } catch (e) {
-          console.error('Failed to parse user data:', e);
-          setLoggedIn(false);
-          setUserName('');
-        }
-      } else {
-        setLoggedIn(false);
-        setUserName('');
-      }
-    };
-
-    updateAuthState();
-    window.addEventListener('storageChanged', updateAuthState);
-    return () => window.removeEventListener('storageChanged', updateAuthState);
-  }, [pathname]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -57,11 +35,11 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' }); // Clears cookie
+      await fetch('/api/auth/logout', { method: 'POST' });
     } catch (e) {
       console.error('Logout error:', e);
     }
-  
+
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.dispatchEvent(new Event('storageChanged'));
@@ -88,7 +66,7 @@ export default function Navbar() {
                 className="flex items-center gap-2 text-[#4B55C3] font-semibold"
               >
                 <UserCircle size={18} />
-                <span>{userName || 'User'}</span>
+                <span>{userName}</span>
                 <ChevronDown size={16} />
               </button>
               {dropdownOpen && (

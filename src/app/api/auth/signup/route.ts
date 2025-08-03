@@ -15,9 +15,8 @@ export async function POST(req: NextRequest) {
       gigPreference, college, type,
     } = body;
 
-    /* basic validation omitted for brevity … */
+    // 🚨 Add input validation here in production (e.g., check for missing fields)
 
-    // ▸ create user in DB
     const user = await prisma.user.create({
       data: {
         name,
@@ -33,28 +32,43 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // ▸ **NOW INCLUDE `type` IN THE JWT**
+    // ✅ Include `name` in token for SSR use if needed
     const token = jwt.sign(
-      { id: user.id, email: user.email, type: user.type },
+      {
+        id: user.id,
+        email: user.email,
+        type: user.type,
+        name: user.name, // ✅ Add this for instant nav rendering
+      },
       JWT_SECRET,
-      { expiresIn: '7d' },
+      { expiresIn: '7d' }
     );
 
     const res = NextResponse.json(
       {
         message: 'Signup successful',
-        user: { id: user.id, name: user.name, email: user.email, type: user.type },
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          type: user.type,
+          phone: user.phone,
+          department: user.department,
+          gradYear: user.gradYear,
+          college: user.college,
+          createdAt: user.createdAt.toISOString(),
+        },
         token,
       },
-      { status: 201 },
+      { status: 201 }
     );
 
     res.cookies.set('token', token, {
       httpOnly: true,
-      secure:   process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge:   60 * 60 * 24 * 7,
-      path:     '/',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/',
     });
 
     return res;
