@@ -439,7 +439,7 @@ const [username, setUsername] = useState(user?.name || '');
                   </span>
                 </p>
 
-                <button
+                {/* <button
 onClick={async () => {
   const allowed = await hasPosterStartedChat(gig.id, recipient, user.id);
   if (allowed) {
@@ -453,7 +453,30 @@ onClick={async () => {
   className="text-[#3B2ECC] hover:underline mt-3"
 >
   Open Chat
-</button>
+</button> */}
+
+
+{/* {app.status === 'accepted' && (
+  <> */}
+    <button
+      onClick={() => toggleChat(chatKey)}
+      className="text-[#3B2ECC] hover:underline mt-3"
+    >
+      Open Chat
+    </button>
+
+    {openChatForGig === chatKey && (
+      <ChatComponent
+        gigId={gig.id}
+        applicantId={user.id}
+        posterId={recipient}
+        recipient={recipient}
+        setOpenChatForGig={setOpenChatForGig}
+      />
+  //   )}
+  // </>
+)}
+
                 
 
                 {openChatForGig === chatKey && (gig.postedBy?.id || gig.postedById) && chatEligibilityMap[chatKey] &&(

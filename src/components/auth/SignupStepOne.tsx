@@ -114,7 +114,7 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
         <input
           type="email"
           name="email"
-          placeholder="Email"
+          placeholder="Your student email"
           className={`${inputClass} pr-32`}
           value={formData.email}
           onChange={handleChange}
@@ -152,9 +152,9 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
         </>
       )}
 
-      {otpVerified && (
+      {/* {otpVerified && (
         <p className="text-green-600 font-semibold mb-4">OTP Verified ✅</p>
-      )}
+      )} */}
 
       {/* Password */}
       <div className="relative mb-2">
