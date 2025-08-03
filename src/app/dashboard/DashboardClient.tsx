@@ -4,6 +4,9 @@
 
 import { useEffect, useState } from 'react';
 import ChatComponent from '../../components/ChatComponent';
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+
 import {
   UserIcon,
   BriefcaseIcon,
@@ -115,6 +118,12 @@ const [username, setUsername] = useState(user?.name || '');
     setEditingName(false);
   };
 
+  const checkIfChatStarted = async (roomId: string) => {
+  const chatDocRef = doc(db, "chats", roomId);
+  const chatDoc = await getDoc(chatDocRef);
+  return chatDoc.exists();
+};
+
   
 
   const handleConfirmedDelete = async () => {
@@ -162,15 +171,11 @@ const [username, setUsername] = useState(user?.name || '');
   
 
   const hasPosterStartedChat = async (gigId: string, posterId: string, applicantId: string) => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`/api/messages/check?gigId=${gigId}&posterId=${posterId}&applicantId=${applicantId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) return false;
-    const data = await res.json();
-    return data.exists; // assumes your backend returns { exists: true/false }
+    const roomId = `${gigId}_${posterId}_${applicantId}`;
+    const docRef = doc(db, "chats", roomId);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists();
   };
-
 
   
   const renderContent = () => {
@@ -403,100 +408,179 @@ const [username, setUsername] = useState(user?.name || '');
 
     // Applied Gigs View
 
-    if (active === 'Applied Gigs') {
-      if (user.type !== 'student') return null;
-    return (
-      <section className="space-y-6 mt-20 px-1">
-        <h2 className="text-2xl md:text-3xl font-bold text-[#3B2ECC] mb-4 text-center md:text-left">
-          Gigs You’ve Applied To
-        </h2>
-        {appliedGigs.length === 0 ? ( 
-          <p className="text-center text-gray-600">You haven’t applied to any gigs yet.</p>
-        ) : (
-          appliedGigs.map((app) => {
-            const gig = app.gig;
-            if (!gig) return null;
-            const recipient = gig.postedBy?.id || gig.postedById;
-            const chatKey = `${gig.id}_${user.id}`;
-            console.log(recipient);
+//     if (active === 'Applied Gigs') {
+//       if (user.type !== 'student') return null;
+//     return (
+//       <section className="space-y-6 mt-20 px-1">
+//         <h2 className="text-2xl md:text-3xl font-bold text-[#3B2ECC] mb-4 text-center md:text-left">
+//           Gigs You’ve Applied To
+//         </h2>
+//         {appliedGigs.length === 0 ? ( 
+//           <p className="text-center text-gray-600">You haven’t applied to any gigs yet.</p>
+//         ) : (
+//           appliedGigs.map((app) => {
+//             const gig = app.gig;
+//             if (!gig) return null;
+//             const recipient = gig.postedBy?.id || gig.postedById;
+//             const chatKey = `${gig.id}_${user.id}`;
+//             console.log(recipient);
 
-            return (
-              <div key={`${app.id}-${gig.id}`} className="bg-white p-5 md:p-6 rounded-xl shadow-md border">
-                <h3 className="font-semibold text-lg text-[#4B55C3]">{gig.title}</h3>
-                <p className="text-sm text-gray-600">Reason: {app.reason}</p>
-                <p className="text-sm mt-2">
-                  Status:{' '}
-                  <span
-                    className={`font-semibold ${
-                      app.status === 'accepted'
-                        ? 'text-green-600'
-                        : app.status === 'rejected'
-                        ? 'text-red-600'
-                        : 'text-yellow-600'
-                    }`}
-                  >
-                    {app.status}
-                  </span>
-                </p>
+//             return (
+//               <div key={`${app.id}-${gig.id}`} className="bg-white p-5 md:p-6 rounded-xl shadow-md border">
+//                 <h3 className="font-semibold text-lg text-[#4B55C3]">{gig.title}</h3>
+//                 <p className="text-sm text-gray-600">Reason: {app.reason}</p>
+//                 <p className="text-sm mt-2">
+//                   Status:{' '}
+//                   <span
+//                     className={`font-semibold ${
+//                       app.status === 'accepted'
+//                         ? 'text-green-600'
+//                         : app.status === 'rejected'
+//                         ? 'text-red-600'
+//                         : 'text-yellow-600'
+//                     }`}
+//                   >
+//                     {app.status}
+//                   </span>
+//                 </p>
 
-                {/* <button
-onClick={async () => {
-  const allowed = await hasPosterStartedChat(gig.id, recipient, user.id);
-  if (allowed) {
-    toggleChat(chatKey);
-    setChatEligibilityMap((prev) => ({ ...prev, [chatKey]: true }));
-  } else {
-    setToast({ message: "Chat not available until poster initiates it.", type: 'error' });
-    setTimeout(() => setToast(null), 3000);
-  }
-}}
-  className="text-[#3B2ECC] hover:underline mt-3"
->
-  Open Chat
-</button> */}
+//                 {/* <button
+// onClick={async () => {
+//   const allowed = await hasPosterStartedChat(gig.id, recipient, user.id);
+//   if (allowed) {
+//     toggleChat(chatKey);
+//     setChatEligibilityMap((prev) => ({ ...prev, [chatKey]: true }));
+//   } else {
+//     setToast({ message: "Chat not available until poster initiates it.", type: 'error' });
+//     setTimeout(() => setToast(null), 3000);
+//   }
+// }}
+//   className="text-[#3B2ECC] hover:underline mt-3"
+// >
+//   Open Chat
+// </button> */}
 
 
-{/* {app.status === 'accepted' && (
-  <> */}
-    <button
-      onClick={() => toggleChat(chatKey)}
-      className="text-[#3B2ECC] hover:underline mt-3"
-    >
-      Open Chat
-    </button>
+// {/* {app.status === 'accepted' && (
+//   <> */}
+//     <button
+//       onClick={() => toggleChat(chatKey)}
+//       className="text-[#3B2ECC] hover:underline mt-3"
+//     >
+//       Open Chat
+//     </button>
 
-    {openChatForGig === chatKey && (
-      <ChatComponent
-        gigId={gig.id}
-        applicantId={user.id}
-        posterId={recipient}
-        recipient={recipient}
-        setOpenChatForGig={setOpenChatForGig}
-      />
-  //   )}
-  // </>
-)}
+//     {openChatForGig === chatKey && (
+//       <ChatComponent
+//         gigId={gig.id}
+//         applicantId={user.id}
+//         posterId={recipient}
+//         recipient={recipient}
+//         setOpenChatForGig={setOpenChatForGig}
+//       />
+//   //   )}
+//   // </>
+// )}
 
                 
 
-                {openChatForGig === chatKey && (gig.postedBy?.id || gig.postedById) && chatEligibilityMap[chatKey] &&(
-  <ChatComponent
-    key={chatKey}
-    gigId={gig.id}
-    applicantId={user.id}
-    posterId={gig.postedBy?.id || gig.postedById}
-    recipient={recipient}
-    setOpenChatForGig={setOpenChatForGig}
-  />
-)}
-              </div>
-            );
-          })
-        )}
-      </section>
-    );
-  };
+//                 {openChatForGig === chatKey && (gig.postedBy?.id || gig.postedById) && chatEligibilityMap[chatKey] &&(
+//   <ChatComponent
+//     key={chatKey}
+//     gigId={gig.id}
+//     applicantId={user.id}
+//     posterId={gig.postedBy?.id || gig.postedById}
+//     recipient={recipient}
+//     setOpenChatForGig={setOpenChatForGig}
+//   />
+// )}
+//               </div>
+//             );
+//           })
+//         )}
+//       </section>
+//     );
+//   };
+
+if (active === 'Applied Gigs') {
+  if (user.type !== 'student') return null;
+
+  return (
+    <section className="space-y-6 mt-20 px-1">
+      <h2 className="text-2xl md:text-3xl font-bold text-[#3B2ECC] mb-4 text-center md:text-left">
+        Gigs You’ve Applied To
+      </h2>
+
+      {appliedGigs.length === 0 ? (
+        <p className="text-center text-gray-600">You haven’t applied to any gigs yet.</p>
+      ) : (
+        appliedGigs.map((app) => {
+          const gig = app.gig;
+          if (!gig) return null;
+
+          const posterId = gig.postedBy?.id || gig.postedById;
+          const chatKey = `${gig.id}_${posterId}_${user.id}`;
+          const recipient = posterId;
+
+          return (
+            <div key={`${app.id}-${gig.id}`} className="bg-white p-5 md:p-6 rounded-xl shadow-md border">
+              <h3 className="font-semibold text-lg text-[#4B55C3]">{gig.title}</h3>
+              <p className="text-sm text-gray-600">Reason: {app.reason}</p>
+              <p className="text-sm mt-2">
+                Status:{' '}
+                <span
+                  className={`font-semibold ${
+                    app.status === 'accepted'
+                      ? 'text-green-600'
+                      : app.status === 'rejected'
+                      ? 'text-red-600'
+                      : 'text-yellow-600'
+                  }`}
+                >
+                  {app.status}
+                </span>
+              </p>
+
+              {/* {app.status === 'accepted' && ( */}
+                <button
+                  onClick={async () => {
+                    const allowed = await hasPosterStartedChat(gig.id, posterId, user.id);
+                    if (allowed) {
+                      setOpenChatForGig(chatKey);
+                    } else {
+                      setToast({
+                        message: 'Chat not available until the poster initiates it.',
+                        type: 'error',
+                      });
+                      setTimeout(() => setToast(null), 3000);
+                    }
+                  }}
+                  className="text-[#3B2ECC] hover:underline mt-3"
+                >
+                  Open Chat
+                </button>
+              {/* ) */}
+              {/* } */}
+
+              {openChatForGig === chatKey && (
+                <ChatComponent
+                  key={chatKey}
+                  gigId={gig.id}
+                  applicantId={user.id}
+                  posterId={posterId}
+                  recipient={recipient}
+                  setOpenChatForGig={setOpenChatForGig}
+                />
+              )}
+            </div>
+          );
+        })
+      )}
+    </section>
+  );
+}
 };
+
 
 return (
   <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-[#E9ECFF] to-[#F6F8FF] font-bricolage">
