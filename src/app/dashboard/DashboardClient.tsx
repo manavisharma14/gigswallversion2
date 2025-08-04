@@ -282,8 +282,7 @@ export default function DashboardClient({
     <p className="text-center text-gray-600">No gigs posted yet.</p>
   ) : (
     postedGigs.map((gig) => (
-      <div key={gig.id} className="relative bg-white p-5 md:p-6 rounded-xl shadow-md border md:grid md:grid-cols-2 md:gap-6">
-        {/* Gig Info */}
+<div key={gig.id} className="relative bg-white p-5 md:p-6 rounded-xl shadow-md border  md:gap-6">        {/* Gig Info */}
         <div className="space-y-2">
           <h3 className="font-semibold text-lg text-[#4B55C3]">{gig.title}</h3>
           <p className="text-gray-700">{gig.description}</p>

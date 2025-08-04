@@ -11,7 +11,7 @@ import {
   ChevronDown,
   UserCircle
 } from 'lucide-react';
-import logo from '../../public/assets/logo.png';
+import logo from '../../public/assets/logo1.png';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {

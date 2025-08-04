@@ -8,6 +8,11 @@ interface AuthUser {
   name: string;
   email?: string;
   type: UserType;
+  phone?: string | null;
+  department?: string | null;
+  gradYear?: string | null;
+  college?: string | null;
+  createdAt?: string;
 }
 
 const AuthContext = createContext<{
@@ -23,16 +28,39 @@ export const AuthProvider = ({
   initialUser,
 }: {
   children: React.ReactNode;
-  initialUser: AuthUser | null;
+  initialUser?: AuthUser | null;
 }) => {
-  const [user, setUser] = useState<AuthUser | null>(initialUser);
+  const [user, setUser] = useState<AuthUser | null>(initialUser ?? null);
   const [isHydrated, setIsHydrated] = useState(false);
 
-useEffect(() => {
-  setIsHydrated(true);
-}, []);
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setUser(parsed);
+      } catch (err) {
+        console.error("Invalid user in localStorage", err);
+      }
+    } else if (initialUser) {
+      // If no localStorage, store the server-side user for future sync
+      localStorage.setItem("user", JSON.stringify(initialUser));
+    }
 
-if (!isHydrated) return null;
+    const syncUser = () => {
+      const newUser = localStorage.getItem("user");
+      if (newUser) setUser(JSON.parse(newUser));
+    };
+
+    window.addEventListener("storageChanged", syncUser);
+    setIsHydrated(true);
+
+    return () => {
+      window.removeEventListener("storageChanged", syncUser);
+    };
+  }, [initialUser]);
+
+  if (!isHydrated) return null;
 
   return (
     <AuthContext.Provider value={{ user, setUser }}>
