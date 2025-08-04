@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+
 import { useEffect, useState, useRef } from 'react';
 import {
   Menu,
@@ -15,7 +15,7 @@ import logo from '../../public/assets/logo.png';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
-  const pathname = usePathname();
+
   const { user } = useAuth();
   const loggedIn = !!user;
   const userName = user?.name || '';

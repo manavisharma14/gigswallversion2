@@ -37,7 +37,7 @@ export async function getUserServerSide(): Promise<AuthUser | null> {
       } as AuthUser;
     }
     return null;
-  } catch (err) {
+  } catch  {
     return null;
   }
 }
