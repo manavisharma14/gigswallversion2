@@ -53,11 +53,15 @@ export default function PostGigClient() {
   const [submitting, setSubmitting] = useState(false);
 
   // Load user info from localStorage
+  const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
+    setIsMounted(true);
+  
     const token = localStorage.getItem('token');
     const storedUserId = localStorage.getItem('userId');
     const storedCollege = localStorage.getItem('college');
-
+  
     if (token && storedUserId) {
       setForm((prev) => ({
         ...prev,
