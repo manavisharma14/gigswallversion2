@@ -31,30 +31,30 @@ export async function POST(req: NextRequest) {
 
     console.log("✅ New gig created:", newGig.title);
 
-    // 2. Get all user emails except the poster
-    const users = await prisma.user.findMany({
-      where: { id: { not: userId } },
-      select: { email: true },
-    });
+    // // 2. Get all user emails except the poster
+    // const users = await prisma.user.findMany({
+    //   where: { id: { not: userId } },
+    //   select: { email: true },
+    // });
 
-    console.log(`📨 Preparing to send email to ${users.length} users...`);
+    // console.log(`📨 Preparing to send email to ${users.length} users...`);
 
-    // 3. Send email to each user
-    await Promise.all(
-      users.map((user) =>
-        sendNewGigEmail({
-          to: user.email,
-          gigTitle: title,
-          gigDescription: description,
-        })
-      )
-    );
+    // // 3. Send email to each user
+    // await Promise.all(
+    //   users.map((user) =>
+    //     sendNewGigEmail({
+    //       to: user.email,
+    //       gigTitle: title,
+    //       gigDescription: description,
+    //     })
+    //   )
+    // );
 
-    console.log("📬 All emails sent successfully.");
-    return NextResponse.json(newGig, { status: 201 });
+    // console.log("📬 All emails sent successfully.");
+    // return NextResponse.json(newGig, { status: 201 });
 
   } catch (error) {
-    console.error("❌ Error in posting gig or sending emails:", error);
+    console.error(" Error in posting gig:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
