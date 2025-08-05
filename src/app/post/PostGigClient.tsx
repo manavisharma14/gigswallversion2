@@ -9,18 +9,21 @@ import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 // ───────────────────────────────────
 // OPTIONS  (first item = placeholder)
 // ───────────────────────────────────
-const categories = [
-  'Select Category',               // placeholder / sentinel
-  '🎨 Creative & Design',
-  '💻 Tech & Development',
-  '📚 Tutoring & Academic Help',
-  '✍️ Writing & Editing',
-  '📸 Photography & Videography',
-  '📱 Social Media & Marketing',
-  '🛠️ Technical Support',
-  '🧠 Presentation & Resume Help',
-  '🧪 Research Assistance',
-  '📊 Data Entry & Analysis',
+export const categories = [
+  'Select Category',
+  'Design & Creative',
+  'Web / App Development',
+  'Tutoring & Mentorship',
+  'Writing & Translation',
+  'Editing & Proof-reading',
+  'Photo / Video / Multimedia',
+  'Digital Marketing & Social',
+  'IT / Tech Support',
+  'Resume & Presentation Help',
+  'Research & Lab Assistance',
+  'Data & Analytics',
+  'Event Help & Logistics',
+  'Admin & Virtual Assistance',
   'Other',
 ];
 
