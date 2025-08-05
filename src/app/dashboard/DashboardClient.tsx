@@ -620,7 +620,7 @@ return (
     </div>
 
     <aside className="hidden md:flex md:flex-col md:w-64 bg-[#4B55C3] text-white py-12 px-4 space-y-4 shadow-xl">
-      <div className="text-2xl font-extrabold px-2 mb-8">GigsWall</div>
+      <div className="text-2xl font-extrabold px-2 mb-8"></div>
       {menuItems.map(item => (
         <button
           key={item.name}

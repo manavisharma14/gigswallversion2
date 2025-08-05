@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import AuthSlider from "@/components/auth/AuthSlider";
 
 export const metadata = {

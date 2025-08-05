@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
+import { Filter } from 'bad-words';
 
 // Category options
 const categories = [
@@ -65,26 +66,43 @@ export default function PostGigClient() {
     }
   }, []);
 
+
+  const isGibberish = (text: string): boolean => {
+    const vowels = text.match(/[aeiou]/gi)?.length || 0;
+    const words = text.trim().split(/\s+/).length;
+    const avgWordLength = text.length / words;
+  
+    return (
+      vowels < 4 ||               // Not enough vowels = likely gibberish
+      avgWordLength > 12 ||       // Words are too long = junk
+      words < 4                   // Too few words = low quality
+    );
+  };
+
   const validateForm = () => {
     const newErrors: FormErrors = {};
-
+  
     if (!form.title.trim() || form.title.length < 5 || form.title.length > 100) {
       newErrors.title = 'Title must be 5–100 characters.';
+    } else if (isGibberish(form.title)) {
+      newErrors.title = 'Please enter a clear, meaningful title.';
     }
-
+  
     if (!form.description.trim() || form.description.length < 50) {
       newErrors.description = 'Description should be at least 50 characters.';
+    } else if (isGibberish(form.description)) {
+      newErrors.description = 'Please enter a clear, meaningful description.';
     }
-
+  
     if (!form.category) {
       newErrors.category = 'Please select a category.';
     }
-
+  
     const budgetNum = Number(form.budget);
     if (!budgetNum || isNaN(budgetNum) || budgetNum < 100 || budgetNum > 100000) {
       newErrors.budget = 'Enter a valid budget (₹100 to ₹100000).';
     }
-
+  
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -97,20 +115,38 @@ export default function PostGigClient() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     if (!validateForm()) return;
-
+  
+    const filter = new Filter();
+    const containsProfanity =
+      filter.isProfane(form.title) || filter.isProfane(form.description);
+  
+    if (containsProfanity) {
+      toast.error('Please remove inappropriate language from your gig.');
+      return;
+    }
+  
+    // Optional: simple gibberish/spam check
+    const spammyWords = ['asdf', 'qwer', 'spam', 'nonsense'];
+    const combinedText = `${form.title} ${form.description}`.toLowerCase();
+  
+    if (spammyWords.some((word) => combinedText.includes(word))) {
+      toast.error('Your post seems spammy. Please revise it.');
+      return;
+    }
+  
     const token = localStorage.getItem('token');
     const userId = localStorage.getItem('userId');
     const college = localStorage.getItem('college') || 'MIT Manipal';
-
+  
     if (!token || !userId) {
       toast.error('Please log in to post a gig.');
       return;
     }
-
+  
     setSubmitting(true);
-
+  
     const res = await fetch('/api/gigs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -122,9 +158,9 @@ export default function PostGigClient() {
         status: 'open',
       }),
     });
-
+  
     setSubmitting(false);
-
+  
     if (res.ok) {
       toast.success('Gig posted successfully!');
       router.push('/gigs');

@@ -1,4 +1,5 @@
 // app/post/page.tsx
+export const dynamic = 'force-static';
 import PostGigClient from './PostGigClient';
 
 export const metadata = {

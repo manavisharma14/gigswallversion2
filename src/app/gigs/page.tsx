@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'; 
+export const dynamic = 'force-dynamic';
 
 import React from 'react';
 import GigsListClient from './GigsListClient';
@@ -10,7 +10,15 @@ interface Gig {
   budget: number;
   description: string;
   status: string;
-  createdAt: string; // already string when fetched from API
+  createdAt: string;
+}
+
+// ✅ Add metadata for SEO
+export async function generateMetadata() {
+  return {
+    title: "Browse Gigs | GigsWall",
+    description: "Explore a variety of freelance gigs posted by students on GigsWall. Filter by category and apply easily.",
+  };
 }
 
 export default async function GigsPage() {
@@ -18,7 +26,7 @@ export default async function GigsPage() {
     cache: 'no-store',
   }).then(res => res.json()).then(data => data.gigs);
 
-  const gigs: Gig[] = rawGigs; // No need to map unless renaming fields
+  const gigs: Gig[] = rawGigs;
 
   return (
     <div className='mt-28'> 

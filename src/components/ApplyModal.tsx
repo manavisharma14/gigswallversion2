@@ -35,21 +35,45 @@ export default function ApplyModal({ gigId, gigTitle, onClose, onSubmit }: Apply
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async () => {
-    if (!formData.reason.trim() || !formData.experience.trim()) {
-      toast.error('Please fill out required fields.');
-      return;
+
+  const validateForm = () => {
+    const { reason, experience, portfolio, extra } = formData;
+  
+    if (reason.trim().length < 20) {
+      toast.error('Your reason must be at least 20 characters.');
+      return false;
     }
+  
+    if (experience.trim().length < 10) {
+      toast.error('Your experience must be at least 10 characters.');
+      return false;
+    }
+  
+    if (portfolio && !/^https?:\/\/.+\..+/.test(portfolio.trim())) {
+      toast.error('Please enter a valid portfolio URL.');
+      return false;
+    }
+  
+    if (extra && extra.trim().length < 5) {
+      toast.error('If you choose to fill "Anything else", write something meaningful.');
+      return false;
+    }
+  
+    return true;
+  };
 
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+  
     setSubmitting(true);
-
+  
     const token = localStorage.getItem('token');
     if (!token) {
       toast.error('Please log in first to apply.');
       setSubmitting(false);
       return;
     }
-
+  
     try {
       const res = await fetch(`/api/apply/${gigId}`, {
         method: 'POST',
@@ -59,9 +83,9 @@ export default function ApplyModal({ gigId, gigTitle, onClose, onSubmit }: Apply
         },
         body: JSON.stringify(formData),
       });
-
+  
       const data = await res.json();
-
+  
       if (res.status === 201) {
         toast.success('Application submitted successfully!');
         onSubmit(formData);
@@ -77,10 +101,9 @@ export default function ApplyModal({ gigId, gigTitle, onClose, onSubmit }: Apply
       console.error(error);
       toast.error('Something went wrong.');
     }
-
+  
     setSubmitting(false);
   };
-
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();

@@ -3,8 +3,8 @@ import { cookies } from 'next/headers';
 import DashboardClient from './DashboardClient';
 
 export const metadata = {
-  title: 'Dashboard | GigsWall',
-  description: 'Manage your gigs, applications, and profile on GigsWall.',
+  title: 'GigsWall Dashboard | Manage Your Student Gigs & Applications',
+  description: 'Access your GigsWall dashboard to track applications, post gigs, manage profiles, and connect with other students on the freelance network.',
 };
 
 export default async function DashboardPage() {

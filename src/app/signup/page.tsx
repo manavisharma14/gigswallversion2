@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import AuthSlider from "@/components/auth/AuthSlider";
 
 export const metadata = {
@@ -8,3 +9,4 @@ export const metadata = {
 export default function SignUpPage() {
   return <AuthSlider defaultLoginMode={false} />;
 }
+
