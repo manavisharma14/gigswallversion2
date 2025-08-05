@@ -15,7 +15,11 @@ export async function POST(req: NextRequest) {
       gigPreference, college, type,
     } = body;
 
-    // 🚨 Add input validation here in production (e.g., check for missing fields)
+    if (type === 'student') {
+      if (!email.endsWith('.edu')) {
+        return NextResponse.json({ error: 'Students must register with a .edu email address' }, { status: 400 });
+      }
+    }
 
     const user = await prisma.user.create({
       data: {
