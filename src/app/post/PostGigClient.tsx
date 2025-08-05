@@ -71,6 +71,8 @@ export default function PostGigClient() {
     }
   }, []);
 
+  if (!isMounted) return null;
+
 
   const isGibberish = (text: string): boolean => {
     const vowels = text.match(/[aeiou]/gi)?.length || 0;
