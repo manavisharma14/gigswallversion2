@@ -19,6 +19,7 @@ const categories = [
   '🧠 Presentation & Resume Help',
   '🧪 Research Assistance',
   '📊 Data Entry & Analysis',
+  'Other',
 ];
 
 // Type definitions
@@ -170,7 +171,8 @@ export default function PostGigClient() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#E9ECFF] via-[#EEF1FF] to-[#F6F8FF] pt-24 px-4 pb-16 text-gray-800 font-bricolage">
+    <div className="min-h-screen pt-24 px-4 pb-1 text-gray-800 font-bricolage">
+    {/* <div className="max-w-2xl mx-auto mt-10  bg-gradient-to-br from-[#E9ECFF] via-[#EEF1FF] to-[#F6F8FF] border border-gray-200 rounded-2xl shadow-2xl p-8 sm:p-10 pb-10"></div> */}
       <div className="max-w-2xl mx-auto mt-10 bg-white border border-gray-200 rounded-2xl shadow-2xl p-8 sm:p-10 pb-24">
         <h1 className="text-3xl sm:text-4xl font-extrabold mb-8 text-center text-[#4B55C3]">
           Post a <span className="text-black">New Gig</span>

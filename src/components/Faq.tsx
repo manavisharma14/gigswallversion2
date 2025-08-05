@@ -27,7 +27,7 @@ const faqList: FAQ[] = [
   {
     question: 'How do I get paid?',
     answer:
-      'Payment is handled directly between students. Common options include UPI (Google Pay, PhonePe, Paytm), bank transfer, or cash in person. Always agree on terms clearly before starting.',
+      'Once your application is accepted and the gig is completed, the poster submits payment to GigsWall. We securely hold the funds and release them to you through your preferred payment method after verification. This ensures a safe and trusted experience for both sides.',
   },
   {
     question: 'How do I contact someone after applying or being accepted?',
