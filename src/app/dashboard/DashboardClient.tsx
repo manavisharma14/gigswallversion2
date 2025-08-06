@@ -73,7 +73,7 @@ export default function DashboardClient({
   const [active, setActive] = useState('Profile');
   // const [profile, setProfile] = useState<User>(user); // includes extended fields
 // const [username, setUsername] = useState(user?.name || '');
-  const [editingName, setEditingName] = useState(false);
+  // const [editingName, setEditingName] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [gigToDelete, setGigToDelete] = useState<{ id: string; title: string } | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -114,11 +114,11 @@ export default function DashboardClient({
     ...(user?.type === 'student' ? [{ name: 'Applied Gigs', icon: ClipboardDocumentCheckIcon }] : []),
   ];
 
-  const saveUsername = () => {
-    const updated = { ...user, name: user.name };
-    localStorage.setItem('user', JSON.stringify(updated));
-    setEditingName(false);
-  };
+  // const saveUsername = () => {
+  //   const updated = { ...user, name: user.name };
+  //   localStorage.setItem('user', JSON.stringify(updated));
+  //   setEditingName(false);
+  // };
 
   const checkIfChatStarted = async (roomId: string) => {
   const chatDocRef = doc(db, "chats", roomId);
@@ -215,19 +215,19 @@ export default function DashboardClient({
                   alt="avatar"
                   className="w-full h-full object-cover"
                 />
-                <label className="absolute bottom-0 right-0 p-1 bg-white rounded-full shadow-md cursor-pointer">
+                {/* <label className="absolute bottom-0 right-0 p-1 bg-white rounded-full shadow-md cursor-pointer">
                   <CameraIcon className="w-5 h-5 text-[#3B2ECC]" />
                   <input type="file" hidden />
-                </label>
+                </label> */}
               </div>
     
               {/* Name & Email */}
               <div className="mt-4 text-center">
                 <div className="flex justify-center items-center gap-2">
                   <h2 className="text-xl font-bold">{user.name}</h2>
-                  <button onClick={() => setEditingName(true)}>
+                  {/* <button onClick={() => setEditingName(true)}>
                     <PencilIcon className="w-5 h-5" />
-                  </button>
+                  </button> */}
                 </div>
                 <p className="text-sm opacity-90">{profile?.email}</p>
 
