@@ -157,18 +157,18 @@ export default function DashboardClient({
   };
 
 
-  const handlePayment = async (gigTitle: string, amount: number) => {
-    const res = await fetch("/api/payment/checkout-session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ gigTitle, amount }),
-    });
+  // const handlePayment = async (gigTitle: string, amount: number) => {
+  //   const res = await fetch("/api/payment/checkout-session", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ gigTitle, amount }),
+  //   });
   
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
-    }
-  };
+  //   const data = await res.json();
+  //   if (data.url) {
+  //     window.location.href = data.url;
+  //   }
+  // };
 
   
 
@@ -371,12 +371,12 @@ export default function DashboardClient({
                           Open Chat
                         </button>
 
-                        <button
+                        {/* <button
                           onClick={() => handlePayment("Custom Logo Design", 25)}
                           className="bg-purple-600 px-4 py-2 text-white rounded text-sm"
                         >
                           Pay $25
-                        </button>
+                        </button> */}
                       </div>
 
                       {/* Chat Component */}
