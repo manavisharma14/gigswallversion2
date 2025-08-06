@@ -21,7 +21,7 @@ async function applyToGig(
     experience,
     portfolio,
     extra,
-  }: { reason: string; experience: string; portfolio?: string; extra?: string }
+  }: { reason: string; experience: string; portfolio: string; extra?: string }
 ) {
   const authHeader = req.headers.get('authorization');
   const token = authHeader?.split(' ')[1] ?? '';

@@ -153,7 +153,7 @@ export default function ApplyModal({ gigId, gigTitle, onClose, onSubmit }: Apply
 
           <label className="block text-sm font-medium text-gray-900">
             <Globe className="inline w-4 h-4 mr-1 text-[#4B55C3]" />
-            Portfolio (optional)
+            Portfolio
             <input
               type="url"
               name="portfolio"

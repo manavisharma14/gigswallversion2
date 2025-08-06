@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import ChatComponent from '../../components/ChatComponent';
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
