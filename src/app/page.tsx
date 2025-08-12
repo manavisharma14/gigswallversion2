@@ -10,6 +10,8 @@ import Faq from '@/components/Faq';
 import Footer from '@/components/Footer';
 import WhatAreGigs from '@/components/WhatAreGigs';
 
+// ✅ import the floating ticker component
+import SuccessStories from '@/components/SuccessStories';
 
 export const metadata = {
   title: 'GigsWall | Student Freelance Gigs Made Easy',
@@ -25,14 +27,11 @@ export const metadata = {
     'freelance platform',
     'earn money as a student',
   ],
-  
 };
 
 export default function HomePage() {
-
-  
   return (
-    <main>
+    <main className="relative">
       <Hero />
       <WhatAreGigs />
       <HowItWorks />
@@ -40,6 +39,10 @@ export default function HomePage() {
       <Faq />
       <ContactUsPage />
       <Footer />
+
+      {/* ✅ fixed ticker so it stays while scrolling */}
+      <SuccessStories />
+
     </main>
   );
 }

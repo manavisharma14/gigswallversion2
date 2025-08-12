@@ -161,3 +161,10 @@ body {
   color: black;
   align-self: flex-start;
 }
+
+
+
+@keyframes scrollUp {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-50%); } /* because we duplicate the list */
+}
