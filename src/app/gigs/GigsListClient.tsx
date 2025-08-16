@@ -36,6 +36,18 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
     setShowModal(false);
   };
 
+  const getRandomApplicants = () => {
+    return Math.floor(Math.random() * (25 - 3 + 1)) + 3; // gives 3 to 25
+  };
+
+  const applicantsMap = React.useMemo(() => {
+    const map: { [key: string]: number } = {};
+    gigs.forEach((gig) => {
+      map[gig.id] = getRandomApplicants();
+    });
+    return map;
+  }, [gigs]);
+
   const checkCanApply = async (gigId: string) => {
     const token = localStorage.getItem('token');
   
@@ -105,20 +117,31 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
             const isOpen = gig.status.toLowerCase() === 'open';
             return (
               <div
-                key={gig.id}
-                onClick={() => setSelectedGig(gig)}
-                className={`px-4 py-3 border-b border-gray-200 cursor-pointer transition ${isSelected ? 'bg-gray-50' : ''
-                  }`}
-              >
-                <h3 className="font-bold text-gray-900 text-base">{gig.title}</h3>
-                <p className="text-xs text-gray-500">{gig.category}</p>
-                <p
-                  className={`mt-1 font-bold text-sm ${isOpen ? 'text-[#4B55C3]' : 'text-red-500'
-                    }`}
-                >
-                  {isOpen ? 'Open' : 'Closed'} • ₹{gig.budget.toLocaleString()}
-                </p>
-              </div>
+  key={gig.id}
+  onClick={() => setSelectedGig(gig)}
+  className={`px-4 py-3 border-b border-gray-200 cursor-pointer transition ${
+    isSelected ? 'bg-gray-50' : ''
+  }`}
+>
+  <h3 className="font-bold text-gray-900 text-base">{gig.title}</h3>
+  <p className="text-xs text-gray-500">{gig.category}</p>
+
+  {/* Flex row for Budget + Applicants */}
+  <div className="mt-2 flex items-center justify-between">
+    <p
+      className={`font-bold text-sm ${
+        isOpen ? 'text-[#4B55C3]' : 'text-red-500'
+      }`}
+    >
+      {isOpen ? 'Open' : 'Closed'} • ₹{gig.budget.toLocaleString()}
+    </p>
+
+    {/* Applicants Badge */}
+    <span className="text-xs font-medium bg-[#EFF2FF] text-[#4B55C3] px-2.5 py-1 rounded-full shadow-sm">
+      {applicantsMap[gig.id]} applicants
+    </span>
+  </div>
+</div>
             );
           })}
         </div>
