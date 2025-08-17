@@ -15,11 +15,11 @@ export async function POST(req: NextRequest) {
       gigPreference, college, type,
     } = body;
 
-    // if (type === 'student') {
-    //   if (!email.endsWith('.edu')) {
-    //     return NextResponse.json({ error: 'Students must register with a .edu email address' }, { status: 400 });
-    //   }
-    // }
+    if (type === 'student') {
+      if (!email.endsWith('.edu')) {
+        return NextResponse.json({ error: 'Students must register with a .edu email address' }, { status: 400 });
+      }
+    }
 
     const user = await prisma.user.create({
       data: {
