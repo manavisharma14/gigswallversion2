@@ -136,10 +136,10 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
       {isOpen ? 'Open' : 'Closed'} • ₹{gig.budget.toLocaleString()}
     </p>
 
-    {/* Applicants Badge */}
+    {/* Applicants Badge
     <span className="text-xs font-medium bg-[#EFF2FF] text-[#4B55C3] px-2.5 py-1 rounded-full shadow-sm">
       {applicantsMap[gig.id]} applicants
-    </span>
+    </span> */}
   </div>
 </div>
             );
