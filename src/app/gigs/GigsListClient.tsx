@@ -2,7 +2,7 @@
 // GigsListClient.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ApplyModal from '@/components/ApplyModal';
 import { Info } from 'lucide-react';
 
@@ -14,6 +14,7 @@ interface Gig {
   description: string;
   status: string;
   createdAt: string;
+  isOpen?: boolean;
 }
 
 interface ApplicationFormData {
@@ -23,10 +24,41 @@ interface ApplicationFormData {
   extra: string;
 }
 
-export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
+export default function GigsListClient({
+  gigs,
+  initialCounts,
+}: {
+  gigs: Gig[];
+  initialCounts: Record<string, number>;
+}) {
   const [selectedGig, setSelectedGig] = useState<Gig | null>(gigs[0] || null);
   const [showModal, setShowModal] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
+
+  // ✅ Start with server-rendered counts to avoid flicker
+  const [applicantsMap, setApplicantsMap] = useState<Record<string, number>>(
+    initialCounts || {}
+  );
+
+  // ✅ Optional background refresh (merges, no visual jump)
+  useEffect(() => {
+    const openIds = gigs
+      .filter((g) => g.status?.toLowerCase?.() === 'open' || g.isOpen)
+      .map((g) => g.id);
+
+    if (openIds.length === 0) return;
+
+    const url = `/api/gigs/applicants-count?ids=${encodeURIComponent(openIds.join(','))}`;
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        const fresh = data?.counts ?? {};
+        if (fresh && Object.keys(fresh).length) {
+          setApplicantsMap((prev) => ({ ...prev, ...fresh }));
+        }
+      })
+      .catch(() => {});
+  }, [gigs]);
 
   const handleSubmitApplication = (formData: ApplicationFormData) => {
     console.log('Application submitted:', {
@@ -36,22 +68,9 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
     setShowModal(false);
   };
 
-  const getRandomApplicants = () => {
-    return Math.floor(Math.random() * (25 - 3 + 1)) + 3; // gives 3 to 25
-  };
-
-  const applicantsMap = React.useMemo(() => {
-    const map: { [key: string]: number } = {};
-    gigs.forEach((gig) => {
-      map[gig.id] = getRandomApplicants();
-    });
-    return map;
-  }, [gigs]);
-
   const checkCanApply = async (gigId: string) => {
     const token = localStorage.getItem('token');
-  
-    // ✅ Handle unauthenticated user
+
     if (!token) {
       setErrors((prev) => ({
         ...prev,
@@ -60,12 +79,11 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
       setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 2500);
       return;
     }
-  
+
     try {
       const payload = JSON.parse(atob(token.split('.')[1] ?? '{}'));
       const userType = payload?.type;
-  
-      // ✅ Check if user is a student
+
       if (userType !== 'student') {
         setErrors((prev) => ({
           ...prev,
@@ -74,12 +92,12 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
         setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 2500);
         return;
       }
-  
+
       const response = await fetch(`/api/gigs/${gigId}/can-apply`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
-  
+
       const data = await response.json();
       if (response.ok) {
         setErrors((prev) => ({ ...prev, [gigId]: null }));
@@ -114,34 +132,40 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
         <div className="bg-white border border-gray-200 rounded-md shadow-sm overflow-y-auto max-h-[70vh] md:sticky md:top-24">
           {gigs.map((gig) => {
             const isSelected = selectedGig?.id === gig.id;
-            const isOpen = gig.status.toLowerCase() === 'open';
+            const isOpen = gig.status.toLowerCase() === 'open' || gig.isOpen;
+            const applicants = isOpen ? applicantsMap[gig.id] : undefined;
+
             return (
               <div
-  key={gig.id}
-  onClick={() => setSelectedGig(gig)}
-  className={`px-4 py-3 border-b border-gray-200 cursor-pointer transition ${
-    isSelected ? 'bg-gray-50' : ''
-  }`}
->
-  <h3 className="font-bold text-gray-900 text-base">{gig.title}</h3>
-  <p className="text-xs text-gray-500">{gig.category}</p>
+                key={gig.id}
+                onClick={() => setSelectedGig(gig)}
+                className={`px-4 py-3 border-b border-gray-200 cursor-pointer transition ${
+                  isSelected ? 'bg-gray-50' : ''
+                }`}
+              >
+                <h3 className="font-bold text-gray-900 text-base">{gig.title}</h3>
+                <p className="text-xs text-gray-500">{gig.category}</p>
 
-  {/* Flex row for Budget + Applicants */}
-  <div className="mt-2 flex items-center justify-between">
-    <p
-      className={`font-bold text-sm ${
-        isOpen ? 'text-[#4B55C3]' : 'text-red-500'
-      }`}
-    >
-      {isOpen ? 'Open' : 'Closed'} • ₹{gig.budget.toLocaleString()}
-    </p>
+                <div className="mt-2 flex items-center justify-between">
+                  <p
+                    className={`font-bold text-sm ${
+                      isOpen ? 'text-[#4B55C3]' : 'text-red-500'
+                    }`}
+                  >
+                    {isOpen ? 'Open' : 'Closed'} • ₹{gig.budget.toLocaleString()}
+                  </p>
 
-    {/* Applicants Badge
-    <span className="text-xs font-medium bg-[#EFF2FF] text-[#4B55C3] px-2.5 py-1 rounded-full shadow-sm">
-      {applicantsMap[gig.id]} applicants
-    </span> */}
-  </div>
-</div>
+                  {/* Stable badge (no flicker) */}
+                  {isOpen && (
+                    <span
+                      className={`text-xs font-medium px-2.5 py-1 rounded-full shadow-sm inline-block min-w-[108px] text-center
+                        ${typeof applicants === 'number' ? 'bg-[#EFF2FF] text-[#4B55C3]' : 'bg-gray-100 text-gray-300'}`}
+                    >
+                      {typeof applicants === 'number' ? `${applicants} applicants` : 'Loading…'}
+                    </span>
+                  )}
+                </div>
+              </div>
             );
           })}
         </div>
@@ -162,19 +186,9 @@ export default function GigsListClient({ gigs }: { gigs: Gig[] }) {
               </div>
 
               <div className="text-gray-700 space-y-1 text-sm">
-                <p>
-                  <strong>Category:</strong> {selectedGig.category}
-                </p>
-                <p>
-                  <strong>Posted on:</strong>{' '}
-                  {new Date(selectedGig.createdAt).toLocaleDateString()}
-                </p>
-                <p>
-                  <strong>Budget:</strong>{' '}
-                  <span className="text-[#4B55C3] font-semibold">
-                    ₹{selectedGig.budget.toLocaleString()}
-                  </span>
-                </p>
+                <p><strong>Category:</strong> {selectedGig.category}</p>
+                <p><strong>Posted on:</strong> {new Date(selectedGig.createdAt).toLocaleDateString()}</p>
+                <p><strong>Budget:</strong> <span className="text-[#4B55C3] font-semibold">₹{selectedGig.budget.toLocaleString()}</span></p>
               </div>
 
               <div className="text-gray-800 whitespace-pre-line text-sm leading-relaxed">
