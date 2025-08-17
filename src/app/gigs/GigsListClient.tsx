@@ -187,7 +187,7 @@ export default function GigsListClient({
 
               <div className="text-gray-700 space-y-1 text-sm">
                 <p><strong>Category:</strong> {selectedGig.category}</p>
-                <p><strong>Posted on:</strong> {new Date(selectedGig.createdAt).toLocaleDateString()}</p>
+                {/* <p><strong>Posted on:</strong> {new Date(selectedGig.createdAt).toLocaleDateString()}</p> */}
                 <p><strong>Budget:</strong> <span className="text-[#4B55C3] font-semibold">₹{selectedGig.budget.toLocaleString()}</span></p>
               </div>
 
