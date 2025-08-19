@@ -120,13 +120,13 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
           onChange={handleChange}
           required
         />
-        <button
+        {/* <button
           type="button"
           onClick={sendOtp}
           className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-[#4B3BB3] text-white text-sm px-3 py-1 rounded-md hover:bg-[#372a9f]"
         >
           {otpSent ? "Resend" : "Send OTP"}
-        </button>
+        </button> */}
       </div>
 
       {/* OTP Input and Verify */}
