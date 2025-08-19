@@ -1,9 +1,11 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 'use client';
 
-import { Mail, Lock, Phone, User, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { Mail, Lock, Phone, User, Eye, EyeOff,  } from "lucide-react";
+// ShieldCheck
 import { useState } from "react";
-import axios from "axios";
-import toast from "react-hot-toast";
+// import axios from "axios";
+// import toast from "react-hot-toast";
 
 const inputClass =
   "w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#6B7FFF] text-[#4B3BB3] placeholder-gray-400 bg-white";
@@ -28,9 +30,9 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
   const [strengthLevel, setStrengthLevel] = useState(0);
   const [showStrength, setShowStrength] = useState(false);
 
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [otpVerified, setOtpVerified] = useState(false);
+  // const [otpSent, setOtpSent] = useState(false);
+  // const [otp, setOtp] = useState("");
+  // const [otpVerified, setOtpVerified] = useState(false);
 
   const togglePasswordVisibility = () => setShowPassword(prev => !prev);
 
@@ -55,42 +57,42 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
     }
   };
 
-  const sendOtp = async () => {
-    try {
-      await axios.post("/api/auth/send-otp", { email: formData.email });
-      toast.success("OTP sent successfully!");
-      setOtpSent(true);
-    } catch (err: unknown) {
-      const errorMessage =
-        axios.isAxiosError(err) && err.response?.data?.error
-          ? err.response.data.error
-          : "Failed to send OTP";
-      toast.error(errorMessage);
-    }
-  };
+  // const sendOtp = async () => {
+  //   try {
+  //     await axios.post("/api/auth/send-otp", { email: formData.email });
+  //     toast.success("OTP sent successfully!");
+  //     setOtpSent(true);
+  //   } catch (err: unknown) {
+  //     const errorMessage =
+  //       axios.isAxiosError(err) && err.response?.data?.error
+  //         ? err.response.data.error
+  //         : "Failed to send OTP";
+  //     toast.error(errorMessage);
+  //   }
+  // };
   
   // comment
-  const verifyOtp = async () => {
-    try {
-      const res = await axios.post("/api/auth/verify-otp", {
-        email: formData.email,
-        otp,
-      });
+  // const verifyOtp = async () => {
+  //   try {
+  //     const res = await axios.post("/api/auth/verify-otp", {
+  //       email: formData.email,
+  //       otp,
+  //     });
   
-      if (res.data.success) {
-        toast.success("OTP verified!");
-        setOtpVerified(true);
-      } else {
-        toast.error("Invalid OTP");
-      }
-    } catch (err: unknown) {
-      const errorMessage =
-        axios.isAxiosError(err) && err.response?.data?.error
-          ? err.response.data.error
-          : "Failed to verify OTP";
-      toast.error(errorMessage);
-    }
-  };
+  //     if (res.data.success) {
+  //       toast.success("OTP verified!");
+  //       setOtpVerified(true);
+  //     } else {
+  //       toast.error("Invalid OTP");
+  //     }
+  //   } catch (err: unknown) {
+  //     const errorMessage =
+  //       axios.isAxiosError(err) && err.response?.data?.error
+  //         ? err.response.data.error
+  //         : "Failed to verify OTP";
+  //     toast.error(errorMessage);
+  //   }
+  // };
 
   return (
     <>
@@ -130,7 +132,7 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
       </div>
 
       {/* OTP Input and Verify */}
-      {!otpVerified && otpSent && (
+      {/* {!otpVerified && otpSent && (
         <>
           <div className="relative mb-2">
             <ShieldCheck className={iconClass} size={20} />
@@ -150,7 +152,7 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
             Verify OTP
           </button>
         </>
-      )}
+      )} */}
 
       {/* {otpVerified && (
         <p className="text-green-600 font-semibold mb-4">OTP Verified ✅</p>
