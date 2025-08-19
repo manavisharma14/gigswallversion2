@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
         const users = await prisma.user.findMany({
           where: {
             id: { not: postedById },
+            type: "student",  
             email: { not: "" },
           },
           select: { email: true },
