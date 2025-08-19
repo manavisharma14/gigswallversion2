@@ -16,8 +16,13 @@ export async function POST(req: NextRequest) {
     } = body;
 
     if (type === 'student') {
-      if (!email.endsWith('.edu')) {
-        return NextResponse.json({ error: 'Students must register with a .edu email address' }, { status: 400 });
+      const academicEmailRegex = /(\.edu$|\.edu\.[a-z]+$|\.edu\.[a-z]+\.[a-z]+$|\.ac\.[a-z]+$)/i;
+    
+      if (!academicEmailRegex.test(email)) {
+        return NextResponse.json(
+          { error: 'Please register with a valid university/academic email address' },
+          { status: 400 }
+        );
       }
     }
 
