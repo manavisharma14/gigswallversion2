@@ -37,7 +37,10 @@ type Gig = {
 type Application = {
   id: string;
   reason: string;
+  experience: string;
+  extraInfo: string;
   status: string;
+  portfolio: string;
   gigId: string;
   userId: string;
   user?: User;
@@ -311,87 +314,129 @@ export default function DashboardClient({
                   const chatKey = `${gig.id}_${app.userId}`;
 
                   return (
-                    <li key={app.id} className="p-4 border rounded-lg bg-gray-50 shadow-sm md:flex md:items-start md:justify-between md:gap-6">
-                      {/* Applicant Info */}
-                      <div className="flex-1 space-y-1">
-                        <p className="text-[#3B2ECC] font-medium">{app.user?.name || 'Anonymous'}</p>
-                        <p className="text-xs text-gray-600">📧 {app.user?.email}</p>
-                        <p className="text-xs text-gray-600">📝 {app.reason}</p>
+<li
+  key={app.id}
+  className="group rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition"
+>
+  {/* Header: avatar + name/email + right actions */}
+  <div className="flex items-start justify-between gap-3">
+    <div className="flex items-start gap-3 min-w-0">
+      <div className="h-9 w-9 rounded-full bg-[#3B2ECC]/10 flex items-center justify-center text-[#3B2ECC] font-semibold">
+        {(app.user?.name || 'A').slice(0,1).toUpperCase()}
+      </div>
+      <div className="min-w-0">
+        <h3 className="text-[#3B2ECC] font-semibold leading-tight truncate">
+          {app.user?.name || 'Anonymous'}
+        </h3>
+        <p className="text-xs text-gray-500 break-words">{app.user?.email}</p>
+      </div>
+    </div>
 
-                        {/* Status Buttons */}
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {['pending', 'accepted', 'rejected'].map((statusOption) => (
-                            <button
-                              key={statusOption}
-                              onClick={async () => {
-                                const token = localStorage.getItem('token');
-                                const res = await fetch(`/api/applications/${app.id}/status`, {
-                                  method: 'PATCH',
-                                  headers: {
-                                    'Content-Type': 'application/json',
-                                    Authorization: `Bearer ${token}`,
-                                  },
-                                  body: JSON.stringify({ status: statusOption }),
-                                });
+    {/* Right: badge + chat (no fixed width) */}
+    <div className="flex flex-col items-end gap-2 shrink-0">
 
-                                const result = await res.json();
-                                if (res.ok) {
-                                  setToast({ message: `Marked as ${statusOption}.`, type: 'success' });
-                                  setTimeout(() => {
-                                    setToast(null);
-                                    window.location.reload();
-                                  }, 2000);
-                                } else {
-                                  setToast({ message: result.message || 'Failed to update status.', type: 'error' });
-                                  setTimeout(() => setToast(null), 3000);
-                                }
-                              }}
-                              className={`text-xs px-3 py-1 rounded-md font-medium border ${
-                                app.status === statusOption
-                                  ? statusOption === 'accepted'
-                                    ? 'bg-green-100 border-green-600 text-green-700'
-                                    : statusOption === 'rejected'
-                                    ? 'bg-red-100 border-red-600 text-red-700'
-                                    : 'bg-yellow-100 border-yellow-600 text-yellow-700'
-                                  : 'text-gray-500 border-gray-300 hover:bg-gray-100'
-                              }`}
-                            >
-                              {statusOption}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+    <button
+  onClick={() => toggleChat(chatKey)}
+  className="text-sm px-4 py-2 rounded-lg font-medium 
+             bg-[#4B55C3] text-white shadow-sm 
+             hover:bg-[#5C53E5] hover:shadow-md 
+             transition-all duration-200"
+>
+  💬 Open Chat
+</button>
+    </div>
+  </div>
 
-                      {/* Action Buttons */}
-                      <div className="mt-4 md:mt-0 flex flex-col gap-2 items-end md:w-52">
-                        <button
-                          onClick={() => toggleChat(chatKey)}
-                          className="text-sm text-[#3B2ECC] hover:underline"
-                        >
-                          Open Chat
-                        </button>
+  {/* Body */}
+  <div className="mt-3 grid gap-2">
+    {app.reason && (
+      <div className="text-sm">
+        <span className="font-medium text-gray-900">Reason: </span>
+        <span className="text-gray-700 line-clamp-3">{app.reason}</span>
+      </div>
+    )}
+    {app.portfolio && (
+      <div className="text-sm break-words">
+        <span className="font-medium text-gray-900">Portfolio: </span>
+        <a
+          href={app.portfolio}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#3B2ECC] underline break-words"
+        >
+          {app.portfolio}
+        </a>
+      </div>
+    )}
+    {app.experience && (
+      <div className="text-sm">
+        <span className="font-medium text-gray-900">Experience: </span>
+        <span className="text-gray-700 line-clamp-3">{app.experience}</span>
+      </div>
+    )}
+    {app.extraInfo && (
+      <div className="text-sm">
+        <span className="font-medium text-gray-900">Extra Info: </span>
+        <span className="text-gray-700 line-clamp-3">{app.extraInfo}</span>
+      </div>
+    )}
+  </div>
 
-                        {/* <button
-                          onClick={() => handlePayment("Custom Logo Design", 25)}
-                          className="bg-purple-600 px-4 py-2 text-white rounded text-sm"
-                        >
-                          Pay $25
-                        </button> */}
-                      </div>
+  {/* Status Buttons */}
+  <div className="flex flex-wrap gap-2 mt-3">
+    {['pending', 'accepted', 'rejected'].map((statusOption) => (
+      <button
+        key={statusOption}
+        onClick={async () => {
+          const token = localStorage.getItem('token');
+          const res = await fetch(`/api/applications/${app.id}/status`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ status: statusOption }),
+          });
+          const result = await res.json();
+          if (res.ok) {
+            setToast({ message: `Marked as ${statusOption}.`, type: 'success' });
+            setTimeout(() => {
+              setToast(null);
+              window.location.reload();
+            }, 1200);
+          } else {
+            setToast({ message: result.message || 'Failed to update status.', type: 'error' });
+            setTimeout(() => setToast(null), 2500);
+          }
+        }}
+        className={`text-xs px-3 py-1 rounded-md font-medium border transition ${
+          app.status === statusOption
+            ? statusOption === 'accepted'
+              ? 'bg-green-100 border-green-600 text-green-700'
+              : statusOption === 'rejected'
+              ? 'bg-red-100 border-red-600 text-red-700'
+              : 'bg-yellow-100 border-yellow-600 text-yellow-700'
+            : 'text-gray-600 border-gray-300 hover:bg-gray-100'
+        }`}
+      >
+        {statusOption}
+      </button>
+    ))}
+  </div>
 
-                      {/* Chat Component */}
-                      {openChatForGig === chatKey && (
-                        <div className="mt-3 md:col-span-2">
-                          <ChatComponent
-                            gigId={gig.id}
-                            applicantId={app.userId}
-                            posterId={gig.postedById}
-                            recipient={recipient}
-                            setOpenChatForGig={setOpenChatForGig}
-                          />
-                        </div>
-                      )}
-                    </li>
+  {/* Chat (full width under card) */}
+  {openChatForGig === chatKey && (
+    <div className="mt-3">
+      <ChatComponent
+        gigId={gig.id}
+        applicantId={app.userId}
+        posterId={gig.postedById}
+        recipient={recipient}
+        setOpenChatForGig={setOpenChatForGig}
+      />
+    </div>
+  )}
+</li>
                   );
                 })}
               </ul>
@@ -556,7 +601,10 @@ if (active === 'Applied Gigs') {
                       setTimeout(() => setToast(null), 3000);
                     }
                   }}
-                  className="text-[#3B2ECC] hover:underline mt-3"
+                  className="text-sm px-4 py-2 rounded-lg font-medium 
+             bg-[#4B55C3] text-white shadow-sm 
+             hover:bg-[#5C53E5] hover:shadow-md 
+             transition-all duration-200"
                 >
                   Open Chat
                 </button>
