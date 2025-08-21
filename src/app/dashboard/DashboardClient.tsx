@@ -601,7 +601,7 @@ if (active === 'Applied Gigs') {
                       setTimeout(() => setToast(null), 3000);
                     }
                   }}
-                  className="text-sm px-4 py-6 rounded-lg font-medium 
+                  className="text-sm mt-4 px-4 py-2 rounded-lg font-medium 
              bg-[#4B55C3] text-white shadow-sm 
              hover:bg-[#5C53E5] hover:shadow-md 
              transition-all duration-200"
