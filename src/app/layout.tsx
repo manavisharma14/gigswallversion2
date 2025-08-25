@@ -30,14 +30,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <>
             {/* Define gtag early so your client code can call it immediately */}
             <Script id="ga4-base" strategy="beforeInteractive">
-              {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                // Disable auto page_view (we'll send them manually on route changes)
-                gtag('config', '${GA_ID}', { send_page_view: false });
-              `}
-            </Script>
+  {`
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '${GA_ID}'); // don't suppress page_view
+  `}
+</Script>
 
             {/* Load GA library; it will consume the buffered dataLayer calls */}
             <Script
