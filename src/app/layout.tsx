@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description: "Find and post campus gigs.",
 };
 
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID; // set to "G-WXV7QDD172"
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID; // e.g. "G-WXV7QDD172"
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const user = await getUserServerSide();
@@ -28,15 +28,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         {GA_ID && (
           <>
-            <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
-            <Script id="ga4-init" strategy="afterInteractive">
+            {/* Define gtag early so your client code can call it immediately */}
+            <Script id="ga4-base" strategy="beforeInteractive">
               {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
                 gtag('js', new Date());
+                // Disable auto page_view (we'll send them manually on route changes)
                 gtag('config', '${GA_ID}', { send_page_view: false });
               `}
             </Script>
+
+            {/* Load GA library; it will consume the buffered dataLayer calls */}
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="afterInteractive"
+            />
           </>
         )}
       </head>
@@ -59,7 +66,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           />
         </AuthProvider>
 
-        {/* Track route changes as pageviews */}
+        {/* Manual pageview tracking on initial load + route changes */}
         {GA_ID && <GA gaId={GA_ID} />}
       </body>
     </html>

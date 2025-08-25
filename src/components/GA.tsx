@@ -9,11 +9,18 @@ export default function GA({ gaId }: { gaId: string }) {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (!gaId || typeof window === "undefined" || !("gtag" in window)) return;
+    if (!gaId || typeof window === "undefined") return;
+    // @ts-expect-error gtag is defined by GA script
+    if (typeof window.gtag !== "function") return;
 
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
-    // @ts-expect-error: gtag injected by the GA script
-    window.gtag("config", gaId, { page_path: url });
+    // Send an explicit GA4 page_view
+    // @ts-expect-error gtag exists at runtime
+    window.gtag("event", "page_view", {
+      page_path: url,
+      page_location: window.location.href,
+      page_title: document.title,
+    });
   }, [gaId, pathname, searchParams]);
 
   return null;
