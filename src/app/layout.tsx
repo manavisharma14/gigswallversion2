@@ -10,6 +10,15 @@ import { AuthProvider } from "@/context/AuthContext";
 import { getUserServerSide } from "@/lib/getUserServerSide";
 import GA from "../components/GA";
 
+import localFont from "next/font/local";
+
+const myCustomFont = localFont({
+  src: "../../public/fonts/font.ttf",
+  variable: "--font-cal-sans",
+  display: "swap",
+});
+
+
 const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-bricolage" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
@@ -24,21 +33,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const user = await getUserServerSide();
 
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className={`${myCustomFont.className} scroll-smooth`}>
       <head>
         {GA_ID && (
           <>
-            {/* Define gtag early so your client code can call it immediately */}
             <Script id="ga4-base" strategy="beforeInteractive">
-  {`
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', '${GA_ID}'); // don't suppress page_view
-  `}
-</Script>
-
-            {/* Load GA library; it will consume the buffered dataLayer calls */}
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_ID}');
+              `}
+            </Script>
             <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
               strategy="afterInteractive"
@@ -46,7 +52,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </>
         )}
       </head>
-
+  
       <body className={`${bricolage.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider initialUser={user}>
           <Navbar />
@@ -64,8 +70,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         </AuthProvider>
-
-        {/* Manual pageview tracking on initial load + route changes */}
         {GA_ID && <GA gaId={GA_ID} />}
       </body>
     </html>
