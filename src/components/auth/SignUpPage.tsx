@@ -7,10 +7,6 @@ import SignupStepOne from "./SignupStepOne";
 import SignupStepTwo from "@/components/auth/SignupStepTwo";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 
-// ✅ Remove this: it was causing ambiguity/conflicts
-// import { FormDataType } from "@/types/formTypes"; 
-
-// ✅ Keep this definition as your working form type
 export interface FormData {
   name: string;
   email: string;
@@ -45,6 +41,7 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>("Weak");
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const togglePassword = () => setShowPassword(!showPassword);
 
@@ -99,6 +96,11 @@ export default function SignUpPage() {
       return;
     }
 
+    if (!termsAccepted) {
+      toast.error("Please accept the Terms & Conditions.", { id: "terms-error" });
+      return;
+    }
+
     setIsLoading(true);
 
     const payload = {
@@ -134,7 +136,7 @@ export default function SignUpPage() {
 
         toast.success("Account created successfully 🚀", { id: "signup-success" });
         window.location.href = '/dashboard'; 
-        router.refresh(); // Ensure the dashboard is refreshed with new user data
+        router.refresh();
       } else {
         toast.error(data?.error || "Something went wrong.", { id: "signup-error" });
       }
@@ -201,7 +203,29 @@ export default function SignUpPage() {
                   handleChange={handleChange}
                   setFormData={setFormData}
                 />
-                <div className="flex flex-col sm:flex-row justify-between gap-4">
+
+                {/* ✅ Terms Checkbox */}
+                <div className="mt-4 flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="mt-1 h-4 w-4 text-[#6B7FFF] border-gray-300 rounded"
+                  />
+                  <label htmlFor="terms" className="text-sm text-gray-600">
+                    I agree to the{" "}
+                    <a href="/terms" target="_blank" className="text-[#4737ff] underline">
+                      Terms & Conditions
+                    </a>{" "}
+                    and{" "}
+                    <a href="/privacy" target="_blank" className="text-[#4737ff] underline">
+                      Privacy Policy
+                    </a>.
+                  </label>
+                </div>
+
+                <div className="flex flex-col sm:flex-row justify-between gap-4 mt-4">
                   <button
                     type="button"
                     onClick={() => setSignupStep(1)}
@@ -211,9 +235,9 @@ export default function SignUpPage() {
                   </button>
                   <button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isLoading || !termsAccepted}
                     className={`w-full font-bold py-2 rounded-full ${
-                      isLoading
+                      isLoading || !termsAccepted
                         ? "bg-gray-400 cursor-not-allowed"
                         : "bg-[#6B7FFF] hover:bg-[#5A6FEF] text-white"
                     }`}
@@ -226,6 +250,7 @@ export default function SignUpPage() {
           </>
         ) : (
           <>
+            {/* Not a Student flow */}
             <div className="space-y-4">
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3]" size={20} />
@@ -269,36 +294,34 @@ export default function SignUpPage() {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </div>
               </div>
-              {formData.password && (
-                <div className="flex justify-end gap-1 mt-1 pr-1">
-                  {[1, 2, 3, 4].map((bar) => {
-                    const filled =
-                      (passwordStrength === "Strong" && bar <= 4) ||
-                      (passwordStrength === "Medium" && bar <= 3) ||
-                      (passwordStrength === "Weak" && bar <= 2);
-                    return (
-                      <div
-                        key={bar}
-                        className={`w-6 h-1 rounded-sm ${
-                          filled
-                            ? passwordStrength === "Strong"
-                              ? "bg-green-500"
-                              : passwordStrength === "Medium"
-                              ? "bg-yellow-400"
-                              : "bg-red-500"
-                            : "bg-gray-300"
-                        }`}
-                      ></div>
-                    );
-                  })}
-                </div>
-              )}
             </div>
+
+            {/* ✅ Terms Checkbox */}
+            <div className="mt-4 flex items-start gap-2">
+              <input
+                type="checkbox"
+                id="terms"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="mt-1 h-4 w-4 text-[#6B7FFF] border-gray-300 rounded"
+              />
+              <label htmlFor="terms" className="text-sm text-gray-600">
+                I agree to the{" "}
+                <a href="/terms" target="_blank" className="text-[#4737ff] underline">
+                  Terms & Conditions
+                </a>{" "}
+                and{" "}
+                <a href="/privacy" target="_blank" className="text-[#4737ff] underline">
+                  Privacy Policy
+                </a>.
+              </label>
+            </div>
+
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !termsAccepted}
               className={`w-full mt-4 font-bold py-2 rounded-full ${
-                isLoading
+                isLoading || !termsAccepted
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-[#6B7FFF] hover:bg-[#5A6FEF] text-white"
               }`}
