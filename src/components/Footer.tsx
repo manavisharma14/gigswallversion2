@@ -27,10 +27,10 @@ export default function Footer() {
           <p>
             Contact us:{' '}
             <a
-              href="mailto:gigswall.work@gmail.com"
+              href="mailto:info@gigswall.com"
               className="text-white font-medium hover:underline"
             >
-              gigswall.work@gmail.com
+              info@gigswall.com
             </a>
           </p>
 
