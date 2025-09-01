@@ -48,7 +48,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="text-center text-xs text-white drop-shadow-sm">
-          © {new Date().getFullYear()} GigsWall. Built by students, for students.
+          © {new Date().getFullYear()} GigsWall. Where Student Talent Meets Opportunity.
         </div>
       </div>
     </footer>
