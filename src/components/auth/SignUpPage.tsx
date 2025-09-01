@@ -68,11 +68,11 @@ export default function SignUpPage() {
         ...(name === "college" && value !== "Others" ? { otherCollege: "" } : {}),
       }));
 
-      if (name === "password" && !isStudent) {
+      if (name === "password") {
         setPasswordStrength(getPasswordStrength(value));
       }
     },
-    [isStudent]
+    []
   );
 
   const validateRequiredFields = () => {
@@ -294,6 +294,49 @@ export default function SignUpPage() {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </div>
               </div>
+
+              {/* ✅ Password Strength Display */}
+              {formData.password && (
+                <div className="mt-2">
+                  <p className="text-xs font-medium text-gray-600">
+                    Password Strength:{" "}
+                    <span
+                      className={
+                        passwordStrength === "Strong"
+                          ? "text-green-600"
+                          : passwordStrength === "Medium"
+                          ? "text-yellow-600"
+                          : "text-red-600"
+                      }
+                    >
+                      {passwordStrength}
+                    </span>
+                  </p>
+                  <div className="flex gap-1 mt-1">
+                    {[1, 2, 3, 4].map((bar) => {
+                      const filled =
+                        (passwordStrength === "Strong" && bar <= 4) ||
+                        (passwordStrength === "Medium" && bar <= 3) ||
+                        (passwordStrength === "Weak" && bar <= 2);
+
+                      return (
+                        <div
+                          key={bar}
+                          className={`h-1.5 w-6 rounded ${
+                            filled
+                              ? passwordStrength === "Strong"
+                                ? "bg-green-500"
+                                : passwordStrength === "Medium"
+                                ? "bg-yellow-400"
+                                : "bg-red-500"
+                              : "bg-gray-300"
+                          }`}
+                        ></div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* ✅ Terms Checkbox */}
