@@ -189,7 +189,7 @@ export default function DashboardClient({
     
       const ProfileItem = ({ label, value }: { label: string; value: string | undefined }) => (
         <div>
-          <p className="text-xs text-gray-500">{label}</p>
+          <p className="text-xs  text-gray-500">{label}</p>
           <p className="font-medium text-gray-900">{value || 'N/A'}</p>
         </div>
       );
@@ -207,8 +207,8 @@ export default function DashboardClient({
       const isStudent = profile.type === 'student';
     
       return (
-        <div className="max-w-5xl mx-auto mt-12 px-4 mt-40">
-          <div className="bg-white rounded-3xl shadow-xl grid grid-cols-1 md:grid-cols-3 overflow-hidden">
+        <div className="max-w-5xl mx-auto mt-20 px-4 mt-40">
+          <div className="bg-white rounded-3xl mt-20 shadow-xl grid grid-cols-1 md:grid-cols-3 overflow-hidden">
             
             {/* Left: Profile Card */}
             <div className="bg-[#4B55C3] text-white flex flex-col items-center py-10 px-6">
