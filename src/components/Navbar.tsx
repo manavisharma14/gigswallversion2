@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+
 import {
   Menu,
   X,
@@ -15,13 +16,16 @@ import logo from '../../public/assets/newlogo.png';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
-  const { user } = useAuth();
+
+  const router = useRouter();
+  const { user, logout } = useAuth();  
+
   const loggedIn = !!user;
   const userName = user?.name || '';
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
-  const router = useRouter();
+
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -46,16 +50,17 @@ export default function Navbar() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (e) {
       console.error('Logout error:', e);
     }
-
-    localStorage.clear();
-    window.dispatchEvent(new Event('storageChanged'));
+    setDropdownOpen(false);
+    logout();          // clears localStorage + context state
     router.push('/signin');
+    router.refresh();  // if any server components depend on cookies
   };
 
   return (

@@ -1,72 +1,68 @@
-"use client";
-import { createContext, useContext, useState, useEffect } from "react";
+'use client';
+import * as React from 'react';
 
-type UserType = "student" | "other";
-
-interface AuthUser {
-  id: string;
-  name: string;
-  email?: string;
-  type: UserType;
-  phone?: string | null;
-  department?: string | null;
-  gradYear?: string | null;
-  college?: string | null;
-  createdAt?: string;
+type UserType = 'student' | 'other';
+export interface AuthUser {
+  id: string; name: string; email?: string;
+  type: UserType; phone?: string|null; department?: string|null;
+  gradYear?: string|null; college?: string|null; createdAt?: string;
 }
 
-const AuthContext = createContext<{
+type AuthCtx = {
   user: AuthUser | null;
-  setUser: (user: AuthUser | null) => void;
-}>({
-  user: null,
-  setUser: () => {},
-});
+  setUser: (u: AuthUser | null) => void;
+  logout: () => void;
+  loading: boolean;
+};
 
-export const AuthProvider = ({
+const AuthContext = React.createContext<AuthCtx | undefined>(undefined);
+
+export function AuthProvider({
   children,
   initialUser,
-}: {
-  children: React.ReactNode;
-  initialUser?: AuthUser | null;
-}) => {
-  const [user, setUser] = useState<AuthUser | null>(initialUser ?? null);
-  const [isHydrated, setIsHydrated] = useState(false);
+}: { children: React.ReactNode; initialUser?: AuthUser | null }) {
+  const [user, setUser] = React.useState<AuthUser | null>(initialUser ?? null);
+  const [loading, setLoading] = React.useState(true);
+  const [hydrated, setHydrated] = React.useState(false);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser);
-        setUser(parsed);
-      } catch (err) {
-        console.error("Invalid user in localStorage", err);
+  React.useEffect(() => {
+    try {
+      const raw = localStorage.getItem('user');
+      if (raw) setUser(JSON.parse(raw));
+      else if (initialUser) {
+        localStorage.setItem('user', JSON.stringify(initialUser));
+        setUser(initialUser);
       }
-    } else if (initialUser) {
-      // If no localStorage, store the server-side user for future sync
-      localStorage.setItem("user", JSON.stringify(initialUser));
-    }
-
-    const syncUser = () => {
-      const newUser = localStorage.getItem("user");
-      if (newUser) setUser(JSON.parse(newUser));
+    } catch { setUser(null); }
+    const sync = () => {
+      const v = localStorage.getItem('user');
+      if (v) { try { setUser(JSON.parse(v)); } catch { setUser(null); } }
+      else setUser(null);
     };
-
-    window.addEventListener("storageChanged", syncUser);
-    setIsHydrated(true);
-
-    return () => {
-      window.removeEventListener("storageChanged", syncUser);
-    };
+    window.addEventListener('storageChanged', sync);
+    setHydrated(true);
+    setLoading(false);
+    return () => window.removeEventListener('storageChanged', sync);
   }, [initialUser]);
 
-  if (!isHydrated) return null;
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    window.dispatchEvent(new Event('storageChanged'));
+  };
+
+  if (!hydrated) return null;
 
   return (
-    <AuthContext.Provider value={{ user, setUser }}>
+    <AuthContext.Provider value={{ user, setUser, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  const ctx = React.useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within <AuthProvider>');
+  return ctx;
+}

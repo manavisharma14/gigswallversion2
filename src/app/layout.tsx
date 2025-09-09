@@ -22,11 +22,15 @@ const myCustomFont = localFont({
 const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-bricolage" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "GigsWall",
   description: "Find and post campus gigs.",
+  icons: {
+    icon: [
+      { url: "/favicon-512.png", sizes: "512x512" },
+    ],
+  },
 };
-
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID; // e.g. "G-WXV7QDD172"
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
