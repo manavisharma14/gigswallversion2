@@ -26,6 +26,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+    
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'An account with this email already exists' },
+        { status: 400 }
+      );
+    }
+
     const user = await prisma.user.create({
       data: {
         name,
