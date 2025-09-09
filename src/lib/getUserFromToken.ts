@@ -1,58 +1,72 @@
-import jwt, { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
+import jwt, { JsonWebTokenError, TokenExpiredError, JwtPayload } from 'jsonwebtoken';
 import { NextResponse } from 'next/server';
 
 export interface DecodedToken {
   id: string;
   email?: string;
-  type?: 'student' | 'other'; 
+  type?: 'student' | 'other';
   iat?: number;
   exp?: number;
 }
 
-export async function getUserFromToken(req: Request): Promise<{ userId: string; type?: 'student' | 'other' } | Response> {
-  const authHeader = req.headers.get('authorization');
-  const cookieHeader = req.headers.get('cookie');
+function parseCookies(header: string | null): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!header) return out;
+  for (const part of header.split(';')) {
+    const [k, ...rest] = part.trim().split('=');
+    if (!k) continue;
+    out[k] = decodeURIComponent(rest.join('=') || '');
+  }
+  return out;
+}
 
-  const token =
-    authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] :
-    cookieHeader?.split('; ').find((c) => c.trim().startsWith('token='))?.split('=')[1];
+// ✅ Ensure secret is a string (fixes TS error)
+const JWT_SECRET: string = (() => {
+  const s = process.env.NEXTAUTH_SECRET;
+  if (!s) throw new Error('NEXTAUTH_SECRET is not set');
+  return s;
+})();
+
+export async function getUserFromToken(
+  req: Request
+): Promise<{ userId: string; type?: 'student' | 'other' } | NextResponse> {
+  // 1) Authorization: Bearer <token>
+  const authHeader = req.headers.get('authorization');
+  let token: string | undefined;
+  if (authHeader) {
+    const [scheme, raw] = authHeader.split(/\s+/);
+    if (scheme?.toLowerCase() === 'bearer' && raw) token = raw.trim();
+  }
+
+  // 2) Fallback: cookie 'token'
+  if (!token) {
+    const cookies = parseCookies(req.headers.get('cookie'));
+    token = cookies.token;
+  }
 
   if (!token) {
-    console.error('❌ No token found in Authorization header or cookies');
     return NextResponse.json({ message: 'Unauthorized - No token provided' }, { status: 401 });
   }
 
-  if (!process.env.NEXTAUTH_SECRET) {
-    console.error('❌ NEXTAUTH_SECRET is not defined');
-    return NextResponse.json({ message: 'Server configuration error' }, { status: 500 });
-  }
-
   try {
-    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET, {
-      algorithms: ['HS256'],
-    }) as DecodedToken;
-
-    const userId = decoded?.id;
-    const type = decoded?.type;
-
-    if (!userId) {
-      console.error('❌ Invalid token: missing user ID');
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload | string;
+    if (typeof decoded === 'string') {
       return NextResponse.json({ message: 'Unauthorized - Invalid token payload' }, { status: 401 });
     }
 
-    return { userId, type };
+    const id = (decoded as JwtPayload & { id?: string }).id;
+    const type = (decoded as JwtPayload & { type?: 'student' | 'other' }).type;
+
+    if (!id) {
+      return NextResponse.json({ message: 'Unauthorized - Invalid token payload' }, { status: 401 });
+    }
+
+    return { userId: id, type };
   } catch (error) {
-    if (error instanceof TokenExpiredError) {
-      console.error('⏰ Token expired:', error.message);
+    if (error instanceof TokenExpiredError)
       return NextResponse.json({ message: 'Token expired' }, { status: 401 });
-    }
-
-    if (error instanceof JsonWebTokenError) {
-      console.error('❌ JWT error:', error.message);
+    if (error instanceof JsonWebTokenError)
       return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
-    }
-
-    console.error('❌ Unknown token error:', error);
     return NextResponse.json({ message: 'Token error' }, { status: 500 });
   }
 }
