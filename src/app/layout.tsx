@@ -56,6 +56,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </>
         )}
       </head>
+      {/* this is the body */}
   
       <body className={`${bricolage.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider initialUser={user}>
