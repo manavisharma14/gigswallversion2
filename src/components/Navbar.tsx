@@ -84,6 +84,7 @@ export default function Navbar() {
           <li><Link href="/#about" className="relative underline-hover">About</Link></li>
           <li><Link href="/post" className="relative underline-hover">Post</Link></li>
           <li><Link href="/gigs" className="relative underline-hover">Apply</Link></li>
+          <li><Link href="/blog" className='relative underline-hover'>Blog</Link></li>
           {loggedIn ? (
             <div className="relative" ref={dropdownRef}>
               <button

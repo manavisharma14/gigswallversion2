@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
         id: user.id,
         email: user.email,
         type: user.type,
-        name: user.name, // ✅ Add this for instant nav rendering
+        name: user.name,
       },
       JWT_SECRET,
       { expiresIn: '7d' }
