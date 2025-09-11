@@ -18,9 +18,30 @@ interface Gig {
 
 export async function generateMetadata() {
   return {
-    title: 'Browse Gigs | GigsWall',
+    title: 'Browse Freelance Gigs | GigsWall',
     description:
-      'Explore a variety of freelance gigs posted by students on GigsWall. Filter by category and apply easily.',
+      'Discover and apply to freelance gigs on GigsWall. Students and freelancers can find short-term jobs, side hustles, and project opportunities posted by the community.',
+    keywords: [
+      'freelance gigs',
+      'student freelance jobs',
+      'find gigs online',
+      'apply to gigs',
+      'post freelance work',
+      'part-time jobs for students',
+      'side hustles',
+      'short-term freelance',
+      'GigsWall gigs',
+    ],
+    openGraph: {
+      title: 'Browse Freelance Gigs | GigsWall',
+      description:
+        'Find freelance gigs, side hustles, and short-term jobs on GigsWall. Perfect for students and community freelancers.',
+      url: 'https://gigswall.com/gigs',
+      siteName: 'GigsWall',
+      
+      type: 'website',
+    },
+    
   };
 }
 
