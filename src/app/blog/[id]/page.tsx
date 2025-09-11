@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 
 // ✅ Hardcoded blogs
 const blogs: any = {
@@ -84,6 +85,34 @@ Sign up today!`,
     createdAt: "2025-09-10",
   },
 };
+
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  const blog = blogs[params.id];
+  if (!blog) return {};
+
+  return {
+    title: `${blog.title} | GigsWall Blog`,
+    description: blog.description,
+    keywords: blog.keywords,
+    openGraph: {
+      title: blog.title,
+      description: blog.description,
+      images: [blog.coverImg],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: blog.title,
+      description: blog.description,
+      images: [blog.coverImg],
+    },
+  };
+}
+
 
 // ✅ Fix: async component, unwrap params
 export default async function BlogPage({ params }: { params: Promise<{ id: string }> }) {

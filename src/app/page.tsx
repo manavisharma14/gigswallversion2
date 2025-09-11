@@ -12,20 +12,23 @@ import WhatAreGigs from '@/components/WhatAreGigs';
 
 // ✅ import the floating ticker component
 import SuccessStories from '@/components/SuccessStories';
-
 export const metadata = {
-  title: 'GigsWall | Student Freelance Gigs Made Easy',
+  title: 'GigsWall | Freelance Gigs Made Easy',
   description:
-    'GigsWall is the ultimate platform for students to post and apply for freelance gigs on campus. Find work, build your skills, and earn on your terms.',
+    'GigsWall is the ultimate freelance platform where anyone can post gigs and students can work, earn, and build experience. Find short-term jobs, side hustles, and projects tailored for students and communities.',
   keywords: [
+    'freelance gigs',
     'student freelance',
-    'freelance gigs for students',
-    'campus jobs',
-    'college freelance',
-    'GigsWall',
     'student gigs',
-    'freelance platform',
+    'freelance jobs for students',
+    'short-term freelance',
+    'part-time jobs',
+    'hire students',
+    'post gigs online',
     'earn money as a student',
+    'side hustle for students',
+    'online freelance platform',
+    'GigsWall',
   ],
 };
 
