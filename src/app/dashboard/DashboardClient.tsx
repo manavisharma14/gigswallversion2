@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ChatComponent from '../../components/ChatComponent';
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -83,33 +83,61 @@ export default function DashboardClient({
   const [openChatForGig, setOpenChatForGig] = useState<string | null>(null); // composite key: gigId_userId
   const [chatEligibilityMap, setChatEligibilityMap] = useState<Record<string, boolean>>({});
   const [chatAllowed, setChatAllowed] = useState({});
+  // const [profile, setProfile] = useState<User | null>(user || null);
+const [loading, setLoading] = useState(!user);
 
-  const profile = user;
+  // const profile = user;
 
   
-
-  // Save userId to localStorage for ChatComponent
   // useEffect(() => {
   //   const fetchProfile = async () => {
-
-  //    const token = localStorage.getItem('token');   // may be null
+  //     try {
+  //       const token = localStorage.getItem('token');
+  //       if (!token) {
+  //         setProfile(null);
+  //         return;
+  //       }
   
-  //     const res = await fetch('/api/dashboard/profile', {
-  //      headers: token ? { Authorization: `Bearer ${token}` } : {},
-  //      credentials: 'include',           // ❷ send the cookie
-  //     });
+  //       const res = await fetch('/api/dashboard/profile', {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //         credentials: 'include',
+  //       });
   
-  //     if (!res.ok) {
-  //       console.error('Failed profile:', await res.text());
-  //       return;
+  //       if (!res.ok) {
+  //         if ([401, 403, 404].includes(res.status)) {
+  //           // token invalid/expired → force logout
+  //           localStorage.removeItem('token');
+  //           window.location.href = '/login';
+  //           return;
+  //         }
+  //         throw new Error('Failed to load profile');
+  //       }
+  
+  //       const data = await res.json();
+  //       setProfile(data);
+  //     } catch (err) {
+  //       console.error(err);
+  //       setProfile(null);
+  //     } finally {
+  //       setLoading(false);
   //     }
-  //     const data = await res.json();
-  //     setProfile(data);
-  //     setUsername(data.name ?? '');
   //   };
   
   //   fetchProfile();
   // }, []);
+
+  // if (loading) {
+  //   return <div className="mt-40 text-center text-gray-500">Loading profile…</div>;
+  // }
+  
+  const profile = user;
+  if (!profile) {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    return null;
+  }
 
   const menuItems = [
     { name: 'Profile', icon: UserIcon },
@@ -213,11 +241,13 @@ export default function DashboardClient({
             {/* Left: Profile Card */}
             <div className="bg-[#4B55C3] text-white flex flex-col items-center py-10 px-6">
               <div className="relative w-28 h-28 rounded-full border-4 border-white overflow-hidden">
-                <img
-                  src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user.name}`}
-                  alt="avatar"
-                  className="w-full h-full object-cover"
-                />
+              <img
+  src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${profile?.name || 'Guest'}`}
+  alt="avatar"
+  className="w-full h-full object-cover"
+/>
+
+<h2 className="text-xl font-bold">{profile?.name || 'Guest'}</h2>
                 {/* <label className="absolute bottom-0 right-0 p-1 bg-white rounded-full shadow-md cursor-pointer">
                   <CameraIcon className="w-5 h-5 text-[#3B2ECC]" />
                   <input type="file" hidden />
@@ -227,7 +257,7 @@ export default function DashboardClient({
               {/* Name & Email */}
               <div className="mt-4 text-center">
                 <div className="flex justify-center items-center gap-2">
-                  <h2 className="text-xl font-bold">{user.name}</h2>
+                  <h2 className="text-xl font-bold">{profile.name}</h2>
                   {/* <button onClick={() => setEditingName(true)}>
                     <PencilIcon className="w-5 h-5" />
                   </button> */}

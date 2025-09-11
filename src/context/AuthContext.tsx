@@ -3,9 +3,15 @@ import * as React from 'react';
 
 type UserType = 'student' | 'other';
 export interface AuthUser {
-  id: string; name: string; email?: string;
-  type: UserType; phone?: string|null; department?: string|null;
-  gradYear?: string|null; college?: string|null; createdAt?: string;
+  id: string;
+  name: string;
+  email?: string;
+  type: UserType;
+  phone?: string | null;
+  department?: string | null;
+  gradYear?: string | null;
+  college?: string | null;
+  createdAt?: string;
 }
 
 type AuthCtx = {
@@ -21,26 +27,40 @@ const AuthContext = React.createContext<AuthCtx | undefined>(undefined);
 export function AuthProvider({
   children,
   initialUser,
-}: { children: React.ReactNode; initialUser?: AuthUser | null }) {
+}: {
+  children: React.ReactNode;
+  initialUser?: AuthUser | null;
+}) {
   const [user, setUser] = React.useState<AuthUser | null>(initialUser ?? null);
   const [loading, setLoading] = React.useState(true);
   const [hydrated, setHydrated] = React.useState(false);
 
   const softLogout = React.useCallback(() => {
-    localStorage.removeItem('token'); // optional if you sometimes store it
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
-    window.dispatchEvent(new Event('storageChanged'));
+    window.dispatchEvent(new Event('storageChanged')); // notify other tabs
   }, []);
 
   const revalidate = React.useCallback(async () => {
     setLoading(true);
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      softLogout();
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await fetch('/api/auth/me', { method: 'GET', credentials: 'include' });
+      const res = await fetch('/api/auth/me', {
+        method: 'GET',
+        credentials: 'include',
+      });
       if (res.ok) {
         const serverUser = (await res.json()) as AuthUser;
         setUser(serverUser);
-        localStorage.setItem('user', JSON.stringify(serverUser)); // optional cache
+        localStorage.setItem('user', JSON.stringify(serverUser));
       } else if (res.status === 401) {
         softLogout();
       } else {
@@ -54,26 +74,43 @@ export function AuthProvider({
   }, [softLogout]);
 
   React.useEffect(() => {
-    // Fast hydrate from localStorage/initialUser
-    try {
-      const raw = localStorage.getItem('user');
-      if (raw) setUser(JSON.parse(raw));
-      else if (initialUser) {
-        localStorage.setItem('user', JSON.stringify(initialUser));
-        setUser(initialUser);
-      }
-    } catch { setUser(null); }
+    const token = localStorage.getItem('token');
 
-    // Validate now + whenever tab becomes visible
+    if (!token) {
+      softLogout();
+    } else {
+      try {
+        const raw = localStorage.getItem('user');
+        if (raw) setUser(JSON.parse(raw));
+        else if (initialUser) {
+          localStorage.setItem('user', JSON.stringify(initialUser));
+          setUser(initialUser);
+        }
+      } catch {
+        setUser(null);
+      }
+    }
+
+    // Validate on mount + when tab visible again
     revalidate();
-    const onVis = () => { if (document.visibilityState === 'visible') revalidate(); };
+    const onVis = () => {
+      if (document.visibilityState === 'visible') revalidate();
+    };
     document.addEventListener('visibilitychange', onVis);
 
     // Cross-tab updates
     const sync = () => {
+      const token = localStorage.getItem('token');
       const v = localStorage.getItem('user');
-      if (v) { try { setUser(JSON.parse(v)); } catch { setUser(null); } }
-      else setUser(null);
+      if (!token || !v) {
+        setUser(null);
+      } else {
+        try {
+          setUser(JSON.parse(v));
+        } catch {
+          setUser(null);
+        }
+      }
     };
     window.addEventListener('storageChanged', sync);
 
@@ -82,7 +119,7 @@ export function AuthProvider({
       document.removeEventListener('visibilitychange', onVis);
       window.removeEventListener('storageChanged', sync);
     };
-  }, [initialUser, revalidate]);
+  }, [initialUser, revalidate, softLogout]);
 
   const logout = React.useCallback(() => {
     fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
@@ -92,7 +129,9 @@ export function AuthProvider({
   if (!hydrated) return null;
 
   return (
-    <AuthContext.Provider value={{ user, setUser, logout, loading, revalidate }}>
+    <AuthContext.Provider
+      value={{ user, setUser, logout, loading, revalidate }}
+    >
       {children}
     </AuthContext.Provider>
   );

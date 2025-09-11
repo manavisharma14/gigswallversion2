@@ -1,31 +1,23 @@
 'use client';
-
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-
-import {
-  Menu,
-  X,
-  LogIn,
-  ChevronDown,
-  UserCircle,
-} from 'lucide-react';
+import { Menu, X, LogIn, ChevronDown, UserCircle } from 'lucide-react';
 import logo from '../../public/assets/newlogo.png';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
-
   const router = useRouter();
-  const { user, logout } = useAuth();  
+  const { user, logout } = useAuth();
 
+  // loggedIn derived from context (avoid duplicate localStorage checks)
   const loggedIn = !!user;
-  const userName = user?.name || '';
+  const userName = user?.name ?? '';
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
-
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -50,17 +42,16 @@ export default function Navbar() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (e) {
       console.error('Logout error:', e);
+    } finally {
+      setDropdownOpen(false);
+      logout();
+      router.replace('/signin');
     }
-    setDropdownOpen(false);
-    logout();          // clears localStorage + context state
-    router.push('/signin');
-    router.refresh();  // if any server components depend on cookies
   };
 
   return (
@@ -73,7 +64,6 @@ export default function Navbar() {
             alt="GigsWall Logo"
             width={80}
             height={80}
-            sizes="(max-width: 768px) 100px, 130px"
             priority
           />
         </Link>
@@ -84,7 +74,8 @@ export default function Navbar() {
           <li><Link href="/#about" className="relative underline-hover">About</Link></li>
           <li><Link href="/post" className="relative underline-hover">Post</Link></li>
           <li><Link href="/gigs" className="relative underline-hover">Apply</Link></li>
-          <li><Link href="/blog" className='relative underline-hover'>Blog</Link></li>
+          <li><Link href="/blog" className="relative underline-hover">Blog</Link></li>
+
           {loggedIn ? (
             <div className="relative" ref={dropdownRef}>
               <button
@@ -98,20 +89,21 @@ export default function Navbar() {
                 <ChevronDown size={16} />
               </button>
               <div
+                role="menu"
                 className={`absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-50 transform transition-all duration-200 ${
-                  dropdownOpen
-                    ? 'scale-100 opacity-100'
-                    : 'scale-95 opacity-0 pointer-events-none'
+                  dropdownOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'
                 }`}
               >
                 <Link
                   href="/dashboard"
+                  role="menuitem"
                   onClick={() => setDropdownOpen(false)}
                   className="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-100"
                 >
                   Dashboard
                 </Link>
                 <button
+                  role="menuitem"
                   onClick={handleLogout}
                   className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                 >
@@ -145,7 +137,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu with Backdrop */}
+      {/* Mobile Menu */}
       {menuOpen && (
         <>
           <div
@@ -158,20 +150,12 @@ export default function Navbar() {
               <li><Link href="/#about" onClick={() => setMenuOpen(false)}>About</Link></li>
               <li><Link href="/post" onClick={() => setMenuOpen(false)}>Post</Link></li>
               <li><Link href="/gigs" onClick={() => setMenuOpen(false)}>Apply</Link></li>
+
               {loggedIn ? (
                 <>
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setMenuOpen(false)}
-                    className="block"
-                  >
-                    Dashboard
-                  </Link>
+                  <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="block">Dashboard</Link>
                   <button
-                    onClick={() => {
-                      handleLogout();
-                      setMenuOpen(false);
-                    }}
+                    onClick={() => { handleLogout(); setMenuOpen(false); }}
                     className="text-left text-red-600"
                   >
                     Logout
