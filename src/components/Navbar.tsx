@@ -150,6 +150,7 @@ export default function Navbar() {
               <li><Link href="/#about" onClick={() => setMenuOpen(false)}>About</Link></li>
               <li><Link href="/post" onClick={() => setMenuOpen(false)}>Post</Link></li>
               <li><Link href="/gigs" onClick={() => setMenuOpen(false)}>Apply</Link></li>
+              <li><Link href="/blog" onClick={() => setMenuOpen(false)}>Blog</Link></li>
 
               {loggedIn ? (
                 <>
