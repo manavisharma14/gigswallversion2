@@ -3,8 +3,27 @@ import { cookies } from 'next/headers';
 import DashboardClient from './DashboardClient';
 
 export const metadata = {
-  title: 'GigsWall Dashboard | Manage Your Student Gigs & Applications',
-  description: 'Access your GigsWall dashboard to track applications, post gigs, manage profiles, and connect with other students on the freelance network.',
+  title: 'GigsWall Dashboard | Manage Gigs, Applications & Freelance Work',
+  description:
+    'Access your GigsWall dashboard to post gigs, track applications, manage your freelance profile, and connect with students and communities in the gig economy.',
+  keywords: [
+    'GigsWall dashboard',
+    'student freelance dashboard',
+    'manage gigs online',
+    'track job applications',
+    'post freelance gigs',
+    'hire students',
+    'freelance platform',
+  ],
+  openGraph: {
+    title: 'GigsWall Dashboard',
+    description:
+      'Manage your gigs, applications, and freelance work directly from your GigsWall dashboard.',
+    url: 'https://gigswall.com/dashboard',
+    siteName: 'GigsWall',
+    type: 'website',
+  },
+  
 };
 
 export default async function DashboardPage() {
