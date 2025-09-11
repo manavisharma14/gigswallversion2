@@ -1,8 +1,20 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Image from "next/image";
 
-// ✅ Hardcoded blogs
-const blogs: Record<string, any> = {
+type Blog = {
+  title: string;
+  coverImg: string;
+  description: string;
+  keywords: string[];
+  content: string;
+  authorName: string;
+  authorImage: string;
+  createdAt: string;
+};
+
+// Hardcoded blogs
+const blogs: Record<string, Blog> = {
   "manavi-story": {
     title: "Still Learning. Still Building.",
     coverImg: "/assets/blog1.png",
@@ -33,7 +45,7 @@ const blogs: Record<string, any> = {
   },
 };
 
-// ✅ Correct typing: params is NOT a Promise
+// ✅ SEO metadata
 export async function generateMetadata({
   params,
 }: {
@@ -60,8 +72,13 @@ export async function generateMetadata({
   };
 }
 
-// ✅ Fix BlogPage props
-export default async function BlogPage({ params }: { params: { id: string } }) {
+// ✅ Blog Page
+export default function BlogPage({
+  params,
+}: {
+  params: { id: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   const { id } = params;
   const blog = blogs[id];
 
@@ -69,16 +86,21 @@ export default async function BlogPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="max-w-3xl mx-auto p-6 pt-32">
-      <img
+      <Image
         src={blog.coverImg}
         alt={blog.title}
+        width={800}
+        height={400}
         className="w-full h-60 object-cover rounded-xl mb-6"
+        priority
       />
       <h1 className="text-4xl font-bold mb-4">{blog.title}</h1>
       <div className="flex items-center gap-2 mb-6">
-        <img
+        <Image
           src={blog.authorImage}
           alt={blog.authorName}
+          width={36}
+          height={36}
           className="w-9 h-9 rounded-full"
         />
         <p className="text-sm text-gray-500">

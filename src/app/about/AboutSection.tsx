@@ -1,5 +1,5 @@
-"use client";
 import Image from "next/image";
+import React from "react";
 
 export default function AboutSection() {
   return (
@@ -26,17 +26,23 @@ export default function AboutSection() {
             Why GigsWall?
           </h2>
           <p className="text-[#333] text-base sm:text-lg text-justify leading-relaxed">
-            <strong className="text-[#4B55C3]">GigsWall</strong> is a space built around trust, creativity, 
-            and student-driven collaboration. It’s where students showcase their skills, 
-            take on real opportunities, and get support where they need it, without the noise 
-            of mainstream job boards.
-            <br /><br />
-            Whether you’re building experience, earning from your talents, or contributing 
-            meaningfully, <strong className="text-[#4B55C3]">GigsWall</strong> connects students with 
-            those who need their talent — from peers to organizations.
-            <br /><br />
+            <strong className="text-[#4B55C3]">GigsWall</strong> is a space
+            built around trust, creativity, and collaboration. It’s where
+            students and individuals showcase their skills, take on real
+            opportunities, and get support where they need it — without the
+            noise of mainstream job boards.
+            <br />
+            <br />
+            Whether you’re building experience, earning from your talents, or
+            contributing meaningfully,{" "}
+            <strong className="text-[#4B55C3]">GigsWall</strong> connects
+            talented people with those who need their expertise — from peers to
+            organizations.
+            <br />
+            <br />
             <span className="font-semibold text-[#6366F1]">
-              Clear, simple, and student-first. Every gig is a chance to learn, earn, and grow.
+              Clear, simple, and growth-focused. Every gig is a chance to learn,
+              earn, and grow.
             </span>
           </p>
         </div>
