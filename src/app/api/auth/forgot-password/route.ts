@@ -18,22 +18,29 @@ export async function POST(req: NextRequest) {
 
   // Email Transporter
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: "smtp.zoho.com",  
+    port: 465,              
+    secure: true,            
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: process.env.EMAIL_USER, // info@gigswall.com
+      pass: process.env.EMAIL_PASS, // app password from Zoho
     },
   });
 
   const mailOptions = {
-    from: '"GigsWall Support" <gigswall.work@gmail.com>',
+    from: '"GigsWall Support" <info@gigswall.com>',
     to: user.email,
-    subject: 'Reset your GigsWall password',
-    html: `<p>Click the link below to reset your password:</p>
-           <a href="${resetLink}">Reset Password</a>
-           <p>This link will expire in 15 minutes.</p>`,
+    subject: "Reset your GigsWall password",
+    html: `
+      <h2>Password Reset</h2>
+      <p>Click below to reset your password. This link will expire in 15 minutes:</p>
+      <a href="${resetLink}" style="display:inline-block;padding:10px 20px;
+         background:#4CAF50;color:#fff;border-radius:5px;text-decoration:none;">
+         Reset Password
+      </a>
+      <p>If you did not request this, you can ignore this email.</p>
+    `,
   };
-
   await transporter.sendMail(mailOptions);
 
   return NextResponse.json({ message: 'Reset email sent' });
