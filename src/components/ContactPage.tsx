@@ -54,7 +54,7 @@ export default function ContactUsPage() {
           </h1>
           <p className="text-gray-600 text-lg mb-6">
             Have a question, suggestion, or just want to connect?  
-            We'd love to hear from you 👋
+            We&apos;d love to hear from you 👋
           </p>
           <p className="text-sm text-gray-500 italic">
             We typically respond within 24 hours.

@@ -92,8 +92,8 @@ export default function AboutPage() {
             >
               {/* Badge */}
               <div className="absolute top-2 left-2 bg-[#1D2B7F] text-white text-[10px] font-bold px-2 py-1 rounded">
-                IT'S ALL ABOUT PEOPLE
-              </div>
+  IT&apos;S ALL ABOUT PEOPLE
+</div>
 
               {/* Image */}
               <div className="relative w-full flex-1">

@@ -16,7 +16,7 @@ export default function Hero() {
 
           <p className="text-base sm:text-lg md:text-xl text-gray-100 leading-relaxed max-w-lg mx-auto md:mx-0">
             Share your ideas, projects, or tasks — and watch talented students bring them to life. 
-            Whether you're a startup, student, or individual, GigsWall is where opportunities meet skill.
+            Whether you&apos;re a startup, student, or individual, GigsWall is where opportunities meet skill.
           </p>
 
           <div className="flex flex-col sm:flex-row md:justify-start justify-center gap-4 pt-4">
