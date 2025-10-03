@@ -1,41 +1,63 @@
+"use client";
+
+import { motion } from "framer-motion";
+
 export default function HowItWorks() {
   const steps = [
     {
-      title: '1. Post a Gig',
-      description: 'Share tasks you need help with — like tutoring, design, or errands.',
+      title: "Post a Gig",
+      description:
+        "Share a task or opportunity — like tutoring, designing, coding, or errands. Others can apply to help.",
     },
     {
-      title: '2. Browse Opportunities',
-      description: 'Discover student gigs that match your skills and availability.',
+      title: "Browse Opportunities",
+      description:
+        "Explore gigs that match your skills and availability. Find ways to help, learn, and grow.",
     },
     {
-      title: '3. Get Paid',
-      description: 'Help others, grow your experience, and earn money doing what you’re good at.',
+      title: "Get Paid",
+      description:
+        "Complete gigs, build your experience, and earn money doing what you’re good at.",
     },
   ];
 
   return (
-    <section className="py-20 sm:py-24 bg-white text-center px-4 sm:px-6 lg:px-8">
+    <section className="py-24 bg-gradient-to-b from-white to-[#F8F8FF] text-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Section Title */}
-      <h2 className="text-3xl sm:text-4xl font-extrabold text-[#4B55C3] mb-12 sm:mb-16 font-bricolage">
+      <h2 className="text-4xl sm:text-5xl font-extrabold text-[#3B4CCA] mb-14 font-bricolage">
         How It Works
       </h2>
 
-      {/* Steps Grid */}
-      <div className="flex flex-col md:flex-row justify-center items-stretch gap-8 sm:gap-10 max-w-6xl mx-auto">
+      {/* Steps */}
+      <div className="relative flex flex-col md:flex-row justify-center items-center gap-10 max-w-6xl mx-auto">
         {steps.map((step, index) => (
-          <div
+          <motion.div
             key={index}
-            className="bg-gradient-to-br from-[#4B55C3] via-[#6366F1] to-[#7C83F9] text-white font-bricolage rounded-3xl p-6 sm:p-8 w-full max-w-sm mx-auto shadow-xl ring-1 ring-white/10 backdrop-blur-sm transition-transform duration-300 hover:scale-105 hover:-translate-y-2 hover:shadow-[0_15px_40px_rgba(99,102,241,0.4)]"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.15, duration: 0.5 }}
+            viewport={{ once: true }}
+            className="relative z-10 flex flex-col items-center bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-transform hover:-translate-y-2 p-8 max-w-sm w-full border border-gray-100"
           >
-            <h3 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 drop-shadow-md">
+            {/* Step Number Circle */}
+            <div className="w-14 h-14 flex items-center justify-center rounded-full bg-gradient-to-br from-[#4B55C3] to-[#7C83F9] text-white text-2xl font-bold mb-4 shadow-md">
+              {index + 1}
+            </div>
+
+            {/* Title */}
+            <h3 className="text-xl sm:text-2xl font-semibold mb-3 text-[#3B4CCA] font-bricolage">
               {step.title}
             </h3>
-            <p className="text-white text-opacity-95 leading-relaxed text-sm sm:text-base md:text-lg">
+
+            {/* Description */}
+            <p className="text-gray-600 text-sm sm:text-base md:text-lg leading-relaxed">
               {step.description}
             </p>
-          </div>
+          </motion.div>
         ))}
+
+        {/* Connector Line for Desktop */}
+        <div className="hidden md:block absolute top-[5.5rem] left-1/2 -translate-x-1/2 w-[70%] h-1 bg-gradient-to-r from-[#4B55C3]/30 via-[#7A5AF8]/40 to-[#4B55C3]/30 -z-0 rounded-full" />
       </div>
     </section>
   );
