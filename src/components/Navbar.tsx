@@ -71,7 +71,7 @@ export default function Navbar() {
         {/* Desktop Menu */}
         <ul className="hidden md:flex items-center space-x-8 text-[16px] font-semibold text-gray-800">
           <li><Link href="/" className="relative underline-hover">Home</Link></li>
-          <li><Link href="/#about" className="relative underline-hover">About</Link></li>
+          <li><Link href="/about" className="relative underline-hover">About</Link></li>
           <li><Link href="/post" className="relative underline-hover">Post</Link></li>
           <li><Link href="/gigs" className="relative underline-hover">Apply</Link></li>
           <li><Link href="/blog" className="relative underline-hover">Blog</Link></li>
