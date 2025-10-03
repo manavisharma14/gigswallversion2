@@ -28,7 +28,7 @@ const team = [
   {
     name: "Shrishti Das",
     role: "Content",
-    img: "/assets/shrishti.jpeg", // ✅ Make sure to add this image in your /public/assets folder
+    img: "/assets/shrishti.jpeg",
     linkedin: "https://www.linkedin.com/in/shrishti-das-/",
     instagram: "https://www.instagram.com/shrisshh_tea/",
   },
@@ -78,7 +78,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* --- Meet the Team --- */}
+      {/* --- Meet the Team (Cards) --- */}
       <section className="py-24 px-6 bg-gradient-to-b from-white to-[#F8FAFF]">
         <div className="max-w-6xl mx-auto text-center mb-14">
           <h2 className="text-3xl sm:text-4xl font-bold text-[#4B55C3]">
@@ -103,13 +103,13 @@ export default function AboutPage() {
               </div>
 
               {/* Image */}
-              <div className="relative w-full flex-1">
+              <div className="w-full aspect-square overflow-hidden">
                 <Image
                   src={member.img}
                   alt={member.name}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 280px"
-                  className="object-cover grayscale group-hover:grayscale-0 transition duration-300"
+                  width={280}
+                  height={280}
+                  className="object-cover w-full h-full grayscale group-hover:grayscale-0 transition duration-300"
                 />
               </div>
 
@@ -148,7 +148,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-            {/* --- Team Stories Section --- */}
       {/* --- Team Stories Section --- */}
       <section className="py-24 px-6 bg-white">
         <div className="max-w-5xl mx-auto text-center mb-16">
@@ -161,80 +160,55 @@ export default function AboutPage() {
         </div>
 
         <div className="space-y-16 max-w-4xl mx-auto">
-          {/* Manavi - Left */}
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-            <div className="md:w-1/2 text-left">
-              <h3 className="text-2xl font-semibold text-[#3B4CCA]">Manavi Sharma — Tech & Product</h3>
-              <p className="mt-2 leading-relaxed text-gray-800">
-                The brain of the operation — quite literally. Manavi turns ideas into crisp, clean code and beautiful interfaces. She’s the one making sure every pixel is in place and every feature just works. Known for her “let’s build it” energy, Manavi brings vision and execution together like no one else.
-              </p>
+          {[
+            {
+              name: "Manavi Sharma — Tech & Product",
+              img: "/assets/manavi.png",
+              text: "The brain of the operation — quite literally. Manavi turns ideas into crisp, clean code and beautiful interfaces. She’s the one making sure every pixel is in place and every feature just works. Known for her “let’s build it” energy, Manavi brings vision and execution together like no one else.",
+              reverse: false,
+            },
+            {
+              name: "Rahil Abbu — Strategy & Ops",
+              img: "/assets/rahil.png",
+              text: "If GigsWall were a ship, Rahil is the one charting the course. With a knack for structured strategy and creative problem-solving, he’s always three steps ahead — whether it’s scaling operations or fine-tuning the next big move. Also known to casually drop startup metaphors at 2 a.m.",
+              reverse: true,
+            },
+            {
+              name: "Manav Sharma — Operations",
+              img: "/assets/manav.png",
+              text: "Manav is the engine that keeps things running smoothly. From handling launch ops to making sure no task slips through the cracks, he’s the definition of dependable. If there’s a fire, he’s already got the extinguisher (and probably a backup plan).",
+              reverse: false,
+            },
+            {
+              name: "Shrishti Das — Content",
+              img: "/assets/shrishti.jpeg",
+              text: "Shrishti is the voice and vibe of GigsWall. Whether it’s crafting stories, building community, or making content that actually hits, she’s the spark behind the scenes. Think of her as the one turning everyday updates into scroll-stopping moments.",
+              reverse: true,
+            },
+          ].map((person, idx) => (
+            <div
+              key={idx}
+              className={`flex flex-col ${
+                person.reverse ? "md:flex-row-reverse" : "md:flex-row"
+              } items-center md:items-start gap-8`}
+            >
+              <div className="md:w-1/2 text-left">
+                <h3 className="text-2xl font-semibold text-[#3B4CCA]">{person.name}</h3>
+                <p className="mt-2 leading-relaxed text-gray-800">{person.text}</p>
+              </div>
+              <div className="md:w-1/2 flex justify-center">
+                <div className="w-[220px] h-[220px] rounded-full overflow-hidden shadow-md transition transform hover:scale-105 hover:shadow-xl hover:shadow-[#3B4CCA]/30">
+                  <Image
+                    src={person.img}
+                    alt={person.name}
+                    width={220}
+                    height={220}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="md:w-1/2 flex justify-center">
-              <Image
-                src="/assets/manavi.png"
-                alt="Manavi Sharma"
-                width={260}
-                height={260}
-                className="rounded-lg object-cover shadow-md"
-              />
-            </div>
-          </div>
-
-          {/* Rahil - Right */}
-          <div className="flex flex-col md:flex-row-reverse items-center md:items-start gap-8">
-            <div className="md:w-1/2 text-left">
-              <h3 className="text-2xl font-semibold text-[#3B4CCA]">Rahil Abbu — Strategy & Ops</h3>
-              <p className="mt-2 leading-relaxed text-gray-800">
-                If GigsWall were a ship, Rahil is the one charting the course. With a knack for structured strategy and creative problem-solving, he’s always three steps ahead — whether it’s scaling operations or fine-tuning the next big move. Also known to casually drop startup metaphors at 2 a.m.
-              </p>
-            </div>
-            <div className="md:w-1/2 flex justify-center">
-              <Image
-                src="/assets/rahil.png"
-                alt="Rahil Abbu"
-                width={260}
-                height={260}
-                className="rounded-lg object-cover shadow-md"
-              />
-            </div>
-          </div>
-
-          {/* Manav - Left */}
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-            <div className="md:w-1/2 text-left">
-              <h3 className="text-2xl font-semibold text-[#3B4CCA]">Manav Sharma — Operations</h3>
-              <p className="mt-2 leading-relaxed text-gray-800">
-                Manav is the engine that keeps things running smoothly. From handling launch ops to making sure no task slips through the cracks, he’s the definition of dependable. If there’s a fire, he’s already got the extinguisher (and probably a backup plan).
-              </p>
-            </div>
-            <div className="md:w-1/2 flex justify-center">
-              <Image
-                src="/assets/manav.png"
-                alt="Manav Sharma"
-                width={260}
-                height={260}
-                className="rounded-lg object-cover shadow-md"
-              />
-            </div>
-          </div>
-
-          {/* Shrishti - Right */}
-          <div className="flex flex-col md:flex-row-reverse items-center md:items-start gap-8">
-            <div className="md:w-1/2 text-left">
-              <h3 className="text-2xl font-semibold text-[#3B4CCA]">Shrishti Das — Content</h3>
-              <p className="mt-2 leading-relaxed text-gray-800">
-              Shrishti is the voice and vibe of GigsWall. Whether it’s crafting stories, building community, or making content that actually hits, she’s the spark behind the scenes. Think of her as the one turning everyday updates into scroll-stopping moments.              </p>
-            </div>
-            <div className="md:w-1/2 flex justify-center">
-              <Image
-                src="/assets/shrishti.jpeg"
-                alt="Shrishti Das"
-                width={260}
-                height={260}
-                className="rounded-lg object-cover shadow-md"
-              />
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
