@@ -9,21 +9,28 @@ const team = [
     role: "Tech & Product",
     img: "/assets/manavi.png",
     linkedin: "https://www.linkedin.com/in/manavi-sharma-9911b4267/",
-    instagram: "https://www.instagram.com/_manavisharma_/", // ✅ Add Insta URL here
+    instagram: "https://www.instagram.com/_manavisharma_/",
   },
   {
     name: "Manav Sharma",
     role: "Operations",
     img: "/assets/manav.png",
     linkedin: "https://www.linkedin.com/in/manav-sharma-612752236/",
-    instagram: "https://www.instagram.com/manavsharma_/", // ✅ Add Insta URL here
+    instagram: "https://www.instagram.com/manavsharma_/",
   },
   {
     name: "Rahil Abbu",
     role: "Strategy & Ops",
     img: "/assets/rahil.png",
     linkedin: "https://www.linkedin.com/in/rahil-abbu/",
-    instagram: "https://www.instagram.com/rahil.abbu/", // ✅ Add Insta URL here
+    instagram: "https://www.instagram.com/rahil.abbu/",
+  },
+  {
+    name: "Shrishti Das",
+    role: "Content",
+    img: "/assets/shrishti.jpeg", // ✅ Make sure to add this image in your /public/assets folder
+    linkedin: "https://www.linkedin.com/in/shrishti-das-/",
+    instagram: "https://www.instagram.com/shrisshh_tea/",
   },
 ];
 
@@ -83,7 +90,7 @@ export default function AboutPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 justify-items-center max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 justify-items-center max-w-6xl mx-auto">
           {team.map((member, i) => (
             <div
               key={member.name}
@@ -92,8 +99,8 @@ export default function AboutPage() {
             >
               {/* Badge */}
               <div className="absolute top-2 left-2 bg-[#1D2B7F] text-white text-[10px] font-bold px-2 py-1 rounded">
-  IT&apos;S ALL ABOUT PEOPLE
-</div>
+                IT&apos;S ALL ABOUT PEOPLE
+              </div>
 
               {/* Image */}
               <div className="relative w-full flex-1">
