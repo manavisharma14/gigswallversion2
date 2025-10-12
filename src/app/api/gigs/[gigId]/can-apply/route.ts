@@ -1,6 +1,8 @@
 // app/api/gigs/[gigId]/can-apply/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
@@ -10,24 +12,16 @@ export async function GET(
 ) {
   const { gigId } = await context.params;
 
-  const authHeader = req.headers.get('authorization');
-  const token = authHeader?.split(' ')[1] ?? '';
-  let userId: string | undefined;
-  let type: string | undefined;
-
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1] ?? '{}'));
-    userId = payload?.id;
-    type = payload?.type;
-  } catch {
+  // Get session using NextAuth
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user?.id) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!userId) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
+  const userId = session.user.id;
+  const type = session.user.type; // Adjust this based on your session.user structure
 
-  // ❌ Deny access if type is "other"
+  // Deny access if type is "other"
   if (type === 'other') {
     return NextResponse.json(
       {
@@ -37,7 +31,6 @@ export async function GET(
       { status: 403 }
     );
   }
-  // a
 
   const gig = await prisma.gig.findUnique({ where: { id: gigId } });
   if (!gig) {

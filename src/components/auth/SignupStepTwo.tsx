@@ -2,13 +2,12 @@
 
 import { Listbox } from "@headlessui/react";
 import { ChevronUpDownIcon } from "@heroicons/react/20/solid";
+import { FormDataType } from "@/types/formTypes";
 
 interface PreferenceOption {
   label: string;
   value: string;
 }
-
-import { FormDataType } from "@/types/formTypes";
 
 interface SignupStepTwoProps {
   formData: FormDataType;
@@ -35,18 +34,12 @@ const dropdownOptionClass = (active: boolean) =>
     active ? "bg-[#EEF0FF] text-[#4B3BB3]" : "text-[#1a1a1a]"
   }`;
 
-export default function SignupStepTwo({
-  formData,
-  handleChange,
-  setFormData,
-}: SignupStepTwoProps) {
-  const selectedPreference = preferences.find((r) => r.value === formData.gigPreference) || preferences[0];
+export default function SignupStepTwo({ formData, handleChange, setFormData }: SignupStepTwoProps) {
+  const selectedPreference =
+    preferences.find((r) => r.value === formData.gigPreference) || preferences[0];
 
   const handlePreferenceChange = (pref: PreferenceOption) => {
-    setFormData((prev) => ({
-      ...prev,
-      gigPreference: pref.value,
-    }));
+    setFormData((prev) => ({ ...prev, gigPreference: pref.value }));
   };
 
   const handleCollegeChange = (college: string) => {
@@ -59,28 +52,37 @@ export default function SignupStepTwo({
 
   return (
     <div className="space-y-4 text-[#1a1a1a]">
-      <input
-        type="text"
-        name="department"
-        placeholder="Department"
-        className={inputClass}
-        value={formData.department}
-        onChange={handleChange}
-        required
-      />
+      <div>
+        <label className="block text-sm font-medium mb-1">Department</label>
+        <input
+          type="text"
+          name="department"
+          placeholder="Department"
+          className={inputClass}
+          value={formData.department}
+          onChange={handleChange}
+          required
+        />
+      </div>
 
-      <input
-        type="text"
-        name="gradYear"
-        placeholder="Graduation Year"
-        className={inputClass}
-        value={formData.gradYear}
-        onChange={handleChange}
-        required
-      />
+      <div>
+        <label className="block text-sm font-medium mb-1">Graduation Year</label>
+        <input
+          type="number"
+          name="gradYear"
+          placeholder="2027"
+          min="2023"
+          max="2035"
+          className={inputClass}
+          value={formData.gradYear}
+          onChange={handleChange}
+          required
+        />
+      </div>
 
-      {/* Gig Preference Dropdown */}
-      <div className="w-full">
+      {/* Gig Preference */}
+      <div>
+        <label className="block text-sm font-medium mb-1">Gig Preference</label>
         <Listbox value={selectedPreference} onChange={handlePreferenceChange}>
           <div className="relative">
             <Listbox.Button className={dropdownBtnClass}>
@@ -90,9 +92,9 @@ export default function SignupStepTwo({
               </span>
             </Listbox.Button>
             <Listbox.Options className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 sm:text-sm">
-              {preferences.map((pref, idx) => (
+              {preferences.map((pref) => (
                 <Listbox.Option
-                  key={idx}
+                  key={pref.value}
                   value={pref}
                   className={({ active }) => dropdownOptionClass(active)}
                 >
@@ -104,8 +106,9 @@ export default function SignupStepTwo({
         </Listbox>
       </div>
 
-      {/* College Dropdown */}
-      <div className="w-full">
+      {/* College */}
+      <div>
+        <label className="block text-sm font-medium mb-1">College</label>
         <Listbox value={formData.college} onChange={handleCollegeChange}>
           <div className="relative">
             <Listbox.Button className={dropdownBtnClass}>
@@ -115,9 +118,9 @@ export default function SignupStepTwo({
               </span>
             </Listbox.Button>
             <Listbox.Options className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 sm:text-sm">
-              {colleges.map((college, idx) => (
+              {colleges.map((college) => (
                 <Listbox.Option
-                  key={idx}
+                  key={college}
                   value={college}
                   className={({ active }) => dropdownOptionClass(active)}
                 >

@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const user = await prisma.user.findUnique({ where: { id } });
   if (!user) return NextResponse.json({ error: 'Invalid user' }, { status: 400 });
 
-  const secret = process.env.NEXTAUTH_SECRET + user.password;
+  const secret = process.env.NEXTAUTH_SECRET! + user.password;
 
   try {
     jwt.verify(token, secret);

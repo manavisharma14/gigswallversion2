@@ -32,15 +32,15 @@ type Gig = {
   postedBy?: User;
   applications?: Application[];
   applicantId?: string;
-};
+}; 
 
 type Application = {
   id: string;
-  reason: string;
-  experience: string;
-  extraInfo: string;
+  reason: string | null;        // 👈 changed
+  experience: string | null;    // 👈 changed
+  extraInfo: string | null;     // 👈 changed
   status: string;
-  portfolio: string;
+  portfolio: string | null;     // 👈 changed if nullable in DB
   gigId: string;
   userId: string;
   user?: User;
@@ -52,12 +52,12 @@ type User = {
   name: string;
   email: string;
   password?: string; // Usually omitted when sending to frontend
-  phone?: string;
-  college: string;
-  department: string;
-  gradYear: string;
-  gigPreference?: 'finder' | 'poster' | 'both'; // from Prisma enum
-  type?: 'student' | 'other'; // matches UserType enum
+  phone?: string | null;  
+  college: string | null; // Allow null to match Prisma schema
+  department: string | null; // Allow null to match Prisma schema
+  gradYear: string | null; // Allow null to match Prisma schema
+  gigPreference?: 'finder' | 'poster' | 'both' | null; // Allow null to match Prisma schema
+  type?: 'student' | 'other'; // Matches UserType enum
   isVerified?: boolean;
   otpCode?: string;
   otpExpires?: string;
@@ -74,61 +74,18 @@ export default function DashboardClient({
   appliedGigs: Application[];
 }) {
   const [active, setActive] = useState('Profile');
-  // const [profile, setProfile] = useState<User>(user); // includes extended fields
-// const [username, setUsername] = useState(user?.name || '');
-  // const [editingName, setEditingName] = useState(false);
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [gigToDelete, setGigToDelete] = useState<{ id: string; title: string } | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [openChatForGig, setOpenChatForGig] = useState<string | null>(null); // composite key: gigId_userId
   const [chatEligibilityMap, setChatEligibilityMap] = useState<Record<string, boolean>>({});
   const [chatAllowed, setChatAllowed] = useState({});
-  // const [profile, setProfile] = useState<User | null>(user || null);
+
 const [loading, setLoading] = useState(!user);
 
-  // const profile = user;
 
-  
-  // useEffect(() => {
-  //   const fetchProfile = async () => {
-  //     try {
-  //       const token = localStorage.getItem('token');
-  //       if (!token) {
-  //         setProfile(null);
-  //         return;
-  //       }
-  
-  //       const res = await fetch('/api/dashboard/profile', {
-  //         headers: { Authorization: `Bearer ${token}` },
-  //         credentials: 'include',
-  //       });
-  
-  //       if (!res.ok) {
-  //         if ([401, 403, 404].includes(res.status)) {
-  //           // token invalid/expired → force logout
-  //           localStorage.removeItem('token');
-  //           window.location.href = '/login';
-  //           return;
-  //         }
-  //         throw new Error('Failed to load profile');
-  //       }
-  
-  //       const data = await res.json();
-  //       setProfile(data);
-  //     } catch (err) {
-  //       console.error(err);
-  //       setProfile(null);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  
-  //   fetchProfile();
-  // }, []);
 
-  // if (loading) {
-  //   return <div className="mt-40 text-center text-gray-500">Loading profile…</div>;
-  // }
   
   const profile = user;
   if (!profile) {
@@ -145,41 +102,31 @@ const [loading, setLoading] = useState(!user);
     ...(user?.type === 'student' ? [{ name: 'Applied Gigs', icon: ClipboardDocumentCheckIcon }] : []),
   ];
 
-  // const saveUsername = () => {
-  //   const updated = { ...user, name: user.name };
-  //   localStorage.setItem('user', JSON.stringify(updated));
-  //   setEditingName(false);
-  // };
 
-  const checkIfChatStarted = async (roomId: string) => {
-  const chatDocRef = doc(db, "chats", roomId);
-  const chatDoc = await getDoc(chatDocRef);
-  return chatDoc.exists();
-};
+
 
   
 
   const handleConfirmedDelete = async () => {
     if (!gigToDelete) return;
-    const token = localStorage.getItem('token');
-
+  
     const res = await fetch(`/api/dashboard/posted/${gigToDelete.id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
     });
-
+  
     const result = await res.json();
+  
     if (res.ok) {
       setToast({ message: 'Gig deleted successfully.', type: 'success' });
       setTimeout(() => {
         setToast(null);
-        window.location.reload();
+        window.location.reload(); // optional, could also update state
       }, 2000);
     } else {
       setToast({ message: result.message || 'Failed to delete gig.', type: 'error' });
       setTimeout(() => setToast(null), 3000);
     }
-
+  
     setGigToDelete(null);
   };
 
@@ -272,10 +219,10 @@ const [loading, setLoading] = useState(!user);
               {isStudent ? (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-                    <ProfileItem label="College" value={profile.college} />
-                    <ProfileItem label="Department" value={profile.department} />
-                    <ProfileItem label="Graduation Year" value={profile.gradYear} />
-                    <ProfileItem label="Phone" value={profile.phone} />
+                    <ProfileItem label="College" value={profile.college ?? undefined} />
+                    <ProfileItem label="Department" value={profile.department ?? undefined} />
+                    <ProfileItem label="Graduation Year" value={profile.gradYear ?? undefined} />
+                    <ProfileItem label="Phone" value={profile.phone ?? undefined} />
                     <ProfileItem label="Joined On" value={profile.createdAt?.split("T")[0]} />
                   </div>
     
@@ -307,276 +254,164 @@ const [loading, setLoading] = useState(!user);
     if (active === 'Posted Gigs') {
       return (
         <section className="space-y-6 mt-20 px-1">
-  <h2 className="text-2xl md:text-3xl font-bold text-[#3B2ECC] mb-4 text-center md:text-left">
-    Your Posted Gigs
-  </h2>
-
-  {postedGigs.length === 0 ? (
-    <p className="text-center text-gray-600">No gigs posted yet.</p>
-  ) : (
-    postedGigs.map((gig) => (
-<div key={gig.id} className="relative bg-white p-5 md:p-6 rounded-xl shadow-md border  md:gap-6">        {/* Gig Info */}
-        <div className="space-y-2">
-          <h3 className="font-semibold text-lg text-[#4B55C3]">{gig.title}</h3>
-          <p className="text-gray-700">{gig.description}</p>
-        </div>
-
-        {/* Top Right Delete Button */}
-        <button
-          onClick={() => setGigToDelete({ id: gig.id, title: gig.title })}
-          className="absolute top-3 right-3 text-red-500 hover:text-red-600"
-          title="Delete gig"
-        >
-          <TrashIcon className="h-5 w-5" />
-        </button>
-
-        {/* Applicants */}
-        <div className="md:col-span-2 mt-4">
-          <details className="text-sm text-gray-700">
-            <summary className="cursor-pointer text-[#4B55C3] font-semibold">
-              Applicants ({gig.applications?.length || 0})
-            </summary>
-
-            {gig.applications?.length ? (
-              <ul className="mt-3 space-y-4">
-                {gig.applications.map((app) => {
-                  const recipient = app.userId;
-                  const chatKey = `${gig.id}_${app.userId}`;
-
-                  return (
-<li
-  key={app.id}
-  className="group rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition"
->
-  {/* Header: avatar + name/email + right actions */}
-  <div className="flex items-start justify-between gap-3">
-    <div className="flex items-start gap-3 min-w-0">
-      <div className="h-9 w-9 rounded-full bg-[#3B2ECC]/10 flex items-center justify-center text-[#3B2ECC] font-semibold">
-        {(app.user?.name || 'A').slice(0,1).toUpperCase()}
-      </div>
-      <div className="min-w-0">
-        <h3 className="text-[#3B2ECC] font-semibold leading-tight truncate">
-          {app.user?.name || 'Anonymous'}
-        </h3>
-        <p className="text-xs text-gray-500 break-words">{app.user?.email}</p>
-      </div>
-    </div>
-
-    {/* Right: badge + chat (no fixed width) */}
-    <div className="flex flex-col items-end gap-2 shrink-0">
-
-    <button
-  onClick={() => toggleChat(chatKey)}
-  className="text-sm px-4 py-2 rounded-lg font-medium 
-             bg-[#4B55C3] text-white shadow-sm 
-             hover:bg-[#5C53E5] hover:shadow-md 
-             transition-all duration-200"
->
-  💬 Open Chat
-</button>
-    </div>
-  </div>
-
-  {/* Body */}
-  <div className="mt-3 grid gap-2">
-    {app.reason && (
-      <div className="text-sm">
-        <span className="font-medium text-gray-900">Reason: </span>
-        <span className="text-gray-700 line-clamp-3">{app.reason}</span>
-      </div>
-    )}
-    {app.portfolio && (
-      <div className="text-sm break-words">
-        <span className="font-medium text-gray-900">Portfolio: </span>
-        <a
-          href={app.portfolio}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[#3B2ECC] underline break-words"
-        >
-          {app.portfolio}
-        </a>
-      </div>
-    )}
-    {app.experience && (
-      <div className="text-sm">
-        <span className="font-medium text-gray-900">Experience: </span>
-        <span className="text-gray-700 line-clamp-3">{app.experience}</span>
-      </div>
-    )}
-    {app.extraInfo && (
-      <div className="text-sm">
-        <span className="font-medium text-gray-900">Extra Info: </span>
-        <span className="text-gray-700 line-clamp-3">{app.extraInfo}</span>
-      </div>
-    )}
-  </div>
-
-  {/* Status Buttons */}
-  <div className="flex flex-wrap gap-2 mt-3">
-    {['pending', 'accepted', 'rejected'].map((statusOption) => (
-      <button
-        key={statusOption}
-        onClick={async () => {
-          const token = localStorage.getItem('token');
-          const res = await fetch(`/api/applications/${app.id}/status`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ status: statusOption }),
-          });
-          const result = await res.json();
-          if (res.ok) {
-            setToast({ message: `Marked as ${statusOption}.`, type: 'success' });
-            setTimeout(() => {
-              setToast(null);
-              window.location.reload();
-            }, 1200);
-          } else {
-            setToast({ message: result.message || 'Failed to update status.', type: 'error' });
-            setTimeout(() => setToast(null), 2500);
-          }
-        }}
-        className={`text-xs px-3 py-1 rounded-md font-medium border transition ${
-          app.status === statusOption
-            ? statusOption === 'accepted'
-              ? 'bg-green-100 border-green-600 text-green-700'
-              : statusOption === 'rejected'
-              ? 'bg-red-100 border-red-600 text-red-700'
-              : 'bg-yellow-100 border-yellow-600 text-yellow-700'
-            : 'text-gray-600 border-gray-300 hover:bg-gray-100'
-        }`}
-      >
-        {statusOption}
-      </button>
-    ))}
-  </div>
-
-  {/* Chat (full width under card) */}
-  {openChatForGig === chatKey && (
-    <div className="mt-3">
-      <ChatComponent
-        gigId={gig.id}
-        applicantId={app.userId}
-        posterId={gig.postedById}
-        recipient={recipient}
-        setOpenChatForGig={setOpenChatForGig}
-      />
-    </div>
-  )}
-</li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <p className="text-xs mt-2 text-gray-500">No applicants yet.</p>
-            )}
-          </details>
-        </div>
-      </div>
-    ))
-  )}
-</section>
+          <h2 className="text-2xl md:text-3xl font-bold text-[#3B2ECC] mb-4 text-center md:text-left">
+            Your Posted Gigs
+          </h2>
+    
+          {postedGigs.length === 0 ? (
+            <p className="text-center text-gray-600">No gigs posted yet.</p>
+          ) : (
+            postedGigs.map((gig) => (
+              <div
+                key={gig.id}
+                className="relative bg-white p-5 md:p-6 rounded-xl shadow-md border md:gap-6"
+              >
+                {/* Gig Info */}
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-lg text-[#4B55C3]">{gig.title}</h3>
+                  <p className="text-gray-700">{gig.description}</p>
+                </div>
+    
+                {/* Top Right Delete Button */}
+                <button
+                  onClick={() => setGigToDelete({ id: gig.id, title: gig.title })}
+                  className="absolute top-3 right-3 text-red-500 hover:text-red-600"
+                  title="Delete gig"
+                >
+                  <TrashIcon className="h-5 w-5" />
+                </button>
+    
+                {/* Applicants */}
+                <div className="md:col-span-2 mt-4">
+                  <details className="text-sm text-gray-700">
+                    <summary className="cursor-pointer text-[#4B55C3] font-semibold">
+                      Applicants ({gig.applications?.length ?? 0})
+                    </summary>
+    
+                    {gig.applications?.length ? (
+                      <ul className="mt-3 space-y-4">
+                        {gig.applications.map((app) => {
+                          const applicant = app.user;
+                          const chatKey = `${gig.id}_${app.userId}_${gig.postedById}`;
+    
+                          return (
+                            <li
+                              key={app.id}
+                              className="group rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition flex flex-col gap-3"
+                            >
+                              {/* Applicant Info */}
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div>
+                                  <p className="font-semibold text-gray-900">
+                                    {applicant?.name || 'Unknown Applicant'}
+                                  </p>
+                                  <p className="text-xs text-gray-600">{applicant?.email}</p>
+                                  {applicant?.college && (
+                                    <p className="text-xs text-gray-500">
+                                      {applicant.college} • {applicant.department} • {applicant.gradYear}
+                                    </p>
+                                  )}
+                                </div>
+    
+                                {/* Right-side buttons */}
+                                <div className="flex flex-wrap gap-2">
+                                  {['pending', 'accepted', 'rejected'].map((statusOption) => (
+                                    <button
+                                      key={statusOption}
+                                      onClick={async () => {
+                                        const res = await fetch(`/api/applications/${app.id}/status`, {
+                                          method: 'PATCH',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ status: statusOption }),
+                                        });
+                                        const result = await res.json();
+                                        if (res.ok) {
+                                          setToast({
+                                            message: `Application marked as ${statusOption}.`,
+                                            type: 'success',
+                                          });
+                                          setTimeout(() => {
+                                            setToast(null);
+                                            window.location.reload();
+                                          }, 1200);
+                                        } else {
+                                          setToast({
+                                            message: result.message || 'Failed to update status.',
+                                            type: 'error',
+                                          });
+                                          setTimeout(() => setToast(null), 2500);
+                                        }
+                                      }}
+                                      className={`text-xs px-3 py-1 rounded-md font-medium border transition ${
+                                        app.status === statusOption
+                                          ? statusOption === 'accepted'
+                                            ? 'bg-green-100 border-green-600 text-green-700'
+                                            : statusOption === 'rejected'
+                                            ? 'bg-red-100 border-red-600 text-red-700'
+                                            : 'bg-yellow-100 border-yellow-600 text-yellow-700'
+                                          : 'text-gray-600 border-gray-300 hover:bg-gray-100'
+                                      }`}
+                                    >
+                                      {statusOption}
+                                    </button>
+                                  ))}
+    
+                                  {/* Start Chat Button */}
+                                  <button
+                                    onClick={() => toggleChat(chatKey)}
+                                    className="text-xs px-3 py-1 rounded-md font-medium bg-[#4B55C3] text-white hover:bg-[#5C53E5] transition"
+                                  >
+                                    💬 Chat
+                                  </button>
+                                </div>
+                              </div>
+    
+                              {/* Extra Info */}
+                              <div className="text-sm text-gray-700">
+                                {app.portfolio && (
+                                  <a
+                                    href={app.portfolio}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[#4B55C3] underline hover:text-[#3B2ECC] block"
+                                  >
+                                    Portfolio
+                                  </a>
+                                )}
+                                {app.extraInfo && (
+                                  <p className="text-xs text-gray-600 mt-1">{app.extraInfo}</p>
+                                )}
+                              </div>
+    
+                              {/* Chat box if open */}
+                              {openChatForGig === chatKey && (
+                                <div className="mt-3">
+                                  <ChatComponent
+                                    gigId={gig.id}
+                                    posterId={gig.postedById}
+                                    applicantId={app.userId}
+                                    recipient={app.userId}
+                                    setOpenChatForGig={setOpenChatForGig}
+                                  />
+                                </div>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <p className="text-xs mt-2 text-gray-500">No applicants yet.</p>
+                    )}
+                  </details>
+                </div>
+              </div>
+            ))
+          )}
+        </section>
       );
     }
 
-    // Applied Gigs View
 
-//     if (active === 'Applied Gigs') {
-//       if (user.type !== 'student') return null;
-//     return (
-//       <section className="space-y-6 mt-20 px-1">
-//         <h2 className="text-2xl md:text-3xl font-bold text-[#3B2ECC] mb-4 text-center md:text-left">
-//           Gigs You’ve Applied To
-//         </h2>
-//         {appliedGigs.length === 0 ? ( 
-//           <p className="text-center text-gray-600">You haven’t applied to any gigs yet.</p>
-//         ) : (
-//           appliedGigs.map((app) => {
-//             const gig = app.gig;
-//             if (!gig) return null;
-//             const recipient = gig.postedBy?.id || gig.postedById;
-//             const chatKey = `${gig.id}_${user.id}`;
-//             console.log(recipient);
-
-//             return (
-//               <div key={`${app.id}-${gig.id}`} className="bg-white p-5 md:p-6 rounded-xl shadow-md border">
-//                 <h3 className="font-semibold text-lg text-[#4B55C3]">{gig.title}</h3>
-//                 <p className="text-sm text-gray-600">Reason: {app.reason}</p>
-//                 <p className="text-sm mt-2">
-//                   Status:{' '}
-//                   <span
-//                     className={`font-semibold ${
-//                       app.status === 'accepted'
-//                         ? 'text-green-600'
-//                         : app.status === 'rejected'
-//                         ? 'text-red-600'
-//                         : 'text-yellow-600'
-//                     }`}
-//                   >
-//                     {app.status}
-//                   </span>
-//                 </p>
-
-//                 {/* <button
-// onClick={async () => {
-//   const allowed = await hasPosterStartedChat(gig.id, recipient, user.id);
-//   if (allowed) {
-//     toggleChat(chatKey);
-//     setChatEligibilityMap((prev) => ({ ...prev, [chatKey]: true }));
-//   } else {
-//     setToast({ message: "Chat not available until poster initiates it.", type: 'error' });
-//     setTimeout(() => setToast(null), 3000);
-//   }
-// }}
-//   className="text-[#3B2ECC] hover:underline mt-3"
-// >
-//   Open Chat
-// </button> */}
-
-
-// {/* {app.status === 'accepted' && (
-//   <> */}
-//     <button
-//       onClick={() => toggleChat(chatKey)}
-//       className="text-[#3B2ECC] hover:underline mt-3"
-//     >
-//       Open Chat
-//     </button>
-
-//     {openChatForGig === chatKey && (
-//       <ChatComponent
-//         gigId={gig.id}
-//         applicantId={user.id}
-//         posterId={recipient}
-//         recipient={recipient}
-//         setOpenChatForGig={setOpenChatForGig}
-//       />
-//   //   )}
-//   // </>
-// )}
-
-                
-
-//                 {openChatForGig === chatKey && (gig.postedBy?.id || gig.postedById) && chatEligibilityMap[chatKey] &&(
-//   <ChatComponent
-//     key={chatKey}
-//     gigId={gig.id}
-//     applicantId={user.id}
-//     posterId={gig.postedBy?.id || gig.postedById}
-//     recipient={recipient}
-//     setOpenChatForGig={setOpenChatForGig}
-//   />
-// )}
-//               </div>
-//             );
-//           })
-//         )}
-//       </section>
-//     );
-//   };
 
 if (active === 'Applied Gigs') {
   if (user.type !== 'student') return null;

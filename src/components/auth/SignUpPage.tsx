@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import SignupStepOne from "./SignupStepOne";
 import SignupStepTwo from "@/components/auth/SignupStepTwo";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { signIn } from "next-auth/react";
 
 export interface FormData {
   name: string;
@@ -61,7 +62,6 @@ export default function SignUpPage() {
   const handleChange = useCallback(
     (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
       const { name, value } = e.target;
-
       setFormData((prev) => ({
         ...prev,
         [name]: value,
@@ -77,7 +77,6 @@ export default function SignUpPage() {
 
   const validateRequiredFields = () => {
     if (!formData.email || !formData.password) return false;
-
     if (isStudent) {
       const required = ["name", "college", "gradYear"];
       for (const field of required) {
@@ -85,24 +84,21 @@ export default function SignUpPage() {
       }
       if (formData.college === "Others" && !formData.otherCollege) return false;
     }
-
     return true;
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!validateRequiredFields()) {
-      toast.error("Please fill all required fields.", { id: "missing-fields" });
+      toast.error("Please fill all required fields.");
       return;
     }
-
     if (!termsAccepted) {
-      toast.error("Please accept the Terms & Conditions.", { id: "terms-error" });
+      toast.error("Please accept the Terms & Conditions.");
       return;
     }
 
     setIsLoading(true);
-
     const payload = {
       ...formData,
       type: isStudent ? "student" : "other",
@@ -125,261 +121,263 @@ export default function SignUpPage() {
       const data = await res.json();
 
       if (res.ok) {
-        if (data.token) {
-          document.cookie = `token=${data.token}; path=/`;
-          document.cookie = `user=${encodeURIComponent(JSON.stringify(data.user))}; path=/`;
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("user", JSON.stringify(data.user));
-          localStorage.setItem("userId", data.user.id);
-          window.dispatchEvent(new Event("storageChanged"));
-        }
+        // ✅ Immediately sign in after successful signup
+        const loginResult = await signIn("credentials", {
+          redirect: false,
+          email: formData.email,
+          password: formData.password,
+        });
 
-        toast.success("Account created successfully 🚀", { id: "signup-success" });
-        window.location.href = '/dashboard'; 
-        router.refresh();
+        if (loginResult?.error) {
+          toast.error(loginResult.error);
+        } else {
+          toast.success("Account created successfully 🚀");
+          router.push("/dashboard");
+        }
       } else {
-        toast.error(data?.error || "Something went wrong.", { id: "signup-error" });
+        toast.error(data?.error || "Something went wrong.");
       }
-    } catch {
-      toast.error("Signup failed.", { id: "signup-server-error" });
+    } catch (error) {
+      console.error("Signup error:", error);
+      toast.error("Signup failed.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-md mx-auto min-h-screen overflow-hidden flex flex-col px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-16">
-      <div className="w-full flex flex-col items-center justify-start mt-8">
-        <h2 className="text-3xl font-bold text-[#4B3BB3] text-center mb-4">
-          Create Account
-        </h2>
-        <div className="flex gap-2 mb-2">
+    <div className="min-h-screen bg-gradient-to-b from-[#f7f8ff] to-[#eef0ff] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 sm:p-10">
+        {/* Header */}
+        <div className="text-center mb-6">
+          <h2 className="text-3xl font-extrabold text-[#4B3BB3]">Create Account</h2>
+          <p className="mt-2 text-sm text-gray-500">
+            Join GigsWall to find gigs or hire talent.
+          </p>
+        </div>
+
+        {/* Toggle */}
+        <div className="flex bg-[#EDEBFF] rounded-full p-1 mb-8">
           <button
             type="button"
-            onClick={() => {
-              setIsStudent(true);
-              setFormData((prev) => ({ ...prev, type: "student" }));
-            }}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              isStudent ? "bg-[#6B7FFF] text-white" : "bg-[#E5E4FB] text-[#4B3BB3]"
+            onClick={() => setIsStudent(true)}
+            className={`flex-1 py-2 rounded-full text-sm font-medium transition-all ${
+              isStudent ? "bg-[#6B7FFF] text-white" : "text-[#4B3BB3]"
             }`}
           >
             Student
           </button>
           <button
             type="button"
-            onClick={() => {
-              setIsStudent(false);
-              setFormData((prev) => ({ ...prev, type: "other" }));
-            }}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              !isStudent ? "bg-[#6B7FFF] text-white" : "bg-[#E5E4FB] text-[#4B3BB3]"
+            onClick={() => setIsStudent(false)}
+            className={`flex-1 py-2 rounded-full text-sm font-medium transition-all ${
+              !isStudent ? "bg-[#6B7FFF] text-white" : "text-[#4B3BB3]"
             }`}
           >
             Not a Student
           </button>
         </div>
-      </div>
 
-      <form onSubmit={handleSubmit} className="w-full flex-1 space-y-6 mt-10">
-        {isStudent ? (
-          <>
-            {signupStep === 1 && (
-              <>
-                <SignupStepOne formData={formData} handleChange={handleChange} />
-                <button
-                  type="button"
-                  onClick={() => setSignupStep(2)}
-                  className="w-full bg-[#6B7FFF] hover:bg-[#5A6FEF] text-white font-bold py-2 rounded-full"
-                >
-                  Next →
-                </button>
-              </>
-            )}
-            {signupStep === 2 && (
-              <>
-                <SignupStepTwo
-                  formData={formData}
-                  handleChange={handleChange}
-                  setFormData={setFormData}
-                />
-
-                {/* ✅ Terms Checkbox */}
-                <div className="mt-4 flex items-start gap-2">
-                  <input
-                    type="checkbox"
-                    id="terms"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                    className="mt-1 h-4 w-4 text-[#6B7FFF] border-gray-300 rounded"
-                  />
-                  <label htmlFor="terms" className="text-sm text-gray-600">
-                    I agree to the{" "}
-                    <a href="/terms" target="_blank" className="text-[#4737ff] underline">
-                      Terms & Conditions
-                    </a>{" "}
-                    and{" "}
-                    <a href="/privacy" target="_blank" className="text-[#4737ff] underline">
-                      Privacy Policy
-                    </a>.
-                  </label>
-                </div>
-
-                <div className="flex flex-col sm:flex-row justify-between gap-4 mt-4">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {isStudent ? (
+            <>
+              {signupStep === 1 && (
+                <>
+                  <SignupStepOne formData={formData} handleChange={handleChange} />
                   <button
                     type="button"
-                    onClick={() => setSignupStep(1)}
-                    className="w-full bg-gray-200 text-black font-bold py-2 rounded-full"
+                    onClick={() => setSignupStep(2)}
+                    className="w-full bg-gradient-to-r from-[#6B7FFF] to-[#4B3BB3] text-white font-semibold py-2.5 rounded-full hover:opacity-90 transition"
                   >
-                    ← Back
+                    Next →
                   </button>
-                  <button
-                    type="submit"
-                    disabled={isLoading || !termsAccepted}
-                    className={`w-full font-bold py-2 rounded-full ${
-                      isLoading || !termsAccepted
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-[#6B7FFF] hover:bg-[#5A6FEF] text-white"
-                    }`}
-                  >
-                    {isLoading ? "Signing Up..." : "SIGN UP"}
-                  </button>
-                </div>
-              </>
-            )}
-          </>
-        ) : (
-          <>
-            {/* Not a Student flow */}
-            <div className="space-y-4">
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3]" size={20} />
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Name"
-                  className="w-full border border-gray-300 px-4 py-2 pl-10 rounded-md bg-white text-black"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3]" size={20} />
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Email"
-                  required
-                  className="w-full border border-gray-300 px-4 py-2 pl-10 rounded-md bg-white text-black"
-                />
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3]" size={20} />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Password"
-                  required
-                  className="w-full border border-gray-300 px-4 py-2 pl-10 pr-10 rounded-md bg-white text-black"
-                />
-                <div
-                  onClick={togglePassword}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#4B3BB3] cursor-pointer"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </div>
-              </div>
+                </>
+              )}
+              {signupStep === 2 && (
+                <>
+                  <SignupStepTwo
+                    formData={formData}
+                    handleChange={handleChange}
+                    setFormData={setFormData}
+                  />
+                  {/* Terms */}
+                  <div className="flex items-start gap-2 bg-[#F8F9FF] p-3 rounded-lg mt-4">
+                    <input
+                      type="checkbox"
+                      id="terms"
+                      checked={termsAccepted}
+                      onChange={(e) => setTermsAccepted(e.target.checked)}
+                      className="mt-1 h-4 w-4 text-[#6B7FFF] border-gray-300 rounded"
+                    />
+                    <label htmlFor="terms" className="text-xs text-gray-600">
+                      I agree to the{" "}
+                      <a href="/terms" target="_blank" className="text-[#4737ff] underline">
+                        Terms & Conditions
+                      </a>{" "}
+                      and{" "}
+                      <a href="/privacy" target="_blank" className="text-[#4737ff] underline">
+                        Privacy Policy
+                      </a>.
+                    </label>
+                  </div>
 
-              {/* ✅ Password Strength Display */}
-              {formData.password && (
-                <div className="mt-2">
-                  <p className="text-xs font-medium text-gray-600">
-                    Password Strength:{" "}
-                    <span
-                      className={
-                        passwordStrength === "Strong"
-                          ? "text-green-600"
-                          : passwordStrength === "Medium"
-                          ? "text-yellow-600"
-                          : "text-red-600"
-                      }
+                  <div className="flex gap-4 mt-6">
+                    <button
+                      type="button"
+                      onClick={() => setSignupStep(1)}
+                      className="w-1/2 bg-gray-100 text-gray-800 font-semibold py-2 rounded-full hover:bg-gray-200 transition"
                     >
-                      {passwordStrength}
-                    </span>
-                  </p>
-                  <div className="flex gap-1 mt-1">
-                    {[1, 2, 3, 4].map((bar) => {
-                      const filled =
-                        (passwordStrength === "Strong" && bar <= 4) ||
-                        (passwordStrength === "Medium" && bar <= 3) ||
-                        (passwordStrength === "Weak" && bar <= 2);
+                      ← Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isLoading || !termsAccepted}
+                      className={`w-1/2 font-semibold py-2 rounded-full transition ${
+                        isLoading || !termsAccepted
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-gradient-to-r from-[#6B7FFF] to-[#4B3BB3] text-white hover:opacity-90"
+                      }`}
+                    >
+                      {isLoading ? "Signing Up..." : "Sign Up"}
+                    </button>
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Non-student form */}
+              <div className="space-y-4">
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4B3BB3]" size={18} />
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Full Name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-gray-300 px-4 py-2 pl-10 rounded-md focus:ring-2 focus:ring-[#6B7FFF] outline-none"
+                  />
+                </div>
 
-                      return (
-                        <div
-                          key={bar}
-                          className={`h-1.5 w-6 rounded ${
-                            filled
-                              ? passwordStrength === "Strong"
-                                ? "bg-green-500"
-                                : passwordStrength === "Medium"
-                                ? "bg-yellow-400"
-                                : "bg-red-500"
-                              : "bg-gray-300"
-                          }`}
-                        ></div>
-                      );
-                    })}
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4B3BB3]" size={18} />
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-gray-300 px-4 py-2 pl-10 rounded-md focus:ring-2 focus:ring-[#6B7FFF] outline-none"
+                  />
+                </div>
+
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4B3BB3]" size={18} />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="Password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-gray-300 px-4 py-2 pl-10 pr-10 rounded-md focus:ring-2 focus:ring-[#6B7FFF] outline-none"
+                  />
+                  <div
+                    onClick={togglePassword}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4B3BB3] cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </div>
                 </div>
-              )}
-            </div>
 
-            {/* ✅ Terms Checkbox */}
-            <div className="mt-4 flex items-start gap-2">
-              <input
-                type="checkbox"
-                id="terms"
-                checked={termsAccepted}
-                onChange={(e) => setTermsAccepted(e.target.checked)}
-                className="mt-1 h-4 w-4 text-[#6B7FFF] border-gray-300 rounded"
-              />
-              <label htmlFor="terms" className="text-sm text-gray-600">
-                I agree to the{" "}
-                <a href="/terms" target="_blank" className="text-[#4737ff] underline">
-                  Terms & Conditions
-                </a>{" "}
-                and{" "}
-                <a href="/privacy" target="_blank" className="text-[#4737ff] underline">
-                  Privacy Policy
-                </a>.
-              </label>
-            </div>
+                {formData.password && (
+                  <div className="mt-2">
+                    <p className="text-xs text-gray-600 mb-1">
+                      Password Strength:{" "}
+                      <span
+                        className={
+                          passwordStrength === "Strong"
+                            ? "text-green-600"
+                            : passwordStrength === "Medium"
+                            ? "text-yellow-600"
+                            : "text-red-600"
+                        }
+                      >
+                        {passwordStrength}
+                      </span>
+                    </p>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4].map((bar) => {
+                        const filled =
+                          (passwordStrength === "Strong" && bar <= 4) ||
+                          (passwordStrength === "Medium" && bar <= 3) ||
+                          (passwordStrength === "Weak" && bar <= 2);
+                        return (
+                          <div
+                            key={bar}
+                            className={`h-1.5 w-6 rounded ${
+                              filled
+                                ? passwordStrength === "Strong"
+                                  ? "bg-green-500"
+                                  : passwordStrength === "Medium"
+                                  ? "bg-yellow-400"
+                                  : "bg-red-500"
+                                : "bg-gray-300"
+                            }`}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
 
-            <button
-              type="submit"
-              disabled={isLoading || !termsAccepted}
-              className={`w-full mt-4 font-bold py-2 rounded-full ${
-                isLoading || !termsAccepted
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-[#6B7FFF] hover:bg-[#5A6FEF] text-white"
-              }`}
-            >
-              {isLoading ? "Signing Up..." : "SIGN UP"}
-            </button>
-          </>
-        )}
-      </form>
+              {/* Terms */}
+              <div className="flex items-start gap-2 bg-[#F8F9FF] p-3 rounded-lg mt-4">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  className="mt-1 h-4 w-4 text-[#6B7FFF] border-gray-300 rounded"
+                />
+                <label htmlFor="terms" className="text-xs text-gray-600">
+                  I agree to the{" "}
+                  <a href="/terms" target="_blank" className="text-[#4737ff] underline">
+                    Terms & Conditions
+                  </a>{" "}
+                  and{" "}
+                  <a href="/privacy" target="_blank" className="text-[#4737ff] underline">
+                    Privacy Policy
+                  </a>.
+                </label>
+              </div>
 
-      <p className="mt-8 text-sm font-bold text-center text-[#5A6CFF]">
-        {isStudent
-          ? "* Students can apply to gigs and post their own gigs."
-          : "* You're signing up as a client. You can post gigs, hire students, and manage your tasks through the dashboard."}
-      </p>
+              <button
+                type="submit"
+                disabled={isLoading || !termsAccepted}
+                className={`w-full mt-4 font-semibold py-2 rounded-full transition ${
+                  isLoading || !termsAccepted
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-gradient-to-r from-[#6B7FFF] to-[#4B3BB3] text-white hover:opacity-90"
+                }`}
+              >
+                {isLoading ? "Signing Up..." : "Sign Up"}
+              </button>
+            </>
+          )}
+        </form>
+
+        <p className="mt-6 text-xs text-center text-gray-500">
+          {isStudent
+            ? "* Students can apply to gigs and post their own gigs."
+            : "* You're signing up as a client to post gigs and hire students."}
+        </p>
+      </div>
     </div>
   );
 }

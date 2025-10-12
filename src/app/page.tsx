@@ -1,5 +1,5 @@
 // src/app/page.tsx
-export const dynamic = 'force-static';
+// export const dynamic = "force-dynamic";
 
 import React from 'react';
 import Hero from '@/components/Hero';
@@ -8,6 +8,7 @@ import ContactUsPage from '@/components/ContactPage';
 import Faq from '@/components/Faq';
 import Footer from '@/components/Footer';
 import WhatAreGigs from '@/components/WhatAreGigs';
+import TestimonialsSection from '@/components/TestimonialsSection';
 
 // ✅ import the floating ticker component
 import SuccessStories from '@/components/SuccessStories';
@@ -35,7 +36,9 @@ export default function HomePage() {
   return (
     <main className="relative">
       <Hero />
+      <TestimonialsSection />
       <WhatAreGigs />
+
       <HowItWorks />
       <Faq />
       <ContactUsPage />

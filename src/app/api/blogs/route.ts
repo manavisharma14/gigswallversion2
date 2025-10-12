@@ -1,38 +1,54 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+// app/api/blogs/route.ts
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
-// GET all blogs
+const prisma = new PrismaClient();
+
+import { getAllBlogs } from "@/lib/blogs";
+
 export async function GET() {
-  try {
-    const blogs = await prisma.blog.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-    return NextResponse.json(blogs);
-  } catch (error) {
-    console.error("GET /api/blogs error:", error);
-    return NextResponse.json({ error: "Failed to fetch blogs" }, { status: 500 });
-  }
+  const blogs = await getAllBlogs();
+  return NextResponse.json(blogs);
 }
 
-// POST new blog
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-
-    const blog = await prisma.blog.create({
-      data: {
-        title: body.title,
-        content: body.content,
-        coverImg: body.coverImg || null,
-        tags: body.tags || [],
-        authorName: body.authorName || "Unknown Author",
-        authorImage: body.authorImage || null,
-      },
-    });
-
-    return NextResponse.json(blog);
-  } catch (error) {
-    console.error("POST /api/blogs error:", error);
-    return NextResponse.json({ error: "Failed to create blog" }, { status: 500 });
+export async function POST(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const { title, coverImg, content, dateOverride } = await req.json();
+  const authorEmail = session.user.email;
+
+  let authorName = "";
+  let authorImage = "";
+
+  if (authorEmail === "manavisharma14@gmail.com") {
+    // ✅ Manavi
+    authorName = "Manavi Sharma";
+    authorImage = "/assets/manavi1.png";
+  } else if (authorEmail === "manavsharma1280@gmail.com") {
+    // ✅ Manav → Shrishti author
+    authorName = "Shrishti";
+    authorImage = "/assets/shrishti.png";
+  } else {
+    // Optional fallback
+    authorName = "Guest Author";
+    authorImage = "/assets/default.png";
+  }
+
+  const blog = await prisma.blog.create({
+    data: {
+      title,
+      coverImg,
+      content,
+      authorName,
+      authorImage,
+      createdAt: dateOverride ? new Date(dateOverride) : new Date(),
+    },
+  });
+
+  return NextResponse.json(blog);
 }

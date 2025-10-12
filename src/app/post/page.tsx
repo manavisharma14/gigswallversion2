@@ -11,15 +11,11 @@ export const metadata = {
     siteName: 'GigsWall',
     type: 'website',
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  alternates: {
-    canonical: 'https://gigswall.com/post',
-  },
+  robots: { index: true, follow: true },
+  alternates: { canonical: 'https://gigswall.com/post' },
 };
 
 export default function PostGigPage() {
+
   return <PostGigClient />;
 }

@@ -168,3 +168,44 @@ body {
   0%   { transform: translateY(0); }
   100% { transform: translateY(-50%); } /* because we duplicate the list */
 }
+
+@keyframes float1 {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(1deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+@keyframes float2 {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-25px) rotate(-1deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+@keyframes float3 {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-18px) rotate(0.5deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+@keyframes float4 {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-22px) rotate(-0.8deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+.animate-float1 { animation: float1 5s ease-in-out infinite; }
+.animate-float2 { animation: float2 6s ease-in-out infinite; }
+.animate-float3 { animation: float3 7s ease-in-out infinite; }
+.animate-float4 { animation: float4 5.5s ease-in-out infinite; }
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.2s ease-out;
+}

@@ -1,106 +1,104 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { sendGigApplicationEmail } from '@/lib/emailSender';
+import { getUserFromToken } from '@/lib/getUserFromServer';
 
-const prisma = new PrismaClient();
-
+// 🟢 Apply to Gig
 export async function POST(
   req: NextRequest,
-  context: { params: Promise<{ gigId: string }> }
+  { params }: { params: Promise<{ gigId: string }> } // Correct type for params
 ) {
-  const { gigId } = await context.params;
-  const body = await req.json();
-  return applyToGig(req, gigId, body);
-}
+  const userOrResponse = await getUserFromToken();
+  if (!('userId' in userOrResponse)) return userOrResponse; // ❌ Not logged in
 
-async function applyToGig(
-  req: NextRequest,
-  gigId: string,
-  {
-    reason,
-    experience,
-    portfolio,
-    extra,
-  }: { reason: string; experience: string; portfolio: string; extra?: string }
-) {
-  const authHeader = req.headers.get('authorization');
-  const token = authHeader?.split(' ')[1] ?? '';
-  const payload = JSON.parse(atob(token.split('.')[1] ?? '{}'));
-  const userId = payload?.id;
+  const { userId } = userOrResponse;
+  const { gigId } = await params;
+  const { reason, experience, portfolio, extra } = await req.json();
 
-  if (!userId)
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  try {
+    // 1️⃣ Check if gig exists
+    const gig = await prisma.gig.findUnique({ where: { id: gigId } });
+    if (!gig) {
+      return NextResponse.json({ message: 'Gig not found' }, { status: 404 });
+    }
 
-  const gig = await prisma.gig.findUnique({ where: { id: gigId } });
-  if (!gig)
-    return NextResponse.json({ message: 'Gig not found' }, { status: 404 });
+    // 2️⃣ Prevent applying to own gig
+    if (gig.postedById === userId) {
+      return NextResponse.json(
+        { message: 'You cannot apply to your own gig.' },
+        { status: 400 }
+      );
+    }
 
-  if (gig.postedById === userId)
-    return NextResponse.json(
-      { message: 'You cannot apply to your own gig.' },
-      { status: 400 }
-    );
+    // 3️⃣ Prevent duplicate applications
+    const existing = await prisma.application.findFirst({ where: { userId, gigId } });
+    if (existing) {
+      return NextResponse.json(
+        { message: 'You have already applied to this gig.' },
+        { status: 400 }
+      );
+    }
 
-  const dup = await prisma.application.findFirst({ where: { userId, gigId } });
-  if (dup)
-    return NextResponse.json(
-      { message: 'You have already applied to this gig.' },
-      { status: 400 }
-    );
-
-  const application = await prisma.application.create({
-    data: { userId, gigId, reason, experience, portfolio, extra },
-  });
-
-  // Get user and poster info
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  const gigPoster = await prisma.user.findUnique({ where: { id: gig.postedById } });
-
-  // Send email to the gig poster
-  if (gigPoster?.email && user?.name && user?.email) {
-    await sendGigApplicationEmail({
-      to: gigPoster.email,
-      gigTitle: gig.title,
-      applicantName: user.name,
-      applicantEmail: user.email,
+    // 4️⃣ Create application
+    const application = await prisma.application.create({
+      data: { userId, gigId, reason, experience, portfolio, extra },
     });
-  }
 
-  return NextResponse.json(
-    { message: 'Application submitted', application },
-    { status: 201 }
-  );
+    // 5️⃣ Send email notification to poster
+    const applicant = await prisma.user.findUnique({ where: { id: userId } });
+    const gigPoster = await prisma.user.findUnique({ where: { id: gig.postedById } });
+
+    if (gigPoster?.email && applicant?.name && applicant?.email) {
+      try {
+        await sendGigApplicationEmail({
+          to: gigPoster.email,
+          gigTitle: gig.title,
+          applicantName: applicant.name,
+          applicantEmail: applicant.email,
+        });
+      } catch (error) {
+        console.error('Failed to send email notification:', error);
+      }
+    }
+
+    return NextResponse.json(
+      { message: 'Application submitted', application },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error('❌ Error applying to gig:', error);
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+  }
 }
 
+// 🗑️ Delete Gig (Poster only)
 export async function DELETE(
   req: NextRequest,
-  context: { params: Promise<{ gigId: string }> }
+  { params }: { params: Promise<{ gigId: string }> } // Correct type for params
 ) {
-  const { gigId } = await context.params;
-  return deleteGig(req, gigId);
-}
+  const userOrResponse = await getUserFromToken();
+  if (!('userId' in userOrResponse)) return userOrResponse;
 
-async function deleteGig(req: NextRequest, gigId: string) {
-  const token = req.headers.get('authorization')?.split(' ')[1] ?? '';
-  const payload = JSON.parse(atob(token.split('.')[1] ?? '{}'));
-  const userId: string | undefined = payload?.id;
+  const { userId } = userOrResponse;
+  const { gigId } = await params;
 
-  if (!userId) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  try {
+    const gig = await prisma.gig.findUnique({ where: { id: gigId } });
+    if (!gig) {
+      return NextResponse.json({ message: 'Gig not found' }, { status: 404 });
+    }
+
+    if (gig.postedById !== userId) {
+      return NextResponse.json(
+        { message: 'You are not allowed to delete this gig.' },
+        { status: 403 }
+      );
+    }
+
+    await prisma.gig.delete({ where: { id: gigId } });
+    return NextResponse.json({ message: 'Gig deleted successfully' }, { status: 200 });
+  } catch (error) {
+    console.error('❌ Error deleting gig:', error);
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
-
-  const gig = await prisma.gig.findUnique({ where: { id: gigId } });
-  if (!gig) {
-    return NextResponse.json({ message: 'Gig not found' }, { status: 404 });
-  }
-
-  if (gig.postedById !== userId) {
-    return NextResponse.json(
-      { message: 'You are not allowed to delete this gig.' },
-      { status: 403 }
-    );
-  }
-
-  await prisma.gig.delete({ where: { id: gigId } });
-  return NextResponse.json({ message: 'Gig deleted successfully' }, { status: 200 });
 }

@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { getToken } from "next-auth/jwt";
-import { sendNewGigEmail } from "@/lib/email/sendNewGigEmail";
+// import { sendNewGigEmail } from "@/lib/email/sendNewGigEmail";
 
 const prisma = new PrismaClient();
 
@@ -32,29 +32,29 @@ export async function POST(req: NextRequest) {
 
     console.log("✅ New gig created:", newGig.title);
 
-    // 2. Get only student users (exclude the poster)
-    const studentUsers = await prisma.user.findMany({
-      where: { 
-        id: { not: userId },
-        type: "student"  // ✅ Only students
-      },
-      select: { email: true },
-    });
+    // // 2. Get only student users (exclude the poster)
+    // const studentUsers = await prisma.user.findMany({
+    //   where: { 
+    //     id: { not: userId },
+    //     type: "student"  // ✅ Only students
+    //   },
+    //   select: { email: true },
+    // });
 
-    console.log(`📨 Sending email to ${studentUsers.length} students...`);
+    // console.log(`📨 Sending email to ${studentUsers.length} students...`);
 
-    // 3. Send emails
-    await Promise.all(
-      studentUsers.map((user) =>
-        sendNewGigEmail({
-          to: user.email,
-          gigTitle: title,
-          gigDescription: description,
-        })
-      )
-    );
+    // // 3. Send emails
+    // await Promise.all(
+    //   studentUsers.map((user) =>
+    //     sendNewGigEmail({
+    //       to: user.email,
+    //       gigTitle: title,
+    //       gigDescription: description,
+    //     })
+    //   )
+    // );
 
-    console.log("📬 All student emails sent successfully.");
+    // console.log("📬 All student emails sent successfully.");
     return NextResponse.json(newGig, { status: 201 });
 
   } catch (error) {

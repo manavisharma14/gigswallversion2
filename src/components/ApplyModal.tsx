@@ -17,12 +17,7 @@ interface ApplyModalProps {
 }
 
 export default function ApplyModal({ gigId, gigTitle, onClose, onSubmit }: ApplyModalProps) {
-  const [formData, setFormData] = useState<{
-    reason: string;
-    experience: string;
-    portfolio: string;
-    extra: string;
-  }>({
+  const [formData, setFormData] = useState({
     reason: '',
     experience: '',
     portfolio: '',
@@ -32,60 +27,50 @@ export default function ApplyModal({ gigId, gigTitle, onClose, onSubmit }: Apply
   const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
 
   const validateForm = () => {
     const { reason, experience, portfolio, extra } = formData;
-  
+
     if (reason.trim().length < 20) {
       toast.error('Your reason must be at least 20 characters.');
       return false;
     }
-  
+
     if (experience.trim().length < 10) {
       toast.error('Your experience must be at least 10 characters.');
       return false;
     }
-  
+
     if (portfolio && !/^https?:\/\/.+\..+/.test(portfolio.trim())) {
       toast.error('Please enter a valid portfolio URL.');
       return false;
     }
-  
+
     if (extra && extra.trim().length < 5) {
       toast.error('If you choose to fill "Anything else", write something meaningful.');
       return false;
     }
-  
+
     return true;
   };
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
-  
     setSubmitting(true);
-  
-    const token = localStorage.getItem('token');
-    if (!token) {
-      toast.error('Please log in first to apply.');
-      setSubmitting(false);
-      return;
-    }
-  
+
     try {
-      const res = await fetch(`/api/apply/${gigId}`, {
+      // ✅ Session cookie is automatically included — no token needed
+      const res = await fetch(`/api/gigs/${gigId}/apply`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-  
+
       const data = await res.json();
-  
+
       if (res.status === 201) {
         toast.success('Application submitted successfully!');
         onSubmit(formData);
@@ -94,16 +79,19 @@ export default function ApplyModal({ gigId, gigTitle, onClose, onSubmit }: Apply
         toast.error("You can't apply to your own gig.");
       } else if (res.status === 400 && data.message === 'You have already applied to this gig.') {
         toast.success('You have already applied to this gig!');
+      } else if (res.status === 401) {
+        toast.error('Please log in to apply.');
       } else {
         toast.error('Failed to apply. Please try again.');
       }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error('❌ Apply error:', err);
       toast.error('Something went wrong.');
     }
-  
+
     setSubmitting(false);
   };
+
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();

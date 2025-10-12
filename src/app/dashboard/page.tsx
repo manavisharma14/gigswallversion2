@@ -1,80 +1,103 @@
 // app/dashboard/page.tsx
-import { cookies } from 'next/headers';
-import DashboardClient from './DashboardClient';
-
-export const metadata = {
-  title: 'GigsWall Dashboard | Manage Gigs, Applications & Freelance Work',
-  description:
-    'Access your GigsWall dashboard to post gigs, track applications, manage your freelance profile, and connect with students and communities in the gig economy.',
-  keywords: [
-    'GigsWall dashboard',
-    'student freelance dashboard',
-    'manage gigs online',
-    'track job applications',
-    'post freelance gigs',
-    'hire students',
-    'freelance platform',
-  ],
-  openGraph: {
-    title: 'GigsWall Dashboard',
-    description:
-      'Manage your gigs, applications, and freelance work directly from your GigsWall dashboard.',
-    url: 'https://gigswall.com/dashboard',
-    siteName: 'GigsWall',
-    type: 'website',
-  },
-  
-};
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import DashboardClient from "./DashboardClient";
 
 export default async function DashboardPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('token')?.value || '';
-  const userCookie = cookieStore.get('user')?.value;
-  let user = null;
+  const session = await getServerSession(authOptions);
 
-  if (userCookie) {
-    try {
-      user = JSON.parse(decodeURIComponent(userCookie));
-    } catch{
-      console.error('Invalid user cookie format');
-    }
+  if (!session || !session.user?.id) {
+    return (
+      <div className="mt-40 text-center text-gray-500">
+        Please log in to view your dashboard.
+      </div>
+    );
   }
 
-  let postedGigs = [];
-  let appliedGigs = [];
+  const userId = session.user.id;
 
-  if (token) {
-    const headers = { Authorization: `Bearer ${token}` };
+  // ✅ 1. Fetch user info
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      college: true,
+      department: true,
+      gradYear: true,
+      phone: true,
+      type: true,
+      createdAt: true,
+    },
+  });
 
-    try {
-      const [posted, applied] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/dashboard/posted`, {
-          headers,
-          cache: 'no-store',
-        }),
-        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/dashboard/applied`, {
-          headers,
-          cache: 'no-store',
-        }),
-      ]);
+  if (!user) return null;
 
-      if (posted.ok) {
-        const postedData = await posted.json();
-        postedGigs = postedData.gigs || [];
-      }
+  const normalizedUser = {
+    ...user,
+    createdAt: user.createdAt.toISOString(),
+    phone: user.phone ?? null,
+    college: user.college ?? null,
+    department: user.department ?? null,
+    gradYear: user.gradYear ?? null,
+  };
 
-      if (applied.ok) {
-        const appliedData = await applied.json();
-        appliedGigs = appliedData.applications || [];
-      }
-    } catch (err) {
-      console.error('Dashboard fetch error:', err);
-    }
-  }
+  // ✅ 2. Fetch posted gigs (Fix field name + normalize date)
+// ✅ 2. Fetch posted gigs WITH applications + applicant user info
+const postedGigsRaw = await prisma.gig.findMany({
+  where: { postedById: userId },
+  include: {
+    applications: {
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            college: true,
+            department: true,
+            gradYear: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    },
+  },
+  orderBy: { createdAt: "desc" },
+});
+
+const postedGigs = postedGigsRaw.map((gig) => ({
+  ...gig,
+  createdAt: gig.createdAt.toISOString(),
+  applications: gig.applications.map((app) => ({
+    ...app,
+    createdAt: app.createdAt.toISOString(),
+    extraInfo: app.extra ?? null, // 👈 FIX HERE
+  })),
+}));
+
+  // ✅ 3. Fetch applied gigs (and shape to match DashboardClient)
+  const appliedRaw = await prisma.application.findMany({
+    where: { userId },
+    include: { gig: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const appliedGigs = appliedRaw.map((app) => ({
+    ...app,
+    createdAt: app.createdAt.toISOString(),
+    extraInfo: app.extra ?? null, // ✅ make sure this matches your component's expected prop
+    gig: {
+      ...app.gig,
+      createdAt: app.gig.createdAt.toISOString(),
+    },
+  }));
 
   return (
     <DashboardClient
-      user={user}
+      user={normalizedUser}
       postedGigs={postedGigs}
       appliedGigs={appliedGigs}
     />

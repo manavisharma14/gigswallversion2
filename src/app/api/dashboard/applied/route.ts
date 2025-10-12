@@ -1,49 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { getUserFromToken } from '@/lib/getUserFromToken';
+// app/api/dashboard/applied/route.ts
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
+export async function GET() {
+  const session = await getServerSession(authOptions);
 
-export async function GET(req: NextRequest) {
-  const userOrResponse = await getUserFromToken(req);
-  if (!('userId' in userOrResponse)) return userOrResponse as NextResponse;
-
-  const { userId } = userOrResponse;
-
-  try {
-    const applications = await prisma.application.findMany({
-      where: { userId },
-      include: {
-        gig: {
-          select: {
-            id: true,
-            title: true,
-            budget: true,
-            category: true,
-            college: true,
-            createdAt: true,
-            postedBy: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    // Filter out any applications where gig or postedBy is null (in case of broken foreign keys)
-    const validApplications = applications.filter(
-      (app) => app.gig && app.gig.postedBy
-    );
-
-    return NextResponse.json({ applications: validApplications }, { status: 200 });
-  } catch (err) {
-    console.error('❌ Error fetching applied gigs:', err);
-    return NextResponse.json({ message: 'Server error' }, { status: 500 });
+  if (!session || !session.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const applications = await prisma.application.findMany({
+    where: { userId: session.user.id },
+    include: { gig: true },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return NextResponse.json({ applications });
 }

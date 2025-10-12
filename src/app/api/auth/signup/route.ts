@@ -1,99 +1,48 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { UserType, GigPreference } from '@prisma/client';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
-const JWT_SECRET = process.env.NEXTAUTH_SECRET!;
-
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     const body = await req.json();
     const {
-      name, email, password,
-      phone, department, gradYear,
-      gigPreference, college, type,
+      email,
+      password,
+      name,
+      type,        // "student" or "other"
+      phone,
+      department,
+      gradYear,
+      college,
     } = body;
 
-    if (type === 'student') {
-      const academicEmailRegex = /(\.edu$|\.edu\.[a-z]+$|\.edu\.[a-z]+\.[a-z]+$|\.ac\.[a-z]+$)/i;
-    
-      if (!academicEmailRegex.test(email)) {
-        return NextResponse.json(
-          { error: 'Please register with a valid university/academic email address' },
-          { status: 400 }
-        );
-      }
+    if (!email || !password || !name || !type) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-    
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'An account with this email already exists' },
-        { status: 400 }
-      );
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      return NextResponse.json({ error: "User already exists" }, { status: 400 });
     }
+
+    const hashed = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
       data: {
-        name,
         email,
-        password: await bcrypt.hash(password, 10),
-        type: type as UserType,
-        isVerified: false,
-        gigPreference: type === 'student' ? gigPreference as GigPreference : null,
-        phone:        type === 'student' ? phone       : null,
-        department:   type === 'student' ? department  : null,
-        gradYear:     type === 'student' ? gradYear    : null,
-        college:      type === 'student' ? college     : null,
+        password: hashed,
+        name,
+        type,
+        phone: type === "student" ? phone : null,
+        department: type === "student" ? department : null,
+        gradYear: type === "student" ? gradYear : null,
+        college: type === "student" ? college : null,
       },
     });
 
-    // ✅ Include `name` in token for SSR use if needed
-    const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        type: user.type,
-        name: user.name,
-      },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    const res = NextResponse.json(
-      {
-        message: 'Signup successful',
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          type: user.type,
-          phone: user.phone,
-          department: user.department,
-          gradYear: user.gradYear,
-          college: user.college,
-          createdAt: user.createdAt.toISOString(),
-        },
-        token,
-      },
-      { status: 201 }
-    );
-
-    res.cookies.set('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7,
-      path: '/',
-    });
-
-    return res;
+    return NextResponse.json({ message: "User created", user }, { status: 201 });
   } catch (err) {
-    console.error('Signup error:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error("Signup error", err);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

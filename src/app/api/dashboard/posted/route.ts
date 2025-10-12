@@ -1,49 +1,44 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma'; // Use singleton
-import { getUserFromToken } from '@/lib/getUserFromToken'; // Update path as needed
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
-export async function GET(req: NextRequest) {
-  const userOrResponse = await getUserFromToken(req);
-  if (typeof userOrResponse !== 'object' || !('userId' in userOrResponse)) {
-    return userOrResponse as NextResponse;
-  }
+export async function GET() {
+  const session = await getServerSession(authOptions);
 
-  const { userId } = userOrResponse;
-
-  if (!userId || !/^[0-9a-fA-F]{24}$/.test(userId)) {
-    return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
+  if (!session || !session.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
     const gigs = await prisma.gig.findMany({
-      where: { postedById: userId },
+      where: { postedById: session.user.id },
       include: {
         applications: {
-          include: { user: true },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                college: true,
+                department: true,
+                gradYear: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
         },
       },
+      orderBy: { createdAt: 'desc' },
     });
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        college: true,
-        department: true,
-        gradYear: true,
-        type: true,
-        gigPreference: true, // ✅ ADD THIS LINE
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-
-    return NextResponse.json({ gigs, user });
+    return NextResponse.json({ gigs });
   } catch (error) {
-    console.error('Error in /api/dashboard/posted:', error instanceof Error ? error.message : error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Error fetching posted gigs:', error);
+    return NextResponse.json(
+      { error: 'Failed to load posted gigs' },
+      { status: 500 }
+    );
   }
 }

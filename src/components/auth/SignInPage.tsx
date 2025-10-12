@@ -20,7 +20,7 @@ const SignInPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/auth/signin', {
+      const res = await fetch('/api/signin', {
         method: 'POST',
   headers: {
     'Content-Type': 'application/json',

@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Use dynamic routing feature of Next.js to extract `id` directly
+
 export async function PATCH(req: NextRequest, 
   { params }: { params: Promise<{ id: string }> }) {
   const { id: applicationId } = await params;  

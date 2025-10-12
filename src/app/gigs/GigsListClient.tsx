@@ -1,8 +1,8 @@
-/* eslint-disable */
 // GigsListClient.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import ApplyModal from '@/components/ApplyModal';
 import { Info } from 'lucide-react';
 
@@ -31,33 +31,39 @@ export default function GigsListClient({
   gigs: Gig[];
   initialCounts: Record<string, number>;
 }) {
+  const { data: session, status } = useSession();
   const [selectedGig, setSelectedGig] = useState<Gig | null>(gigs[0] || null);
   const [showModal, setShowModal] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
-
-  // ✅ Start with server-rendered counts to avoid flicker
   const [applicantsMap, setApplicantsMap] = useState<Record<string, number>>(
     initialCounts || {}
   );
 
-  // ✅ Optional background refresh (merges, no visual jump)
+  // Background refresh for applicant counts
   useEffect(() => {
     const openIds = gigs
-      .filter((g) => g.status?.toLowerCase?.() === 'open' || g.isOpen)
+      .filter((g) => g.status.toLowerCase() === 'open' || g.isOpen)
       .map((g) => g.id);
 
     if (openIds.length === 0) return;
 
     const url = `/api/gigs/applicants-count?ids=${encodeURIComponent(openIds.join(','))}`;
-    fetch(url)
-      .then((res) => res.json())
+    fetch(url, {
+      credentials: 'include', // Include cookies for NextAuth session
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch applicant counts');
+        return res.json();
+      })
       .then((data) => {
         const fresh = data?.counts ?? {};
         if (fresh && Object.keys(fresh).length) {
           setApplicantsMap((prev) => ({ ...prev, ...fresh }));
         }
       })
-      .catch(() => {});
+      .catch((error) => {
+        console.error('Failed to fetch applicant counts:', error);
+      });
   }, [gigs]);
 
   const handleSubmitApplication = (formData: ApplicationFormData) => {
@@ -69,9 +75,15 @@ export default function GigsListClient({
   };
 
   const checkCanApply = async (gigId: string) => {
-    const token = localStorage.getItem('token');
+    if (status === 'loading') {
+      setErrors((prev) => ({
+        ...prev,
+        [gigId]: 'Checking authentication status...',
+      }));
+      return;
+    }
 
-    if (!token) {
+    if (!session) {
       setErrors((prev) => ({
         ...prev,
         [gigId]: 'Please sign in to apply for gigs.',
@@ -80,22 +92,20 @@ export default function GigsListClient({
       return;
     }
 
+    const userType = session.user?.type; // Adjust based on your session.user structure
+    if (userType !== 'student') {
+      setErrors((prev) => ({
+        ...prev,
+        [gigId]: 'Only verified students can apply. If you&apos;re hiring, post a gig instead.'
+      }));
+      setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 2500);
+      return;
+    }
+
     try {
-      const payload = JSON.parse(atob(token.split('.')[1] ?? '{}'));
-      const userType = payload?.type;
-
-      if (userType !== 'student') {
-        setErrors((prev) => ({
-          ...prev,
-          [gigId]: 'Only verified students can apply for gigs.',
-        }));
-        setTimeout(() => setErrors((prev) => ({ ...prev, [gigId]: null })), 2500);
-        return;
-      }
-
       const response = await fetch(`/api/gigs/${gigId}/can-apply`, {
         method: 'GET',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include', // Include cookies for NextAuth session
       });
 
       const data = await response.json();
@@ -155,7 +165,6 @@ export default function GigsListClient({
                     {isOpen ? 'Open' : 'Closed'} • ₹{gig.budget.toLocaleString()}
                   </p>
 
-                  {/* Stable badge (no flicker) */}
                   {isOpen && (
                     <span
                       className={`text-xs font-medium px-2.5 py-1 rounded-full shadow-sm inline-block min-w-[108px] text-center
@@ -187,7 +196,6 @@ export default function GigsListClient({
 
               <div className="text-gray-700 space-y-1 text-sm">
                 <p><strong>Category:</strong> {selectedGig.category}</p>
-                {/* <p><strong>Posted on:</strong> {new Date(selectedGig.createdAt).toLocaleDateString()}</p> */}
                 <p><strong>Budget:</strong> <span className="text-[#4B55C3] font-semibold">₹{selectedGig.budget.toLocaleString()}</span></p>
               </div>
 
@@ -208,7 +216,7 @@ export default function GigsListClient({
                     <div className="relative group flex items-center">
                       <Info className="w-4 h-4 text-[#4B55C3] cursor-pointer" />
                       <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-[#EFF2FF] text-[#4B55C3] text-xs px-3 py-1 rounded-md shadow-md whitespace-normal z-50 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition w-[220px] max-w-xs">
-                        Only verified students can apply. If you're hiring, post a gig instead.
+                        Only verified students can apply. If you&apos;re hiring, post a gig instead.
                       </div>
                     </div>
                   </div>

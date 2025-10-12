@@ -1,11 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 'use client';
 
-import { Mail, Lock, Phone, User, Eye, EyeOff,  } from "lucide-react";
-// ShieldCheck
+import { Mail, Lock, Phone, User, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-// import axios from "axios";
-// import toast from "react-hot-toast";
 
 const inputClass =
   "w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#6B7FFF] text-[#4B3BB3] placeholder-gray-400 bg-white";
@@ -30,10 +26,6 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
   const [strengthLevel, setStrengthLevel] = useState(0);
   const [showStrength, setShowStrength] = useState(false);
 
-  // const [otpSent, setOtpSent] = useState(false);
-  // const [otp, setOtp] = useState("");
-  // const [otpVerified, setOtpVerified] = useState(false);
-
   const togglePasswordVisibility = () => setShowPassword(prev => !prev);
 
   const evaluatePasswordStrength = (password: string): number => {
@@ -57,43 +49,6 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
     }
   };
 
-  // const sendOtp = async () => {
-  //   try {
-  //     await axios.post("/api/auth/send-otp", { email: formData.email });
-  //     toast.success("OTP sent successfully!");
-  //     setOtpSent(true);
-  //   } catch (err: unknown) {
-  //     const errorMessage =
-  //       axios.isAxiosError(err) && err.response?.data?.error
-  //         ? err.response.data.error
-  //         : "Failed to send OTP";
-  //     toast.error(errorMessage);
-  //   }
-  // };
-  
-  // comment
-  // const verifyOtp = async () => {
-  //   try {
-  //     const res = await axios.post("/api/auth/verify-otp", {
-  //       email: formData.email,
-  //       otp,
-  //     });
-  
-  //     if (res.data.success) {
-  //       toast.success("OTP verified!");
-  //       setOtpVerified(true);
-  //     } else {
-  //       toast.error("Invalid OTP");
-  //     }
-  //   } catch (err: unknown) {
-  //     const errorMessage =
-  //       axios.isAxiosError(err) && err.response?.data?.error
-  //         ? err.response.data.error
-  //         : "Failed to verify OTP";
-  //     toast.error(errorMessage);
-  //   }
-  // };
-
   return (
     <>
       {/* Name */}
@@ -102,7 +57,7 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
         <input
           type="text"
           name="name"
-          placeholder="Name"
+          placeholder="Full Name"
           className={inputClass}
           value={formData.name}
           onChange={handleChange}
@@ -110,53 +65,19 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
         />
       </div>
 
-      {/* Email with embedded Send OTP button */}
+      {/* Email */}
       <div className="relative mb-4">
         <Mail className={iconClass} size={20} />
         <input
           type="email"
           name="email"
-          placeholder="Your student email"
-          className={`${inputClass} pr-32`}
+          placeholder="Your Student Email"
+          className={inputClass}
           value={formData.email}
           onChange={handleChange}
           required
         />
-        {/* <button
-          type="button"
-          onClick={sendOtp}
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-[#4B3BB3] text-white text-sm px-3 py-1 rounded-md hover:bg-[#372a9f]"
-        >
-          {otpSent ? "Resend" : "Send OTP"}
-        </button> */}
       </div>
-
-      {/* OTP Input and Verify */}
-      {/* {!otpVerified && otpSent && (
-        <>
-          <div className="relative mb-2">
-            <ShieldCheck className={iconClass} size={20} />
-            <input
-              type="text"
-              placeholder="Enter OTP"
-              className={inputClass}
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-            />
-          </div>
-          <button
-            type="button"
-            onClick={verifyOtp}
-            className="w-full py-2 px-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 mb-4"
-          >
-            Verify OTP
-          </button>
-        </>
-      )} */}
-
-      {/* {otpVerified && (
-        <p className="text-green-600 font-semibold mb-4">OTP Verified ✅</p>
-      )} */}
 
       {/* Password */}
       <div className="relative mb-2">
@@ -178,20 +99,16 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
         </div>
       </div>
 
-      {/* Password Strength */}
       {showStrength && (
         <div className="mb-4 mt-1 flex justify-end gap-[6px] pr-1">
-          {[1, 2, 3, 4].map((bar) => {
-            const filled = strengthLevel >= bar;
-            return (
-              <div
-                key={bar}
-                className={`w-5 h-1.5 rounded-full transition-colors duration-300 ${
-                  filled ? barColors[bar - 1] : "bg-gray-300"
-                }`}
-              ></div>
-            );
-          })}
+          {[1, 2, 3, 4].map((bar) => (
+            <div
+              key={bar}
+              className={`w-5 h-1.5 rounded-full transition-colors duration-300 ${
+                strengthLevel >= bar ? barColors[bar - 1] : "bg-gray-300"
+              }`}
+            ></div>
+          ))}
         </div>
       )}
 
@@ -199,7 +116,7 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
       <div className="relative mb-4">
         <Phone className={iconClass} size={20} />
         <input
-          type="text"
+          type="tel"
           name="phone"
           placeholder="Phone Number"
           className={inputClass}
@@ -210,4 +127,4 @@ export default function SignupStepOne({ formData, handleChange }: SignupStepOneP
       </div>
     </>
   );
-}
+} 

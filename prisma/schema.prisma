@@ -4,16 +4,18 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb" 
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
+// ======================
+// Enums
+// ======================
 enum UserType {
   student
   other
 }
 
-// 💡 OPTIONAL: Enforce consistent status values using enum
 enum ApplicationStatus {
   pending
   accepted
@@ -26,29 +28,32 @@ enum GigPreference {
   both
 }
 
+// ======================
+// User & Core Models
+// ======================
 model User {
   id             String     @id @default(auto()) @map("_id") @db.ObjectId
   name           String
   email          String     @unique
-  password       String
+  password       String?
   college        String?
   department     String?
   gradYear       String?
-  gigPreference GigPreference?
-  type           UserType   @default(student) // Defines who the user is (student vs external)
+  gigPreference  GigPreference?
+  type           UserType   @default(other)
   phone          String?
-
-  isVerified     Boolean    @default(false)    // Email verification status
-  otpCode        String?                       // Hashed OTP
-  otpExpires     DateTime?                     // OTP expiration time
-  
+  image          String?   
+  emailVerified  DateTime?  // Add this field
+  isVerified     Boolean    @default(false)
+  otpCode        String?
+  otpExpires     DateTime?
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
-
-  gigs           Gig[]      @relation("UserGigs") // Gigs posted by this user
-  applications   Application[]                    // Applications submitted by this user
+  gigs           Gig[]      @relation("UserGigs")
+  applications   Application[]
+  accounts       Account[]
+  sessions       Session[]
 }
-
 
 model Application {
   id         String             @id @default(auto()) @map("_id") @db.ObjectId
@@ -57,15 +62,14 @@ model Application {
   reason     String?
   experience String?
   portfolio  String?
-  extra      String?
-  status     ApplicationStatus  @default(pending) // use String if not using enum
+  extra      String?            // Rename from extra to extraInfo
+  status     ApplicationStatus  @default(pending)
   createdAt  DateTime           @default(now())
-
-  user       User               @relation(fields: [userId], references: [id])
-  gig        Gig                @relation(fields: [gigId], references: [id])
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gig        Gig                @relation(fields: [gigId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([gigId])
 }
-
-
 
 model Gig {
   id           String         @id @default(auto()) @map("_id") @db.ObjectId
@@ -80,15 +84,13 @@ model Gig {
   postedById   String         @db.ObjectId
   postedBy     User           @relation(fields: [postedById], references: [id], name: "UserGigs")
   applications Application[]
-  
-  // This defines the reverse relation
   messages     Message[]      @relation("GigMessages")
 }
 
 model Message {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   gigId       String   @db.ObjectId
-  roomId      String 
+  roomId      String
   message     String
   sender      String
   recipient   String
@@ -98,8 +100,6 @@ model Message {
   gig         Gig      @relation("GigMessages", fields: [gigId], references: [id])
 }
 
-
-
 model PendingUser {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   email      String   @unique
@@ -108,17 +108,54 @@ model PendingUser {
   createdAt  DateTime @default(now())
 }
 
-
 model Blog {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   content     String
-  coverImg    String?     
+  coverImg    String?
   tags        String[]
-  
   authorName  String
-  authorImage String?     
-  
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  authorImage String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ======================
+// NextAuth Models
+// ======================
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
