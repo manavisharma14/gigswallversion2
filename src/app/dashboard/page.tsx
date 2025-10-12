@@ -8,7 +8,7 @@ export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user?.id) {
-    return (
+    return (  
       <div className="mt-40 text-center text-gray-500">
         Please log in to view your dashboard.
       </div>
