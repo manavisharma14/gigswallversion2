@@ -4,7 +4,7 @@
 
 
 import { useState, useEffect } from 'react';
-import ChatComponent from '../../components/ChatComponent';
+import ChatComponent from './ChatComponent';
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 

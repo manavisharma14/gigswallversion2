@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import DashboardClient from "./DashboardClient";
+import DashboardClient from "../../components/DashboardClient"
 
 export default async function DashboardPage() {
   try {
