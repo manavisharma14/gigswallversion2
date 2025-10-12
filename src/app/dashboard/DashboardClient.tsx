@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @next/next/no-img-element */
 
+
 import { useState, useEffect } from 'react';
 import ChatComponent from '../../components/ChatComponent';
 import { doc, getDoc } from "firebase/firestore";
