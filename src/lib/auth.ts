@@ -99,6 +99,48 @@ export const authOptions: NextAuthOptions = {
     signIn: "/signin",
   },
   callbacks: {
+    // ✅ NEW: Handles Google + credentials linking
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google") {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email! },
+        });
+
+        if (existingUser && !existingUser.password) {
+          // Already a Google account → OK
+          return true;
+        }
+
+        if (existingUser && existingUser.password) {
+          // ✅ Auto-link Google account to existing credentials account
+          const linkedAccount = await prisma.account.findFirst({
+            where: {
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+            },
+          });
+
+          if (!linkedAccount) {
+            await prisma.account.create({
+              data: {
+                userId: existingUser.id,
+                type: account.type!,
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+                access_token: account.access_token,
+                token_type: account.token_type,
+                scope: account.scope,
+                id_token: account.id_token,
+              },
+            });
+          }
+
+          return true;
+        }
+      }
+      return true;
+    },
+
     async jwt({ token, user, account }) {
       if (account?.provider === "google") {
         token.type = "other";
@@ -119,6 +161,7 @@ export const authOptions: NextAuthOptions = {
       console.log("JWT Token:", token);
       return token;
     },
+
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
