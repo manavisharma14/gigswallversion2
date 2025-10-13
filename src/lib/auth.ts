@@ -100,7 +100,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     // ✅ NEW: Handles Google + credentials linking
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       if (account?.provider === "google") {
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email! },
@@ -112,7 +112,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         if (existingUser && existingUser.password) {
-          // ✅ Auto-link Google account to existing credentials account
+          // ✅ Auto-link Google account to existing credentials aaccount
           const linkedAccount = await prisma.account.findFirst({
             where: {
               provider: account.provider,
