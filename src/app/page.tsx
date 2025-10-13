@@ -10,7 +10,7 @@ import Footer from '@/components/Footer';
 import WhatAreGigs from '@/components/WhatAreGigs';
 import TestimonialsSection from '@/components/TestimonialsSection';
 
-// ✅ import the floating ticker component
+
 
 export const metadata = {
   title: 'GigsWall | Freelance Gigs Made Easy',
