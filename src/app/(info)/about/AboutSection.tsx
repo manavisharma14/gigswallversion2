@@ -34,7 +34,7 @@ const team = [
   },
   
   {
-    name: "Aryadeep",
+    name: "Aryadeep Ray",
     role: "Finance & Strategy",
     img: "/assets/aryadeep.png", // 👈 make sure this image exists in /public/assets
     linkedin: "https://www.linkedin.com/in/aryadeepray/", // placeholder — replace with actual
@@ -195,7 +195,7 @@ export default function AboutPage() {
               reverse: true,
             },
             {
-              name: "💸 Aryadeep — Finance & Strategy",
+              name: "💸 Aryadeep Ray— Finance & Strategy",
               img: "/assets/aryadeep.png",
               text: "The numbers whisperer and deal-maker in one. Aryadeep’s the one balancing the books, pitching partnerships, and turning chaos into strategy (all before his second cup of coffee). He’s the team’s go-to for “how do we make this actually work?” moments: equal parts of a CFO, operator, and hype man for big ideas. If it involves money, metrics, or momentum, he’s already on it.",
               reverse: false,
