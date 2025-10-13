@@ -12,18 +12,18 @@ const team = [
     instagram: "https://www.instagram.com/_manavisharma_/",
   },
   {
-    name: "Manav Sharma",
-    role: "Operations",
-    img: "/assets/manav.png",
-    linkedin: "https://www.linkedin.com/in/manav-sharma-612752236/",
-    instagram: "https://www.instagram.com/manavsharma_/",
-  },
-  {
     name: "Rahil Abbu",
     role: "Strategy & Ops",
     img: "/assets/rahil.png",
     linkedin: "https://www.linkedin.com/in/rahil-abbu/",
     instagram: "https://www.instagram.com/rahil.abbu/",
+  },
+  {
+    name: "Manav Sharma",
+    role: "Operations",
+    img: "/assets/manav.png",
+    linkedin: "https://www.linkedin.com/in/manav-sharma-612752236/",
+    instagram: "https://www.instagram.com/manavsharma_/",
   },
   {
     name: "Shrishti Das",
@@ -32,6 +32,15 @@ const team = [
     linkedin: "https://www.linkedin.com/in/shrishti-das-/",
     instagram: "https://www.instagram.com/shrisshh_tea/",
   },
+  
+  {
+    name: "Aryadeep",
+    role: "Finance & Strategy",
+    img: "/assets/aryadeep.png", // 👈 make sure this image exists in /public/assets
+    linkedin: "https://www.linkedin.com/in/aryadeepray/", // placeholder — replace with actual
+    instagram: "https://www.instagram.com/_ray.aryadeep_",
+  },
+  
 ];
 
 export default function AboutPage() {
@@ -90,11 +99,11 @@ export default function AboutPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 justify-items-center max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 justify-items-center max-w-6xl mx-auto">
           {team.map((member, i) => (
             <div
               key={member.name}
-              className="relative flex flex-col bg-white rounded-xl overflow-hidden shadow-lg group opacity-0 animate-fadeIn w-full max-w-[280px] h-[380px] transition-transform hover:scale-[1.03]"
+              className="relative flex flex-col bg-white rounded-xl overflow-hidden shadow-lg group opacity-0 animate-fadeIn w-full max-w-[260px] h-[360px] transition-transform hover:scale-[1.03]"
               style={{ animationDelay: `${i * 0.15}s` }}
             >
               {/* Badge */}
@@ -107,8 +116,8 @@ export default function AboutPage() {
                 <Image
                   src={member.img}
                   alt={member.name}
-                  width={280}
-                  height={280}
+                  width={260}
+                  height={260}
                   className="object-cover w-full h-full grayscale group-hover:grayscale-0 transition duration-300"
                 />
               </div>
@@ -184,6 +193,12 @@ export default function AboutPage() {
               img: "/assets/shrishti.jpeg",
               text: "Shrishti is the voice and vibe of GigsWall. Whether it’s crafting stories, building community, or making content that actually hits, she’s the spark behind the scenes. Think of her as the one turning everyday updates into scroll-stopping moments.",
               reverse: true,
+            },
+            {
+              name: "💸 Aryadeep — Finance & Strategy",
+              img: "/assets/aryadeep.png",
+              text: "The numbers whisperer and deal-maker in one. Aryadeep’s the one balancing the books, pitching partnerships, and turning chaos into strategy (all before his second cup of coffee). He’s the team’s go-to for “how do we make this actually work?” moments: equal parts of a CFO, operator, and hype man for big ideas. If it involves money, metrics, or momentum, he’s already on it.",
+              reverse: false,
             },
           ].map((person, idx) => (
             <div
