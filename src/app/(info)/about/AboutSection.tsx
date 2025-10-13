@@ -8,14 +8,14 @@ const team = [
     name: "Manavi Sharma",
     role: "Tech & Product",
     img: "/assets/manavi.png",
-    linkedin: "https://www.linkedin.com/in/manavi-sharma-9911b4267/",
+    linkedin: "https://www.linkedin.com/in/manavi-sharma-521014222/",
     instagram: "https://www.instagram.com/_manavisharma_/",
   },
   {
     name: "Rahil Abbu",
     role: "Strategy & Ops",
     img: "/assets/rahil.png",
-    linkedin: "https://www.linkedin.com/in/rahil-abbu/",
+    linkedin: "https://www.linkedin.com/in/rahil-ummar-faruk-abbu-501624255/",
     instagram: "https://www.instagram.com/rahil.abbu/",
   },
   {
@@ -23,7 +23,7 @@ const team = [
     role: "Operations",
     img: "/assets/manav.png",
     linkedin: "https://www.linkedin.com/in/manav-sharma-612752236/",
-    instagram: "https://www.instagram.com/manavsharma_/",
+    instagram: "https://www.instagram.com/__manavsharma/",
   },
   {
     name: "Shrishti Das",
