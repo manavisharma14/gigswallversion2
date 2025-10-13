@@ -69,15 +69,19 @@ export default function SignInPage() {
   };
 
   // ✅ Google Sign-In
-  const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true);
-    try {
-      await signIn('google', { callbackUrl: '/dashboard' });
-    } catch {
-      toast.error('Google sign-in failed. Please try again.');
-      setIsGoogleLoading(false);
-    }
-  };
+  // ✅ Google Sign-In
+const handleGoogleSignIn = async () => {
+  setIsGoogleLoading(true);
+  try {
+    await signIn('google', { 
+      callbackUrl: '/dashboard',
+      prompt: 'select_account'   // 👈 forces Google to show account picker each time
+    });
+  } catch {
+    toast.error('Google sign-in failed. Please try again.');
+    setIsGoogleLoading(false);
+  }
+};
 
   return (
     <div className="w-full max-w-md mx-auto min-h-screen overflow-hidden flex flex-col px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-16">
