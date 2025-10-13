@@ -45,7 +45,7 @@ export default function HomePage() {
       <Footer />
 
       {/* ✅ fixed ticker so it stays while scrolling */}
-      <SuccessStories />
+      {/* <SuccessStories /> */}
 
     </main>
   );
