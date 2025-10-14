@@ -6,7 +6,7 @@ import { Linkedin, Instagram } from "lucide-react";
 const team = [
   {
     name: "Manavi Sharma",
-    role: "Tech & Product",
+    role: "Founder & Tech & Product",
     img: "/assets/manavi.png",
     linkedin: "https://www.linkedin.com/in/manavi-sharma-521014222/",
     instagram: "https://www.instagram.com/_manavisharma_/",
@@ -171,7 +171,7 @@ export default function AboutPage() {
         <div className="space-y-16 max-w-4xl mx-auto">
           {[
             {
-              name: "👩‍💻 Manavi Sharma — Tech & Product",
+              name: "👩‍💻 Manavi Sharma — Founder & Tech & Product",
               img: "/assets/manavi.png",
               text: "The brain of the operation, quite literally. Manavi is the person behind the screen making sure everything actually works (and looks good doing it). She’s the one making sure every pixel is in place and every feature just works. Known for her “let’s build it” energy.",
               reverse: false,
