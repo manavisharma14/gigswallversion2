@@ -6,7 +6,7 @@ import { Linkedin, Instagram } from "lucide-react";
 const team = [
   {
     name: "Manavi Sharma",
-    role: "Founder & Tech & Product",
+    role: "FOUNDER & Tech & Product",
     img: "/assets/manavi.png",
     linkedin: "https://www.linkedin.com/in/manavi-sharma-521014222/",
     instagram: "https://www.instagram.com/_manavisharma_/",
@@ -173,8 +173,7 @@ export default function AboutPage() {
             {
               name: "👩‍💻 Manavi Sharma — Founder & Tech & Product",
               img: "/assets/manavi.png",
-              text: "The brain of the operation, quite literally. Manavi is the person behind the screen making sure everything actually works (and looks good doing it). She’s the one making sure every pixel is in place and every feature just works. Known for her “let’s build it” energy.",
-              reverse: false,
+              text: "As the Founder and driving force behind GigsWall, Manavi leads the vision, product, and technology. She’s the brain behind the operation — turning ideas into tangible experiences, ensuring every pixel is in place and every feature just works. Known for her relentless 'let’s build it' energy.",              reverse: false,
             },
             {
               name: "🧠 Rahil Abbu — Strategy & Ops",
