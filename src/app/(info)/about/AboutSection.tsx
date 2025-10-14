@@ -6,10 +6,10 @@ import { Linkedin, Instagram } from "lucide-react";
 const team = [
   {
     name: "Manavi Sharma",
-    role: "FOUNDER & Tech & Product",
-    img: "/assets/manavi.png",
+    role: "FOUNDER . Tech & Product",
+    img: "/assets/manavi1.png",
     linkedin: "https://www.linkedin.com/in/manavi-sharma-521014222/",
-    instagram: "https://www.instagram.com/_manavisharma_/",
+    instagram: "https://www.instagram.com/withmanavi/",
   },
   {
     name: "Rahil Abbu",
@@ -164,16 +164,17 @@ export default function AboutPage() {
             Meet the Minds Behind GigsWall
           </h2>
           <p className="text-gray-600 text-lg max-w-3xl mx-auto mt-4 leading-relaxed">
-            Every startup has its spark. Here’s a closer look at the people who keep the gears turning — the dreamers, doers, and (sometimes) caffeine-fueled night owls behind GigsWall.
+            Every startup has its spark. Here’s a closer look at the people who keep the gears turning, the dreamers, doers, and (sometimes) caffeine-fueled night owls behind GigsWall.
           </p>
         </div>
 
         <div className="space-y-16 max-w-4xl mx-auto">
           {[
             {
-              name: "👩‍💻 Manavi Sharma — Founder & Tech & Product",
-              img: "/assets/manavi.png",
-              text: "As the Founder and driving force behind GigsWall, Manavi leads the vision, product, and technology. She’s the brain behind the operation — turning ideas into tangible experiences, ensuring every pixel is in place and every feature just works. Known for her relentless 'let’s build it' energy.",              reverse: false,
+              name: "👩‍💻 Manavi Sharma — FOUNDER · Tech & Product",
+              img: "/assets/manavi1.png",
+              text: "Manavi is the visionary and Founder behind GigsWall, the brain behind the operation where it all began. She leads the product, technology, and direction of the platform, turning ideas into tangible experiences. She’s the one ensuring every pixel is in place and every feature just works, driven by her relentless 'let’s build it' energy that powers GigsWall forward.",
+              reverse: false,
             },
             {
               name: "🧠 Rahil Abbu — Strategy & Ops",
