@@ -165,14 +165,14 @@ export default function GigsListClient({
                     {isOpen ? 'Open' : 'Closed'} • ₹{gig.budget.toLocaleString()}
                   </p>
 
-                  {isOpen && (
+                  {/* {isOpen && (
                     <span
                       className={`text-xs font-medium px-2.5 py-1 rounded-full shadow-sm inline-block min-w-[108px] text-center
                         ${typeof applicants === 'number' ? 'bg-[#EFF2FF] text-[#4B55C3]' : 'bg-gray-100 text-gray-300'}`}
                     >
                       {typeof applicants === 'number' ? `${applicants} applicants` : 'Loading…'}
                     </span>
-                  )}
+                  )} */}
                 </div>
               </div>
             );
