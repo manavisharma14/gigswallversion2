@@ -143,7 +143,7 @@ export default function GigsListClient({
           {gigs.map((gig) => {
             const isSelected = selectedGig?.id === gig.id;
             const isOpen = gig.status.toLowerCase() === 'open' || gig.isOpen;
-            const applicants = isOpen ? applicantsMap[gig.id] : undefined;
+            // const applicants = isOpen ? applicantsMap[gig.id] : undefined;
 
             return (
               <div
