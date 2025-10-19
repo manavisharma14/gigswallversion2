@@ -35,36 +35,36 @@ export default function GigsListClient({
   const [selectedGig, setSelectedGig] = useState<Gig | null>(gigs[0] || null);
   const [showModal, setShowModal] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
-  const [applicantsMap, setApplicantsMap] = useState<Record<string, number>>(
-    initialCounts || {}
-  );
+  // const [applicantsMap, setApplicantsMap] = useState<Record<string, number>>(
+  //   initialCounts || {}
+  // );
 
   // Background refresh for applicant counts
-  useEffect(() => {
-    const openIds = gigs
-      .filter((g) => g.status.toLowerCase() === 'open' || g.isOpen)
-      .map((g) => g.id);
+  // useEffect(() => {
+  //   const openIds = gigs
+  //     .filter((g) => g.status.toLowerCase() === 'open' || g.isOpen)
+  //     .map((g) => g.id);
 
-    if (openIds.length === 0) return;
+  //   if (openIds.length === 0) return;
 
-    const url = `/api/gigs/applicants-count?ids=${encodeURIComponent(openIds.join(','))}`;
-    fetch(url, {
-      credentials: 'include', // Include cookies for NextAuth session
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch applicant counts');
-        return res.json();
-      })
-      .then((data) => {
-        const fresh = data?.counts ?? {};
-        if (fresh && Object.keys(fresh).length) {
-          setApplicantsMap((prev) => ({ ...prev, ...fresh }));
-        }
-      })
-      .catch((error) => {
-        console.error('Failed to fetch applicant counts:', error);
-      });
-  }, [gigs]);
+  //   const url = `/api/gigs/applicants-count?ids=${encodeURIComponent(openIds.join(','))}`;
+  //   fetch(url, {
+  //     credentials: 'include', // Include cookies for NextAuth session
+  //   })
+  //     .then((res) => {
+  //       if (!res.ok) throw new Error('Failed to fetch applicant counts');
+  //       return res.json();
+  //     })
+  //     .then((data) => {
+  //       const fresh = data?.counts ?? {};
+  //       if (fresh && Object.keys(fresh).length) {
+  //         setApplicantsMap((prev) => ({ ...prev, ...fresh }));
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       console.error('Failed to fetch applicant counts:', error);
+  //     });
+  // }, [gigs]);
 
   const handleSubmitApplication = (formData: ApplicationFormData) => {
     console.log('Application submitted:', {
