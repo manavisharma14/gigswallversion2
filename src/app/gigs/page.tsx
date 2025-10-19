@@ -66,7 +66,7 @@ export default async function GigsPage() {
   );
 
   return (
-    <div className="mt-28">
+    <div className="mt-28 mx-32">
       <GigsListClient gigs={gigs} initialCounts={initialCounts} />
     </div>
   );
