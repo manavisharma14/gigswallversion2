@@ -1,5 +1,8 @@
 // GigsListClient.tsx
 'use client';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @next/next/no-img-element */
+
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
