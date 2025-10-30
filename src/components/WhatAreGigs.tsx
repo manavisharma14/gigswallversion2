@@ -1,5 +1,4 @@
 // app/what-is-a-gig/page.tsx
-import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRightIcon, CheckCircleIcon, XCircleIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { Metadata } from 'next';
