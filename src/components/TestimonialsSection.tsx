@@ -40,22 +40,21 @@ const testimonials = [
 export default function Testimonials() {
   return (
     <section className="relative py-24 px-6 bg-gray-50 overflow-hidden">
-      {/* 🌈 Decorative blobs */}
+
       <div className="absolute top-0 left-0 w-72 h-72 bg-[#3B4CCA]/10 blur-3xl rounded-full -translate-x-1/2 -translate-y-1/2" />
       <div className="absolute bottom-0 right-0 w-72 h-72 bg-[#667EEA]/10 blur-3xl rounded-full translate-x-1/3 translate-y-1/3" />
 
-      {/* 🧠 Header */}
+
       <div className="relative max-w-5xl mx-auto text-center mb-16">
         <h2 className="text-3xl sm:text-4xl font-extrabold text-[#3B4CCA]">
           What People Are Saying
         </h2>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto mt-4 leading-relaxed">
-          Real stories from verified LinkedIn users who’ve used GigsWall — across
-          India 🇮🇳 and the U.S. 🇺🇸
+          Real stories from verified users who’ve used GigsWall
         </p>
       </div>
 
-      {/* 🧱 Grid Layout */}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl mx-auto">
         {testimonials.map((t, i) => (
           <a
@@ -72,7 +71,7 @@ export default function Testimonials() {
               viewport={{ once: true }}
               className="relative bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center text-center hover:shadow-2xl transition-all duration-300 cursor-pointer"
             >
-              {/* 🧍 Avatar */}
+              {/*  Avatar */}
               <div className="w-20 h-20 rounded-full overflow-hidden ring-4 ring-gray-100 -mt-16 mb-4">
                 <Image
                   src={t.img}
@@ -83,22 +82,22 @@ export default function Testimonials() {
                 />
               </div>
 
-              {/* ⭐ Rating */}
+              {/*  Rating */}
               <div className="flex justify-center gap-1 mb-2">
                 {Array.from({ length: t.rating }).map((_, idx) => (
                   <FaStar key={idx} className="text-yellow-400 text-sm" />
                 ))}
               </div>
 
-              {/* 📝 Title */}
+              {/*  Title */}
               <h3 className="font-semibold text-lg mb-2">{t.title}</h3>
 
-              {/* 📝 Quote */}
+              {/*  Quote */}
               <p className="text-gray-600 text-sm leading-relaxed mb-6">
                 {t.quote}
               </p>
 
-              {/* 👤 Name + subtitle */}
+              {/*  Name + subtitle */}
               <div>
                 <p className="font-semibold text-[#3B4CCA] hover:underline">
                   {t.name}

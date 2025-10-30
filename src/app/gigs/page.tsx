@@ -50,7 +50,7 @@ export default async function GigsPage() {
   const base = process.env.NEXT_PUBLIC_BASE_URL!;
   const raw = await fetch(`${base}/api/gigs`, { cache: 'no-store' });
   const { gigs: rawGigs } = await raw.json();
-  const gigs: Gig[] = rawGigs;
+  const gigs: Gig[] = Array.isArray(rawGigs) ? rawGigs : [];
 
   // build counts directly with Prisma
   const openIds = gigs

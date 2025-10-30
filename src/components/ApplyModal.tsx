@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
-import { Pencil, Briefcase, Globe, MessageCircle } from 'lucide-react';
+import React, { useState } from "react";
+import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ApplyModalProps {
   gigId: string;
@@ -16,44 +16,33 @@ interface ApplyModalProps {
   }) => void;
 }
 
-export default function ApplyModal({ gigId, gigTitle, onClose, onSubmit }: ApplyModalProps) {
+export default function ApplyModal({
+  gigId,
+  gigTitle,
+  onClose,
+  onSubmit,
+}: ApplyModalProps) {
   const [formData, setFormData] = useState({
-    reason: '',
-    experience: '',
-    portfolio: '',
-    extra: '',
+    reason: "",
+    experience: "",
+    portfolio: "",
+    extra: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const validateForm = () => {
-    const { reason, experience, portfolio, extra } = formData;
-
-    if (reason.trim().length < 20) {
-      toast.error('Your reason must be at least 20 characters.');
-      return false;
-    }
-
-    if (experience.trim().length < 10) {
-      toast.error('Your experience must be at least 10 characters.');
-      return false;
-    }
-
-    if (portfolio && !/^https?:\/\/.+\..+/.test(portfolio.trim())) {
-      toast.error('Please enter a valid portfolio URL.');
-      return false;
-    }
-
-    if (extra && extra.trim().length < 5) {
-      toast.error('If you choose to fill "Anything else", write something meaningful.');
-      return false;
-    }
-
+    if (formData.reason.trim().length < 20)
+      return toast.error("Tell us more about your motivation.");
+    if (formData.experience.trim().length < 10)
+      return toast.error("Add a bit more about your experience.");
     return true;
   };
 
@@ -62,128 +51,122 @@ export default function ApplyModal({ gigId, gigTitle, onClose, onSubmit }: Apply
     setSubmitting(true);
 
     try {
-      // ✅ Session cookie is automatically included — no token needed
       const res = await fetch(`/api/gigs/${gigId}/apply`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       const data = await res.json();
 
       if (res.status === 201) {
-        toast.success('Application submitted successfully!');
+        toast.success("Application submitted.");
         onSubmit(formData);
         onClose();
-      } else if (res.status === 400 && data.message === 'You cannot apply to your own gig.') {
-        toast.error("You can't apply to your own gig.");
-      } else if (res.status === 400 && data.message === 'You have already applied to this gig.') {
-        toast.success('You have already applied to this gig!');
-      } else if (res.status === 401) {
-        toast.error('Please log in to apply.');
+      } else if (res.status === 400 && data.message.includes("own gig")) {
+        toast.error("You cannot apply to your own gig.");
+      } else if (res.status === 400) {
+        toast("You have already applied.");
       } else {
-        toast.error('Failed to apply. Please try again.');
+        toast.error("Something went wrong. Try again.");
       }
-    } catch (err) {
-      console.error('❌ Apply error:', err);
-      toast.error('Something went wrong.');
+    } catch {
+      toast.error("Network error. Try again.");
     }
 
     setSubmitting(false);
   };
 
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, [onClose]);
-
   return (
-    <div className="fixed inset-0 z-50 flex justify-center items-start pt-[10vh] bg-black bg-opacity-40 font-bricolage px-4">
-      <div
-        className="bg-white w-full max-w-lg p-6 sm:p-8 rounded-xl shadow-xl border border-gray-200 transition-all transform duration-300"
-        role="dialog"
-        aria-modal="true"
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-50"
       >
-        <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-[#4B55C3]">
-          Apply for <span className="text-black">&quot;{gigTitle}&quot;</span>
-        </h2>
+        <motion.div
+          initial={{ y: 90, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 90, opacity: 0 }}
+          onClick={(e) => e.stopPropagation()}
+          className="w-full sm:max-w-lg bg-white rounded-2xl p-8 shadow-xl border border-gray-200 font-bricolage"
+        >
+          <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">
+            Apply for <span className="text-indigo-600">{gigTitle}</span>
+          </h2>
 
-        <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-          <label className="block text-sm font-medium text-gray-900">
-            <Pencil className="inline w-4 h-4 mr-1 text-[#4B55C3]" />
-            Why are you interested?
-            <textarea
-              name="reason"
-              rows={3}
-              className="w-full p-3 border mt-1 rounded-md focus:ring-2 focus:ring-[#4B55C3] focus:outline-none"
-              onChange={handleChange}
-              value={formData.reason}
-              required
-              autoFocus
-            />
-          </label>
+          <p className="text-gray-500 mt-1 mb-6 text-sm leading-relaxed">
+            Tell us why this opportunity matters to you.
+          </p>
 
-          <label className="block text-sm font-medium text-gray-900">
-            <Briefcase className="inline w-4 h-4 mr-1 text-[#4B55C3]" />
-            Relevant experience
-            <input
-              type="text"
-              name="experience"
-              className="w-full p-3 border mt-1 rounded-md focus:ring-2 focus:ring-[#4B55C3] focus:outline-none"
-              onChange={handleChange}
-              value={formData.experience}
-              required
-            />
-          </label>
+          <div className="space-y-5">
+            <div>
+              <label className="text-sm text-gray-800 font-medium">
+                Why are you interested?
+              </label>
+              <textarea
+                name="reason"
+                rows={3}
+                className="mt-2 w-full p-3 bg-gray-50 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                onChange={handleChange}
+              />
+            </div>
 
-          <label className="block text-sm font-medium text-gray-900">
-            <Globe className="inline w-4 h-4 mr-1 text-[#4B55C3]" />
-            Portfolio
-            <input
-              type="url"
-              name="portfolio"
-              className="w-full p-3 border mt-1 rounded-md focus:ring-2 focus:ring-[#4B55C3] focus:outline-none"
-              onChange={handleChange}
-              value={formData.portfolio}
-            />
-          </label>
+            <div>
+              <label className="text-sm text-gray-800 font-medium">
+                Relevant experience
+              </label>
+              <input
+                name="experience"
+                className="mt-2 w-full p-3 bg-gray-50 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                onChange={handleChange}
+              />
+            </div>
 
-          <label className="block text-sm font-medium text-gray-900">
-            <MessageCircle className="inline w-4 h-4 mr-1 text-[#4B55C3]" />
-            Anything else (optional)
-            <textarea
-              name="extra"
-              rows={2}
-              className="w-full p-3 border mt-1 rounded-md focus:ring-2 focus:ring-[#4B55C3] focus:outline-none"
-              onChange={handleChange}
-              value={formData.extra}
-            />
-          </label>
-        </form>
+            <div>
+              <label className="text-sm text-gray-800 font-medium">
+                Portfolio (optional)
+              </label>
+              <input
+                name="portfolio"
+                placeholder="https://"
+                className="mt-2 w-full p-3 bg-gray-50 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                onChange={handleChange}
+              />
+            </div>
 
-        <div className="flex justify-end mt-6 space-x-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-sm text-gray-600 hover:underline transition"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={submitting}
-            className={`px-5 py-2 rounded-md text-sm font-medium text-white transition ${
-              submitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#4B55C3] hover:bg-[#6D7BE4]'
-            }`}
-          >
-            {submitting ? 'Submitting...' : 'Submit Application'}
-          </button>
-        </div>
-      </div>
-    </div>
+            <div>
+              <label className="text-sm text-gray-800 font-medium">
+                Anything else?
+              </label>
+              <textarea
+                name="extra"
+                rows={2}
+                className="mt-2 w-full p-3 bg-gray-50 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 mt-8">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm hover:bg-indigo-700 transition shadow-sm"
+            >
+              {submitting ? "Submitting..." : "Submit"}
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

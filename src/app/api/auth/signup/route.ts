@@ -5,19 +5,14 @@ import bcrypt from "bcryptjs";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const {
-      email,
-      password,
-      name,
-      type,        // "student" or "other"
-      phone,
-      department,
-      gradYear,
-      college,
-    } = body;
+    const { name, email, password, phone, type, college, department, gradYear } = body;
 
-    if (!email || !password || !name || !type) {
+    if (!name || !email || !password || !type) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    if (!["student", "business", "other"].includes(type)) {
+      return NextResponse.json({ error: "Invalid user type" }, { status: 400 });
     }
 
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -29,14 +24,15 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.create({
       data: {
+        name,
         email,
         password: hashed,
-        name,
+        phone,
         type,
-        phone: type === "student" ? phone : null,
+        college: type === "student" ? college : null,
         department: type === "student" ? department : null,
         gradYear: type === "student" ? gradYear : null,
-        college: type === "student" ? college : null,
+        isVerified: type === "business" ? true : false,
       },
     });
 

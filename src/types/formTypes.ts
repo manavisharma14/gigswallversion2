@@ -8,5 +8,5 @@ export type FormDataType = {
     gigPreference: string;
     college: string;
     otherCollege?: string;
-    type: "student" | "other";
+    type: "student" | "business" | "other";
   };

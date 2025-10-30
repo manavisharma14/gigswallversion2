@@ -209,3 +209,30 @@ body {
 .animate-slide-down {
   animation: slideDown 0.2s ease-out;
 }
+
+@layer components {
+  .input-soft {
+    @apply w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white 
+           focus:ring-2 focus:ring-[#4B55C3] transition placeholder:text-gray-400
+           focus:outline-none shadow-sm;
+  }
+
+  .btn-primary {
+    @apply px-5 py-2 rounded-xl text-sm font-semibold bg-[#4B55C3] text-white 
+           hover:bg-[#5F65D6] transition active:scale-95;
+  }
+
+  .btn-light {
+    @apply px-5 py-2 rounded-xl text-sm font-medium text-gray-600 bg-gray-100 
+           hover:bg-gray-200 transition active:scale-95;
+  }
+
+  .animate-fadeIn {
+    @apply animate-[fadeIn_0.2s_ease-out];
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}

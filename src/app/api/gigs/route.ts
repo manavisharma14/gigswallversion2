@@ -4,7 +4,7 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getUserFromToken } from '@/lib/getUserFromServer';
-// import { sendNewGigEmail } from '@/lib/email/sendNewGigEmail';
+import { sendNewGigEmail } from '@/lib/email/sendNewGigEmail';
 
 const prisma = new PrismaClient();
 
@@ -29,14 +29,11 @@ export async function GET() {
   }
 }
 
-// ------------------------
-// 📌 POST: Create a new gig
-// ------------------------
+
 export async function POST(req: NextRequest) {
   // ✅ Authentication
   const userOrResponse = await getUserFromToken();
   if (!('userId' in userOrResponse)) {
-    // getUserFromToken returned a NextResponse (unauthorized)
     return userOrResponse;
   }
   const { userId } = userOrResponse;
@@ -45,7 +42,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { title, description, budget, category, college } = body;
 
-    // ✅ Basic validation
+    //  Basic validation
     if (!title || !description || !budget || !category) {
       return NextResponse.json(
         { error: 'Missing required fields: title, description, budget, category' },
@@ -53,7 +50,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ If college isn't passed, fetch from user's profile
+    //  If college isn't passed, fetch from user's profile
     let gigCollege = college;
     if (!gigCollege) {
       const user = await prisma.user.findUnique({
@@ -63,7 +60,7 @@ export async function POST(req: NextRequest) {
       gigCollege = user?.college ?? 'Unknown';
     }
 
-    // ✅ Create gig
+    //  Create gig
     const newGig = await prisma.gig.create({
       data: {
         title,
@@ -76,44 +73,44 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    console.log(`✅ Gig created: ${newGig.title} | postedById: ${userId}`);
+    console.log(` Gig created: ${newGig.title} | postedById: ${userId}`);
 
-    //  ✅ Return response immediately
+    //   Return response immediately
      const response = NextResponse.json(newGig, { status: 201 });
 
-    // // 📬 Send emails in background (non-blocking)
-    // setTimeout(async () => {
-    //   try {
-    //     const users = await prisma.user.findMany({
-    //       where: {
-    //         id: { not: userId },
-    //         type: 'student',
-    //         email: { not: '' },
-    //       },
-    //       select: { email: true },
-    //     });
+    //  Send emails in background (non-blocking)
+    setTimeout(async () => {
+      try {
+        const users = await prisma.user.findMany({
+          where: {
+            id: { not: userId },
+            type: 'student',
+            email: { not: '' },
+          },
+          select: { email: true },
+        });
 
-    //     await Promise.all(
-    //       users
-    //         .filter((u) => u.email)
-    //         .map((user) =>
-    //           sendNewGigEmail({
-    //             to: user.email!,
-    //             gigTitle: title,
-    //             gigDescription: description,
-    //           })
-    //         )
-    //     );
+        await Promise.all(
+          users
+            .filter((u) => u.email)
+            .map((user) =>
+              sendNewGigEmail({
+                to: user.email!,
+                gigTitle: title,
+                gigDescription: description,
+              })
+            )
+        );
 
-    //     console.log(`📬 Notification emails sent to ${users.length} users.`);
-    //   } catch (e) {
-    //     console.error('❌ Error sending notification emails:', e);
-    //   }
-    // }, 0);
+        console.log(` Notification emails sent to ${users.length} users.`);
+      } catch (e) {
+        console.error(' Error sending notification emails:', e);
+      }
+    }, 0);
 
      return response;
   } catch (error) {
-    console.error('❌ Error posting gig:', error);
+    console.error(' Error posting gig:', error);
     return NextResponse.json({ error: 'Failed to create gig' }, { status: 500 });
   }
 }

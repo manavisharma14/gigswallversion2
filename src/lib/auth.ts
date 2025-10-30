@@ -10,7 +10,7 @@ declare module "next-auth" {
     user: {
       id: string;
       name?: string | null;
-      type?: "student" | "other";
+      type?: "student" | "business" | "other";
       college?: string | null;
       department?: string | null;
       gradYear?: string | null;
@@ -22,7 +22,7 @@ declare module "next-auth" {
   interface User {
     id: string;
     name?: string | null;
-    type?: "student" | "other";
+    type?: "student" | "business" | "other";
     college?: string | null;
     department?: string | null;
     gradYear?: string | null;
@@ -34,7 +34,7 @@ declare module "next-auth" {
   interface JWT {
     id: string;
     name?: string | null;
-    type?: "student" | "other";
+    type?: "student" | "business" | "other";
     college?: string | null;
     department?: string | null;
     gradYear?: string | null;
@@ -54,7 +54,7 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
-          prompt: "select_account",   // 👈 forces Google to show the account chooser
+          prompt: "select_account",   // forces Google to show the account chooser
           access_type: "offline",
           response_type: "code",
         },
@@ -106,7 +106,7 @@ export const authOptions: NextAuthOptions = {
     signIn: "/signin",
   },
   callbacks: {
-    // ✅ NEW: Handles Google + credentials linking
+    //  NEW: Handles Google + credentials linking
     async signIn({ user, account }) {
       if (account?.provider === "google") {
         const existingUser = await prisma.user.findUnique({
@@ -119,7 +119,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         if (existingUser && existingUser.password) {
-          // ✅ Auto-link Google account to existing credentials aaccount
+          //  Auto-link Google account to existing credentials aaccount
           const linkedAccount = await prisma.account.findFirst({
             where: {
               provider: account.provider,
@@ -173,7 +173,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.name = token.name as string | null;
-        session.user.type = (token.type as "student" | "other") ?? "other";
+        session.user.type = token.type as "student" | "business" | "other" | undefined ?? "other";
         session.user.college = token.college as string | null;
         session.user.department = token.department as string | null;
         session.user.gradYear = token.gradYear as string | null;

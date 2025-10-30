@@ -58,7 +58,7 @@ type User = {
   department: string | null; // Allow null to match Prisma schema
   gradYear: string | null; // Allow null to match Prisma schema
   gigPreference?: 'finder' | 'poster' | 'both' | null; // Allow null to match Prisma schema
-  type?: 'student' | 'other'; // Matches UserType enum
+  type?: 'student' | 'business' | 'other'; // Matches UserType enum
   isVerified?: boolean;
   otpCode?: string;
   otpExpires?: string;
