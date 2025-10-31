@@ -1,5 +1,5 @@
 'use client';
-export const dynamic = 'force-static';
+
 import { useState } from 'react';
 
 export default function ForgotPasswordPage() {
