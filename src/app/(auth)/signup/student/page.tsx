@@ -2,7 +2,7 @@
 
 import { useState, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react"; // ← Added useSession
 import toast from "react-hot-toast";
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 
@@ -17,6 +17,8 @@ type PasswordInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
 
 export default function StudentSignupPage() {
   const router = useRouter();
+  const { update } = useSession(); // ← Critical: get update function
+
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -48,33 +50,32 @@ export default function StudentSignupPage() {
       });
       const data = await res.json();
   
-      if (res.ok) {
-        toast.success("Account created successfully 🚀");
-  
-        // if user is student → redirect to complete profile
-        if (formData.type === "student") {
-          // Automatically sign in after signup
-          await signIn("credentials", {
-            email: formData.email,
-            password: formData.password,
-            redirect: false, // prevent redirect to dashboard
-          });
-        
-          router.push("/complete-profile");
-          return;
-        }
-  
-        // else, log them in directly
-        await signIn("credentials", {
-          email: formData.email,
-          password: formData.password,
-          callbackUrl: "/dashboard/profile",
-        });
-      } else {
+      if (!res.ok) {
         toast.error(data?.error || "Something went wrong.");
+        return;
       }
-    } catch {
-      toast.error("Signup failed.");
+  
+      toast.success("Account created successfully");
+  
+      const signInRes = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
+  
+      if (!signInRes?.ok) {
+        toast.error("Auto sign-in failed. Please sign in manually.");
+        router.push("/signin");
+        return;
+      }
+  
+      await update();           // Update client
+      router.refresh();         // ← RE-RUN SERVER COMPONENTS
+      router.push("/complete-profile");
+  
+    } catch (err) {
+      console.error(err);
+      toast.error("Signup failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -99,23 +100,28 @@ export default function StudentSignupPage() {
           icon={<User size={18} />}
           name="name"
           placeholder="Full Name"
+          value={formData.name}
           onChange={handleChange}
+          required
         />
         <Input
           icon={<Mail size={18} />}
           name="email"
           type="email"
           placeholder="Email Address"
+          value={formData.email}
           onChange={handleChange}
+          required
         />
         <PasswordInput
           showPassword={showPassword}
           setShowPassword={setShowPassword}
           name="password"
           placeholder="Password"
+          value={formData.password}
           onChange={handleChange}
+          required
         />
-
 
         <div className="flex items-start gap-2 mt-2 text-sm">
           <input
@@ -123,13 +129,15 @@ export default function StudentSignupPage() {
             id="terms"
             checked={termsAccepted}
             onChange={(e) => setTermsAccepted(e.target.checked)}
-            className="mt-1 h-4 w-4 accent-[#fff]"
+            className="mt-1 h-4 w-4 accent-white"
+            required
           />
           <label htmlFor="terms" className="text-white/90">
             I agree to the{" "}
             <a
               href="/terms"
               target="_blank"
+              rel="noopener noreferrer"
               className="underline text-white hover:text-gray-200"
             >
               Terms & Conditions
@@ -138,10 +146,12 @@ export default function StudentSignupPage() {
             <a
               href="/privacy"
               target="_blank"
+              rel="noopener noreferrer"
               className="underline text-white hover:text-gray-200"
             >
               Privacy Policy
-            </a>.
+            </a>
+            .
           </label>
         </div>
 
@@ -159,23 +169,23 @@ export default function StudentSignupPage() {
       </form>
 
       <p className="text-sm text-white/80 mt-6">
-  Already have an account?{" "}
-  <a href="/signin" className="underline hover:text-white">
-    Sign in
-  </a>
-</p>
+        Already have an account?{" "}
+        <a href="/signin" className="underline hover:text-white">
+          Sign in
+        </a>
+      </p>
 
-<p className="text-sm text-white/80 mt-2">
-  Want to sign up as a business instead?{" "}
-  <a href="/signup/business" className="underline hover:text-white">
-    Business Signup
-  </a>
-</p>
+      <p className="text-sm text-white/80 mt-2">
+        Want to sign up as a business instead?{" "}
+        <a href="/signup/business" className="underline hover:text-white">
+          Business Signup
+        </a>
+      </p>
     </div>
   );
 }
 
-
+// Reusable Input Component
 function Input({ icon, ...props }: InputProps) {
   return (
     <div className="relative">
@@ -190,6 +200,7 @@ function Input({ icon, ...props }: InputProps) {
   );
 }
 
+// Password Input with Toggle
 function PasswordInput({
   showPassword,
   setShowPassword,
@@ -205,7 +216,7 @@ function PasswordInput({
       />
       <button
         type="button"
-        onClick={() => setShowPassword(prev => !prev)}
+        onClick={() => setShowPassword((prev) => !prev)}
         className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition"
       >
         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}

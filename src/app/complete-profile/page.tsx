@@ -44,6 +44,7 @@ export default function CompleteProfilePage() {
 
       if (res.ok) {
         showToast('Profile completed! ', 'success');
+        router.refresh();
         setTimeout(() => router.push('/dashboard'), 1500);
       } else {
         const data = await res.json();

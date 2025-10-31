@@ -52,7 +52,7 @@ export default function SignInPage() {
       await signIn("credentials", {
         email,
         password,
-        callbackUrl: "/dashboard",
+        callbackUrl: "/dashboard/profile",
       });
     } catch {
       toast.error("Login failed. Try again.");
@@ -65,7 +65,7 @@ export default function SignInPage() {
     setIsGoogleLoading(true);
     try {
       await signIn("google", {
-        callbackUrl: "/dashboard",
+        callbackUrl: "/dashboard/profile",
         prompt: "select_account",
       });
     } catch {
