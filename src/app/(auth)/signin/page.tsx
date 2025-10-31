@@ -100,14 +100,23 @@ export default function SignInPage() {
           disabled={isLoading}
         />
 
-        <PasswordInput
-          showPassword={showPassword}
-          setShowPassword={setShowPassword}
-          placeholder="Password"
-          value={password}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-          disabled={isLoading}
-        />
+<PasswordInput
+  showPassword={showPassword}
+  setShowPassword={setShowPassword}
+  placeholder="Password"
+  value={password}
+  onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+  disabled={isLoading}
+/>
+
+<div className="text-right -mt-2 mb-2">
+  <Link
+    href="/forgot-password"
+    className="text-xs text-white/80 hover:text-white underline"
+  >
+    Forgot password?
+  </Link>
+</div>
 
         <button
           type="submit"
@@ -190,7 +199,11 @@ function PasswordInput({ showPassword, setShowPassword, ...props }: PasswordInpu
       >
         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
       </button>
+
+      
     </div>
+
+    
   );
 }
 
