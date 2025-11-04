@@ -71,6 +71,15 @@ model User {
 
   withdrawRequests  WithdrawRequest[]
   walletTransactions WalletTransaction[]
+
+
+  // review
+  averageRating     Float       @default(0)
+  totalRatings      Int         @default(0)
+  completedGigs     Int         @default(0)
+
+  reviewsReceived   Review[]    @relation("FreelancerReviews")
+
 }
 
 model WithdrawRequest {
@@ -146,6 +155,7 @@ model Gig {
   postedBy     User           @relation(fields: [postedById], references: [id], name: "UserGigs")
   applications Application[]
   messages     Message[]      @relation("GigMessages")
+  reviews      Review[]
 }
 
 model Message {
@@ -219,4 +229,18 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+
+model Review {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  gigId           String        @db.ObjectId
+  clientId        String        @db.ObjectId
+  freelancerId    String        @db.ObjectId
+  rating          Int
+  reviewText      String?
+  createdAt       DateTime      @default(now())
+
+  freelancer      User          @relation("FreelancerReviews", fields: [freelancerId], references:[id])
+  gig             Gig           @relation(fields: [gigId], references: [id])
 }

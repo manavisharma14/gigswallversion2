@@ -1,32 +1,39 @@
-// src/app/api/auth/send-otp/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
-import { sendOTPEmail } from '@/lib/mailer';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { transporter } from "@/lib/mailer";
 
+export async function POST(req: Request) {
+  try {
+    const { email } = await req.json();
+    if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
 
+    let user = await prisma.user.findUnique({ where: { email } });
 
-export async function POST(req: NextRequest) {
-  const { email } = await req.json();
+    // For fresh signup, create a temp user row if needed
+    if (!user) {
+      user = await prisma.user.create({ data: { email, name: "", isVerified: false } });
+    }
 
-  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
-  const hashedOtp = await bcrypt.hash(otp, 10);
-  const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-  // Delete existing pending user if any
-  await prisma.pendingUser.deleteMany({ where: { email } });
+    await prisma.user.update({
+      where: { email },
+      data: {
+        otpCode: otp,
+        otpExpires: new Date(Date.now() + 10 * 60 * 1000), // 10 min
+      }
+    });
 
-  // Create new pending user
-  await prisma.pendingUser.create({
-    data: {
-      email,
-      otpCode: hashedOtp,
-      otpExpires,
-    },
-  });
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Your OTP for GigsWall",
+      html: `<h2>Your OTP Code</h2><h1>${otp}</h1><p>Valid for 10 minutes.</p>`
+    });
 
-  // Send OTP email
-  await sendOTPEmail(email, otp); // implement this in mailer.ts
-
-  return NextResponse.json({ message: 'OTP sent successfully!' });
+    return NextResponse.json({ message: "OTP Sent ✅" });
+  } catch (err) {
+    console.log("OTP Error:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
 }

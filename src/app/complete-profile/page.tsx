@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { useSession } from "next-auth/react"
 
 const questions = [
-  { key: 'college', label: "What is your college?", placeholder: 'e.g. University of Kansas' },
+  { key: 'otp', label: "Enter the OTP sent to your student email", placeholder: '6-digit code' },
+  { key: 'college', label: "What is your college? (Full name)", placeholder: 'e.g. University of Kansas' },
   { key: 'department', label: "What is your department or major?", placeholder: 'e.g. Computer Science' },
   { key: 'gradYear', label: 'When will you graduate?', placeholder: 'e.g. 2026' },
   { key: 'phone', label: 'Your phone number?', placeholder: '+1 (555) 123-4567' },
@@ -14,9 +16,13 @@ const questions = [
 
 export default function CompleteProfilePage() {
   const router = useRouter();
-  const [form, setForm] = useState({ college: '', department: '', gradYear: '', phone: '' });
+  const { data: session } = useSession();
+  const email = session?.user?.email;
+
+  const [form, setForm] = useState({ otp: '', college: '', department: '', gradYear: '', phone: '' });
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
   const showToast = (msg: string, type: 'success' | 'error') => {
@@ -24,11 +30,73 @@ export default function CompleteProfilePage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleNext = () => {
-    if (!form[questions[step].key as keyof typeof form]) {
+  // countdown manager
+  useEffect(() => {
+    if (resendTimer === 0) return;
+    const interval = setInterval(() => {
+      setResendTimer((t) => (t <= 1 ? 0 : t - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendTimer]);
+
+  const handleResend = async () => {
+    if (!email) {
+      showToast("Session expired — please log in again", "error");
+      router.push("/signup");
+      return;
+    }
+
+    setResendTimer(60);
+
+    const res = await fetch("/api/auth/send-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      showToast(data.error || "Failed to resend OTP", "error");
+      return;
+    }
+
+    showToast("OTP sent again ", "success");
+  };
+
+  const handleNext = async () => {
+    const field = questions[step].key as keyof typeof form;
+    const value = form[field];
+
+    if (!value) {
       showToast('Please fill this field before continuing', 'error');
       return;
     }
+
+    // OTP verification
+    if (field === 'otp') {
+      if (!email) {
+        showToast("Login expired — please login again", "error");
+        router.push("/signup");
+        return;
+      }
+
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp: value }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast(data.error || 'Invalid OTP. Try again.', 'error');
+        return;
+      }
+
+      showToast('Email verified ', 'success');
+    }
+
     if (step < questions.length - 1) setStep(step + 1);
     else handleSubmit();
   };
@@ -94,14 +162,39 @@ export default function CompleteProfilePage() {
               className="w-full"
             >
               <label className="block text-xl font-semibold mb-4 text-[#3B2ECC]">{current.label}</label>
+
               <input
-                type="text"
+                type={current.key === "otp" ? "tel" : "text"}
+                maxLength={current.key === "otp" ? 6 : undefined}
                 value={form[current.key as keyof typeof form]}
-                onChange={(e) => setForm({ ...form, [current.key]: e.target.value })}
+                onChange={(e) => {
+                  const val = current.key === "otp" 
+                    ? e.target.value.replace(/\D/g, "")
+                    : e.target.value;
+                  setForm({ ...form, [current.key]: val });
+                }}
                 placeholder={current.placeholder}
                 className="w-full px-6 py-4 border-2 border-gray-200 rounded-xl text-lg focus:outline-none focus:border-[#4B55C3] transition"
                 onKeyDown={(e) => e.key === 'Enter' && handleNext()}
               />
+
+              {/* resend OTP */}
+              {current.key === "otp" && (
+                <div className="mt-3 text-sm text-gray-600">
+                  {`Didn't receive OTP?{" "}`}
+                  <button
+                    disabled={resendTimer > 0}
+                    onClick={handleResend}
+                    className={`font-semibold ${
+                      resendTimer > 0
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-[#4B55C3] hover:text-[#3B2ECC]"
+                    }`}
+                  >
+                    {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend OTP"}
+                  </button>
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>

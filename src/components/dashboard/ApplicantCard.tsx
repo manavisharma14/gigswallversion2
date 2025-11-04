@@ -1,21 +1,16 @@
 'use client';
 
 import {
-  CheckCircleIcon,
   ChatBubbleLeftIcon,
   CalendarIcon,
-  DocumentIcon,
+
 } from '@heroicons/react/24/outline';
 import ChatComponent from '../ChatComponent';
 import { Application, Gig } from './types';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-
-interface RazorpayVerifyResponse {
-  razorpay_order_id: string;
-  razorpay_payment_id: string;
-  razorpay_signature: string;
-}
+import RatingModal from "@/components/reviews/RatingModal"
+import { useState } from 'react'
 
 interface Props {
   application: Application;
@@ -24,6 +19,7 @@ interface Props {
   isChatOpen: boolean;
   onChatToggle: () => void;
 }
+
 
 export default function ApplicantCard({
   application,
@@ -41,12 +37,12 @@ export default function ApplicantCard({
     portfolio,
     extraInfo,
     createdAt,
-    paymentStatus,
-    workSubmitted,
-    completed,
+
   } = application;
 
   const router = useRouter();
+
+  const [showRating, setShowRating] = useState(false);
 
   if (!user) {
     return (
@@ -56,79 +52,62 @@ export default function ApplicantCard({
     );
   }
 
-  // pay and accept
-  const handlePayAndAccept = async () => {
+
+  const handleAccept = async () => {
     try {
-      const orderRes = await fetch('/api/payment/order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: gig.budget,
-          gigId: gig.id,
-          studentId: user.id,
-          applicationId: appId,
-        }),
+      const res = await fetch(`/api/applications/${appId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "accepted" }),
       });
-      const { orderId } = await orderRes.json();
-      if (!orderId) throw new Error();
-
-      const rzp = new window.Razorpay({
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY!,
-        order_id: orderId,
-        name: 'GIGSWALL',
-        description: gig.title,
-        theme: { color: '#7c3aed' },
-        handler: async (resp: RazorpayVerifyResponse) => {
-          const verifyRes = await fetch('/api/payment/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              razorpay_order_id: resp.razorpay_order_id,
-              razorpay_payment_id: resp.razorpay_payment_id,
-              razorpay_signature: resp.razorpay_signature,
-              gigId: gig.id,
-              studentId: user.id,
-              applicationId: appId,
-            }),
-          });
-
-          if (verifyRes.ok) {
-            setToast({ message: 'Student accepted & funds secured!', type: 'success' });
-            router.refresh();
-          } else {
-            setToast({ message: 'Payment failed', type: 'error' });
-          }
-        },
-        modal: { ondismiss: () => setToast({ message: 'Payment cancelled', type: 'error' }) },
-      });
-      rzp.open();
+      const data = await res.json();
+      if (!res.ok) return setToast({ message: data.message, type: "error" });
+      setToast({ message: "Applicant Accepted ", type: "success" });
+      router.refresh();
     } catch {
-      setToast({ message: 'Payment failed', type: 'error' });
+      setToast({ message: "Network error", type: "error" });
+    }
+  };
+
+  const handleReject = async () => {
+    try {
+      const res = await fetch(`/api/applications/${appId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "rejected" }),
+      });
+      const data = await res.json();
+      if (!res.ok) return setToast({ message: data.message, type: "error" });
+      setToast({ message: "Applicant Rejected ", type: "success" });
+      router.refresh();
+    } catch {
+      setToast({ message: "Network error", type: "error" });
     }
   };
 
   // APPROVE WORK
-  const approveWork = async () => {
-    try {
-      const res = await fetch('/api/work/approve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ applicationId: appId, gigId: gig.id }),
-      });
-      if (res.ok) {
-        setToast({ message: `Work approved – ₹${gig.budget} released`, type: 'success' });
-        router.refresh();
-      } else {
-        const data = await res.json();
-        setToast({ message: data.error ?? 'Approval failed', type: 'error' });
-      }
-    } catch {
-      setToast({ message: 'Network error', type: 'error' });
-    }
-  };
+  // const approveWork = async () => {
+  //   try {
+  //     const res = await fetch('/api/work/approve', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ applicationId: appId, gigId: gig.id }),
+  //     });
+  //     if (res.ok) {
+  //       setToast({ message: `Work approved – ₹${gig.budget} released`, type: 'success' });
+  //       setShowRating(true);
+  //       router.refresh();
+  //     } else {
+  //       const data = await res.json();
+  //       setToast({ message: data.error ?? 'Approval failed', type: 'error' });
+  //     }
+  //   } catch {
+  //     setToast({ message: 'Network error', type: 'error' });
+  //   }
+  // };
 
-  const isPending = status === 'pending';
-  const isAcceptedPaid = status === 'accepted' && paymentStatus === 'paid';
+  // const isPending = status === 'pending';
+  // const isAcceptedPaid = status === 'accepted' && paymentStatus === 'paid';
 
   return (
     <li className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col gap-5">
@@ -147,23 +126,54 @@ export default function ApplicantCard({
           </div>
         </div>
 
-        {/* ONE-CLICK BUTTON */}
-        {isPending && (
+
+
+        {/* STATUS ACTION BUTTONS */}
+        {/* STATUS ACTION BUTTONS (Always Visible) */}
+        <div className="flex gap-2">
           <button
-            onClick={handlePayAndAccept}
-            className="px-4 py-1.5 text-sm rounded-full bg-green-600 text-white font-medium hover:bg-green-700 transition"
+            onClick={handleAccept}
+            className={`px-4 py-1.5 text-sm rounded-full font-medium transition
+      ${status === "accepted" ? "bg-green-600 text-white" : "border border-green-600 text-green-600 hover:bg-green-100"}`}
           >
-            Pay & Accept (₹{gig.budget})
+            Accept
           </button>
-        )}
+
+          <button
+            onClick={async () => {
+              // reset to pending
+              const res = await fetch(`/api/applications/${appId}/status`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: "pending" }),
+              });
+              if (res.ok) {
+                setToast({ message: "Moved to Pending", type: "success" });
+                router.refresh();
+              }
+            }}
+            className={`px-4 py-1.5 text-sm rounded-full font-medium transition
+      ${status === "pending" ? "bg-yellow-500 text-white" : "border border-yellow-500 text-yellow-600 hover:bg-yellow-100"}`}
+          >
+            Pending
+          </button>
+
+          <button
+            onClick={handleReject}
+            className={`px-4 py-1.5 text-sm rounded-full font-medium transition
+      ${status === "rejected" ? "bg-red-600 text-white" : "border border-red-600 text-red-600 hover:bg-red-100"}`}
+          >
+            Reject
+          </button>
+        </div>
 
         {/* ACCEPTED & PAID BADGE */}
-        {isAcceptedPaid && (
+        {/* {isAcceptedPaid && (
           <div className="flex items-center gap-1 text-green-700">
             <CheckCircleIcon className="w-5 h-5" />
             <span className="font-medium text-sm">Accepted & Paid</span>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Rest of UI (details, chat, submit, approve) */}
@@ -212,13 +222,13 @@ export default function ApplicantCard({
               posterId={gig.postedById}
               applicantId={user.id}
               recipient={user.id}
-              setOpenChatForGig={() => {}}
+              setOpenChatForGig={() => { }}
             />
           </div>
         )}
       </div>
 
-      {/* WORK SUBMITTED */}
+      {/* WORK SUBMITTED
       {workSubmitted && !completed && (
         <div className="mt-4 p-4 bg-blue-50 border border-blue-300 rounded-lg">
           <p className="font-medium text-blue-900 flex items-center gap-2">
@@ -237,7 +247,7 @@ export default function ApplicantCard({
         </div>
       )}
 
-      {/* WORK APPROVED */}
+      WORK APPROVED
       {completed && (
         <div className="mt-4 p-4 bg-green-50 border border-green-300 rounded-lg">
           <p className="font-medium text-green-900">
@@ -246,11 +256,25 @@ export default function ApplicantCard({
         </div>
       )}
 
-      {/* PAID BUT NO WORK */}
+      PAID BUT NO WORK
       {isAcceptedPaid && !workSubmitted && (
         <p className="mt-3 text-xs text-green-600 font-medium">
           Payment secured – waiting for student to submit work
         </p>
+      )} */}
+
+      {showRating && (
+        <RatingModal
+          isOpen={showRating}
+          onClose={() => setShowRating(false)}
+          applicationId={appId}
+          freelancerName={user.name}
+          gigTitle={gig.title}
+          onSubmitted={() => {
+            setToast({ message: 'Review submitted!', type: 'success' });
+            router.refresh();
+          }}
+        />
       )}
     </li>
   );

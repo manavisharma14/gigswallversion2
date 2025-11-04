@@ -165,7 +165,7 @@ export const authOptions: NextAuthOptions = {
           ? new Date(user.createdAt).toISOString()
           : token.createdAt ?? null;
       }
-      console.log("JWT Token:", token);
+
       return token;
     },
 
@@ -180,7 +180,7 @@ export const authOptions: NextAuthOptions = {
         session.user.phone = token.phone as string | null;
         session.user.createdAt = token.createdAt as string | undefined;
       }
-      console.log("Session:", session);
+      // console.log("Session:", session);
       return session;
     },
   },

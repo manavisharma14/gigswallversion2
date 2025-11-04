@@ -17,7 +17,7 @@ type PasswordInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
 
 export default function StudentSignupPage() {
   const router = useRouter();
-  const { update } = useSession(); // ← Critical: get update function
+  const { update } = useSession();
 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,7 +40,7 @@ export default function StudentSignupPage() {
       toast.error("Please accept the Terms & Conditions.");
       return;
     }
-  
+
     setIsLoading(true);
     try {
       const res = await fetch("/api/auth/signup", {
@@ -49,30 +49,42 @@ export default function StudentSignupPage() {
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-  
+
       if (!res.ok) {
         toast.error(data?.error || "Something went wrong.");
         return;
       }
-  
+
       toast.success("Account created successfully");
-  
+
+      //  Send OTP to student email before redirecting
+      await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email }),
+      }).catch(() => {
+        toast.error("Failed to send OTP. Please request again.");
+      });
+
+      //  Sign user in after signup
       const signInRes = await signIn("credentials", {
         email: formData.email,
         password: formData.password,
         redirect: false,
       });
-  
+
       if (!signInRes?.ok) {
         toast.error("Auto sign-in failed. Please sign in manually.");
         router.push("/signin");
         return;
       }
-  
-      await update();           // Update client
-      router.refresh();         // ← RE-RUN SERVER COMPONENTS
+
+      await update();
+      router.refresh();
+
+      //  Move to profile completion (first step is OTP entry)
       router.push("/complete-profile");
-  
+
     } catch (err) {
       console.error(err);
       toast.error("Signup failed. Please try again.");
@@ -158,11 +170,10 @@ export default function StudentSignupPage() {
         <button
           type="submit"
           disabled={isLoading || !termsAccepted}
-          className={`mt-4 py-2.5 rounded-full font-medium transition-all ${
-            isLoading || !termsAccepted
+          className={`mt-4 py-2.5 rounded-full font-medium transition-all ${isLoading || !termsAccepted
               ? "bg-white/30 text-white/60 cursor-not-allowed"
               : "bg-white text-[#3B4CCA] hover:bg-white/90"
-          }`}
+            }`}
         >
           {isLoading ? "Creating Account..." : "Sign Up"}
         </button>

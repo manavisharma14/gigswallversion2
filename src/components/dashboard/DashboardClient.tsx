@@ -47,7 +47,7 @@ export default function DashboardClient({
       return <PostedGigsSection gigs={postedGigs} />;
     }
     if (active === 'Applied Gigs') {
-      return <AppliedGigsSection applications={appliedGigs} userId={user.id} userWalletBalance={user.walletBalance} />;
+      return <AppliedGigsSection applications={appliedGigs} userId={user.id}  />;
     }
     return null;
   };

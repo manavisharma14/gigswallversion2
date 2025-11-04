@@ -4,7 +4,7 @@
 import ApplicantCard from './ApplicantCard';
 import ChatComponent from '../ChatComponent';
 import { Gig, Application } from './types';
-import { useRouter } from 'next/navigation';
+
 
 interface Props {
   gig: Gig;
@@ -12,7 +12,7 @@ interface Props {
   isPoster: boolean;
   userId?: string;
   posterId?: string;
-  userWalletBalance?: number;
+  // userWalletBalance?: number;
   hasPosterStartedChat?: (
     gigId: string,
     posterId: string,
@@ -30,45 +30,45 @@ export default function GigCard({
   isPoster,
   userId,
   posterId,
-  userWalletBalance = 0,
+  // userWalletBalance = 0,
   hasPosterStartedChat,
   setToast,
   openChatForGig,
   setOpenChatForGig,
   chatKey, // ← RECEIVE IT
 }: Props) {
-  const router = useRouter();
+
 
   const toggleChat = (key: string) => {
     setOpenChatForGig(openChatForGig === key ? null : key);
   };
 
-  const handleWithdraw = async () => {
-    if (userWalletBalance < 100) {
-      setToast({ message: 'Minimum ₹100 to withdraw', type: 'error' });
-      setTimeout(() => setToast(null), 3000);
-      return;
-    }
+  // const handleWithdraw = async () => {
+  //   if (userWalletBalance < 100) {
+  //     setToast({ message: 'Minimum ₹100 to withdraw', type: 'error' });
+  //     setTimeout(() => setToast(null), 3000);
+  //     return;
+  //   }
 
-    try {
-      const res = await fetch('/api/withdraw', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: userWalletBalance }),
-      });
+  //   try {
+  //     const res = await fetch('/api/withdraw', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ amount: userWalletBalance }),
+  //     });
 
-      const data = await res.json();
-      if (data.success) {
-        setToast({ message: 'Withdrawal requested – check Earnings', type: 'success' });
-        router.refresh();
-      } else {
-        setToast({ message: data.error ?? 'Withdrawal failed', type: 'error' });
-      }
-    } catch {
-      setToast({ message: 'Network error', type: 'error' });
-    }
-    setTimeout(() => setToast(null), 3000);
-  };
+  //     const data = await res.json();
+  //     if (data.success) {
+  //       setToast({ message: 'Withdrawal requested – check Earnings', type: 'success' });
+  //       router.refresh();
+  //     } else {
+  //       setToast({ message: data.error ?? 'Withdrawal failed', type: 'error' });
+  //     }
+  //   } catch {
+  //     setToast({ message: 'Network error', type: 'error' });
+  //   }
+  //   setTimeout(() => setToast(null), 3000);
+  // };
 
   // ────── STUDENT VIEW ──────
   if (!isPoster && application) {
@@ -123,7 +123,7 @@ export default function GigCard({
           </div>
         )}
 
-        {/* Submit Work */}
+        {/* Submit Work
         {application.status === 'accepted' && !application.completed && !application.workSubmitted && (
           <button
             className="mt-3 w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium"
@@ -154,14 +154,14 @@ export default function GigCard({
           </button>
         )}
 
-        {/* Work Submitted */}
+        Work Submitted
         {application.workSubmitted && !application.completed && (
           <p className="mt-3 text-sm font-medium text-yellow-600">
             Work submitted – awaiting poster approval
           </p>
         )}
 
-        {/* Work Approved */}
+        Work Approved
         {application.completed && (
           <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-green-800 font-semibold">
@@ -173,15 +173,15 @@ export default function GigCard({
           </div>
         )}
 
-        {/* Withdraw Button – Only Once */}
+        Withdraw Button – Only Once
         {userWalletBalance > 0 && (
           <button
             onClick={handleWithdraw}
             className="mt-3 w-full bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition"
           >
             Withdraw ₹{userWalletBalance} to UPI
-          </button>
-        )}
+          </button> */}
+        {/* )} */}
       </div>
     );
   }
@@ -219,7 +219,7 @@ return (
                 {/* {userId === app.userId && ...} → DELETE */}
 
                 {/* Poster: Approve Work */}
-                {userId === gig.postedById &&
+                {/* {userId === gig.postedById &&
                   app.workSubmitted &&
                   !app.completed && (
                     <button
@@ -245,17 +245,17 @@ return (
                     >
                       Approve Work
                     </button>
-                  )}
+                  )} */}
 
                 {/* Status Messages */}
-                {app.workSubmitted && !app.completed && (
+                {/* {app.workSubmitted && !app.completed && (
                   <p className="text-xs text-yellow-600 font-medium">
                     Work submitted – awaiting approval
                   </p>
                 )}
                 {app.completed && (
                   <p className="text-xs text-green-700 font-semibold">Work Approved</p>
-                )}
+                )} */}
               </li>
             );
           })}
