@@ -53,7 +53,7 @@ export default function SignInPage() {
       const res = await signIn("credentials", {
         email,
         password,
-        redirect: false, // ✅ important
+        redirect: false, // important
       });
 
       if (res?.error) {
@@ -75,26 +75,13 @@ export default function SignInPage() {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
+  
     try {
-      const res = await signIn("google", {
-        redirect: false, 
-        prompt: "select_account",
+      await signIn("google", {
+        callbackUrl: "/dashboard/profile", // ✅ redirect to dashboard
       });
-
-      if (res?.error) {
-        setError("Google sign-in failed");
-        setIsGoogleLoading(false);
-        return;
-      }
-
-      await update(); 
-      router.refresh();
-
-      window.location.href = "/dashboard/profile";
-
-    } catch {
+    } catch (err) {
       toast.error("Google sign-in failed.");
-    } finally {
       setIsGoogleLoading(false);
     }
   };
