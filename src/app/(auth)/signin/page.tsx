@@ -22,9 +22,10 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, update } = useSession(); // ✅ added update
 
   useEffect(() => {
     if (session) router.push("/dashboard/profile");
@@ -49,11 +50,22 @@ export default function SignInPage() {
 
     setIsLoading(true);
     try {
-      await signIn("credentials", {
+      const res = await signIn("credentials", {
         email,
         password,
-        callbackUrl: "/dashboard/profile",
+        redirect: false, // ✅ important
       });
+
+      if (res?.error) {
+        setError("Invalid email or password");
+        setIsLoading(false);
+        return;
+      }
+
+      await update(); 
+      router.refresh();
+      window.location.href = "/dashboard/profile";
+
     } catch {
       toast.error("Login failed. Try again.");
     } finally {
@@ -64,10 +76,22 @@ export default function SignInPage() {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      await signIn("google", {
-        callbackUrl: "/dashboard/profile",
+      const res = await signIn("google", {
+        redirect: false, 
         prompt: "select_account",
       });
+
+      if (res?.error) {
+        setError("Google sign-in failed");
+        setIsGoogleLoading(false);
+        return;
+      }
+
+      await update(); 
+      router.refresh();
+
+      window.location.href = "/dashboard/profile";
+
     } catch {
       toast.error("Google sign-in failed.");
     } finally {
@@ -100,23 +124,23 @@ export default function SignInPage() {
           disabled={isLoading}
         />
 
-<PasswordInput
-  showPassword={showPassword}
-  setShowPassword={setShowPassword}
-  placeholder="Password"
-  value={password}
-  onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-  disabled={isLoading}
-/>
+        <PasswordInput
+          showPassword={showPassword}
+          setShowPassword={setShowPassword}
+          placeholder="Password"
+          value={password}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+          disabled={isLoading}
+        />
 
-<div className="text-right -mt-2 mb-2">
-  <Link
-    href="/forgot-password"
-    className="text-xs text-white/80 hover:text-white underline"
-  >
-    Forgot password?
-  </Link>
-</div>
+        <div className="text-right -mt-2 mb-2">
+          <Link
+            href="/forgot-password"
+            className="text-xs text-white/80 hover:text-white underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
 
         <button
           type="submit"
@@ -136,6 +160,12 @@ export default function SignInPage() {
         <span className="mx-3 text-sm text-white/80">or</span>
         <div className="flex-grow h-px bg-white/40"></div>
       </div>
+
+      {error && (
+        <p className="text-red-200 text-xs bg-red-500/20 border border-red-400/30 px-3 py-2 rounded-md">
+          {error}
+        </p>
+      )}
 
       <button
         type="button"
@@ -167,7 +197,7 @@ export default function SignInPage() {
   );
 }
 
-// Input component (consistent with BusinessSignup)
+// Input component
 function Input({ icon, ...props }: InputProps) {
   return (
     <div className="relative">
@@ -182,7 +212,7 @@ function Input({ icon, ...props }: InputProps) {
   );
 }
 
-//  Password input with show/hide
+// PasswordInput
 function PasswordInput({ showPassword, setShowPassword, ...props }: PasswordInputProps) {
   return (
     <div className="relative">
@@ -199,33 +229,17 @@ function PasswordInput({ showPassword, setShowPassword, ...props }: PasswordInpu
       >
         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
       </button>
-
-      
     </div>
-
-    
   );
 }
 
 function GoogleIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5">
-      <path
-        fill="#4285F4"
-        d="M23.49 12.27c0-.79-.07-1.54-.2-2.27H12v4.31h6.48c-.28 1.38-1.11 2.55-2.37 3.34v2.77h3.83c2.24-2.07 3.55-5.11 3.55-8.15z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 24c3.24 0 5.96-1.08 7.95-2.93l-3.83-2.77c-1.06.71-2.43 1.13-4.12 1.13-3.16 0-5.83-2.13-6.79-5.01H1.24v3.1C3.21 21.3 7.27 24 12 24z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M5.21 14.42a7.18 7.18 0 0 1 0-4.84V6.48H1.24a12.03 12.03 0 0 0 0 10.98l3.97-3.04z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 4.75c1.77 0 3.35.61 4.6 1.79l3.42-3.42C17.95 1.2 15.23 0 12 0 7.27 0 3.21 2.7 1.24 6.48l3.97 3.1C6.17 6.88 8.84 4.75 12 4.75z"
-      />
+      <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.2-2.27H12v4.31h6.48c-.28 1.38-1.11 2.55-2.37 3.34v2.77h3.83c2.24-2.07 3.55-5.11 3.55-8.15z" />
+      <path fill="#34A853" d="M12 24c3.24 0 5.96-1.08 7.95-2.93l-3.83-2.77c-1.06.71-2.43 1.13-4.12 1.13-3.16 0-5.83-2.13-6.79-5.01H1.24v3.1C3.21 21.3 7.27 24 12 24z" />
+      <path fill="#FBBC05" d="M5.21 14.42a7.18 7.18 0 0 1 0-4.84V6.48H1.24a12.03 12.03 0 0 0 0 10.98l3.97-3.04z" />
+      <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.79l3.42-3.42C17.95 1.2 15.23 0 12 0 7.27 0 3.21 2.7 1.24 6.48l3.97 3.1C6.17 6.88 8.84 4.75 12 4.75z" />
     </svg>
   );
 }

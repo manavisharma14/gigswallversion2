@@ -15,6 +15,7 @@ export async function getUserProfile(userId: string) {
         gradYear: true,
         phone: true,
         type: true,
+        walletBalance: true,
         createdAt: true,
       },
     }),
@@ -51,7 +52,16 @@ export async function getPostedGigs(userId: string): Promise<Gig[]> {
       applications: {
         include: {
           user: {
-            select: { id: true, name: true, email: true, college: true, department: true, gradYear: true },
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              college: true,
+              department: true,
+              gradYear: true,
+              phone: true,
+              walletBalance: true,
+            },
           },
         },
         orderBy: { createdAt: 'desc' },
@@ -60,7 +70,7 @@ export async function getPostedGigs(userId: string): Promise<Gig[]> {
     orderBy: { createdAt: 'desc' },
   });
 
-  return gigs.map((gig) => ({
+  return gigs.map(gig => ({
     id: gig.id,
     title: gig.title,
     description: gig.description,
@@ -71,7 +81,7 @@ export async function getPostedGigs(userId: string): Promise<Gig[]> {
     status: gig.status,
     createdAt: gig.createdAt.toISOString(),
     postedById: gig.postedById,
-    applications: gig.applications.map((app) => ({
+    applications: gig.applications.map(app => ({
       id: app.id,
       reason: app.reason,
       experience: app.experience,
@@ -81,6 +91,13 @@ export async function getPostedGigs(userId: string): Promise<Gig[]> {
       gigId: app.gigId,
       userId: app.userId,
       createdAt: app.createdAt.toISOString(),
+
+      escrow: app.escrow ?? false,  
+      paymentStatus: app.paymentStatus ?? 'pending',
+      workSubmitted: app.workSubmitted ?? false,
+      completed: app.completed ?? false,
+      
+
       user: app.user
         ? {
             id: app.user.id,
@@ -89,7 +106,8 @@ export async function getPostedGigs(userId: string): Promise<Gig[]> {
             college: app.user.college,
             department: app.user.department,
             gradYear: app.user.gradYear,
-            phone: null,
+            phone: app.user.phone ?? null,
+            walletBalance: app.user.walletBalance ?? 0,
             type: 'student' as const,
             createdAt: '',
           }
@@ -98,6 +116,8 @@ export async function getPostedGigs(userId: string): Promise<Gig[]> {
   }));
 }
 
+
+
 export async function getAppliedGigs(userId: string): Promise<Application[]> {
   const apps = await prisma.application.findMany({
     where: { userId },
@@ -105,7 +125,7 @@ export async function getAppliedGigs(userId: string): Promise<Application[]> {
     orderBy: { createdAt: 'desc' },
   });
 
-  return apps.map((app) => ({
+  return apps.map(app => ({
     id: app.id,
     reason: app.reason,
     experience: app.experience,
@@ -115,6 +135,12 @@ export async function getAppliedGigs(userId: string): Promise<Application[]> {
     gigId: app.gigId,
     userId: app.userId,
     createdAt: app.createdAt.toISOString(),
+
+    paymentStatus: app.paymentStatus ?? 'pending',
+    workSubmitted: app.workSubmitted ?? false,
+    completed: app.completed ?? false,
+    escrow: app.escrow ?? false,
+
     gig: {
       id: app.gig.id,
       title: app.gig.title,
@@ -129,3 +155,5 @@ export async function getAppliedGigs(userId: string): Promise<Application[]> {
     },
   }));
 }
+
+

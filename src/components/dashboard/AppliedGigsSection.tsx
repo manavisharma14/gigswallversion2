@@ -1,4 +1,3 @@
-// components/dashboard/AppliedGigsSection.tsx
 'use client';
 
 import { useState } from 'react';
@@ -8,13 +7,17 @@ import { Application } from './types';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
+interface Props {
+  applications: Application[];
+  userId: string;
+  userWalletBalance: number;  
+}
+
 export default function AppliedGigsSection({
   applications,
   userId,
-}: {
-  applications: Application[];
-  userId: string;
-}) {
+  userWalletBalance,         
+}: Props) {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [openChatForGig, setOpenChatForGig] = useState<string | null>(null);
 
@@ -50,6 +53,7 @@ export default function AppliedGigsSection({
                 isPoster={false}
                 userId={userId}
                 posterId={posterId}
+                userWalletBalance={userWalletBalance}   // ← PASS IT
                 hasPosterStartedChat={hasPosterStartedChat}
                 setToast={setToast}
                 openChatForGig={openChatForGig}

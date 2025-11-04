@@ -8,8 +8,9 @@ export type User = {
   department: string | null;
   gradYear: string | null;
   type: 'student' | 'business' | 'other';
+  walletBalance: number;
   createdAt: string;
-};
+}
 
 export type Gig = {
   id: string;
@@ -31,7 +32,22 @@ export type Application = {
   experience: string | null;
   extraInfo: string | null;
   status: 'pending' | 'accepted' | 'rejected';
+
   portfolio: string | null;
+
+  amount?: number;
+
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
+  razorpaySignature?: string;
+  razorpayPayoutId?: string;
+
+  // Work submission + completion fields
+  paymentStatus: string;
+  workSubmitted: boolean;
+  completed: boolean;
+  escrow: boolean; // or number if you change later
+
   gigId: string;
   userId: string;
   createdAt: string;

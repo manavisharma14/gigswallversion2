@@ -27,15 +27,16 @@ export default function ProfileSection({
       <div className="bg-white rounded-3xl shadow-xl grid grid-cols-1 md:grid-cols-3 overflow-hidden">
         <div className="bg-[#4B55C3] text-white flex flex-col items-center py-10 px-6">
           <div className="w-28 h-28 rounded-full border-4 border-white overflow-hidden">
-          <Image
-  src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user.name}`}
-  alt="avatar"
-  width={112}   // 28 * 4 = ~112px  
-  height={112}
-  className="w-full h-full object-cover"
-  priority
-  unoptimized
-/>          </div>
+            <Image
+              src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user.name}`}
+              alt="avatar"
+              width={112}   // 28 * 4 = ~112px  
+              height={112}
+              className="w-full h-full object-cover"
+              priority
+              unoptimized
+            />          
+          </div>
           <div className="mt-4 text-center">
             <h2 className="text-xl font-bold">{user.name}</h2>
             <p className="text-sm opacity-90">{user.email}</p>

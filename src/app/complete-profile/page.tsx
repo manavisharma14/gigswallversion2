@@ -111,7 +111,7 @@ export default function CompleteProfilePage() {
           disabled={loading}
           className="mt-6 px-8 py-3 bg-[#4B55C3] text-white rounded-xl font-medium hover:bg-[#3B2ECC] transition disabled:opacity-50"
         >
-          {step < questions.length - 1 ? 'Next →' : loading ? 'Saving...' : 'Finish 🎉'}
+          {step < questions.length - 1 ? 'Next →' : loading ? 'Saving...' : 'Finish '}
         </button>
 
         <div className="mt-6 text-gray-500 text-sm">

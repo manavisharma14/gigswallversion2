@@ -46,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
               strategy="afterInteractive"
             />
+            <Script src="https://checkout.razorpay.com/v1/checkout.js"></Script>
           </>
         )}
       </head>

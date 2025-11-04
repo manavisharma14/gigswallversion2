@@ -21,6 +21,7 @@ export default function DashboardLayout({
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-[#E9ECFF] to-[#F6F8FF] font-bricolage">
+      
       {/* Mobile Header */}
       <div className="md:hidden mt-28 px-4">
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2">
@@ -32,7 +33,11 @@ export default function DashboardLayout({
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 flex flex-col" onClick={() => setSidebarOpen(false)}>
           <div className="flex-1 bg-black/40 backdrop-blur-sm" />
-          <div className="bg-[#4B55C3] text-white px-4 py-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+
+          <div 
+            className="bg-[#4B55C3] text-white px-4 py-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             {menuItems.map(item => (
               <button
                 key={item.name}
@@ -41,7 +46,11 @@ export default function DashboardLayout({
                   active === item.name ? 'bg-white text-[#3B2ECC]' : 'hover:bg-[#5A4ED3]'
                 }`}
               >
-                <item.icon className={`h-5 w-5 mr-3 ${active === item.name ? 'text-[#3B2ECC]' : 'text-white'}`} />
+                <item.icon 
+                  className={`h-5 w-5 mr-3 ${
+                    active === item.name ? 'text-[#3B2ECC]' : 'text-white'
+                  }`} 
+                />
                 {item.name}
               </button>
             ))}
@@ -59,7 +68,11 @@ export default function DashboardLayout({
               active === item.name ? 'bg-white text-[#4B55C3] font-semibold shadow-md' : 'hover:bg-white/10'
             }`}
           >
-            <item.icon className={`h-6 w-6 ${active === item.name ? 'text-[#4B55C3]' : 'text-white'}`} />
+            <item.icon 
+              className={`h-6 w-6 ${
+                active === item.name ? 'text-[#4B55C3]' : 'text-white'
+              }`} 
+            />
             <span className="text-lg">{item.name}</span>
           </button>
         ))}

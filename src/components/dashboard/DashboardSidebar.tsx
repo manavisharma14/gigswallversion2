@@ -9,6 +9,8 @@ const menuItems = [
   { name: 'Profile', href: '/dashboard/profile', icon: UserIcon },
   { name: 'Posted Gigs', href: '/dashboard/posted', icon: BriefcaseIcon },
   { name: 'Applied Gigs', href: '/dashboard/applied', icon: ClipboardDocumentCheckIcon, requiresStudent: true },
+  // { name: 'Earnings', href: '/dashboard/earnings', icon: CurrencyRupeeIcon, requiresStudent: true },
+  
 ];
 
 export default function DashboardSidebar({ userType }: { userType: 'student' | 'business' | 'other' }) {
