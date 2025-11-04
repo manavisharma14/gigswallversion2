@@ -78,10 +78,10 @@ export default function SignInPage() {
   
     try {
       await signIn("google", {
-        callbackUrl: "/dashboard/profile", // ✅ redirect to dashboard
+        callbackUrl: "/dashboard/profile", // redirect to dashboard
       });
-    } catch (err) {
-      toast.error("Google sign-in failed.");
+    } catch  {
+      toast.error("Google sign-in failed.",);
       setIsGoogleLoading(false);
     }
   };
