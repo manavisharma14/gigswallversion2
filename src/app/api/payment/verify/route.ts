@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       razorpayOrderId: razorpay_order_id,
       razorpayPaymentId: razorpay_payment_id,
       razorpaySignature: razorpay_signature,
-      escrow: true,
+
     },
   })
 

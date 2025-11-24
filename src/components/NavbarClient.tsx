@@ -5,85 +5,74 @@ import { UserCircle, ChevronDown, LogIn, Menu } from "lucide-react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 
-interface NavbarClientProps {
+interface Props {
   loggedIn: boolean;
   userName: string;
+  userId: string | null;
   isMobile?: boolean;
 }
 
-export default function NavbarClient({
-  loggedIn,
-  userName,
-  isMobile = false,
-}: NavbarClientProps) {
+export default function NavbarClient({ loggedIn, userName, userId, isMobile = false }: Props) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // ✅ Close dropdown when clicking outside
+
+
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
+    if (loggedIn && userId) {
+      localStorage.setItem("userId", userId);
+    } else {
+      localStorage.removeItem("userId");
+    }
+  }, [loggedIn, userId]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   return (
-    <nav className="w-full flex items-center justify-between bg-white">
-      {/* ✅ Mobile Toggle Button */}
-      {isMobile && (
-        <button
-          className="p-2 rounded-lg hover:bg-gray-100"
-          onClick={() => setMobileMenuOpen((prev) => !prev)}
-        >
-          <Menu size={24} />
-        </button>
-      )}
-
-      {/* ✅ Desktop Menu */}
+    <nav className="flex items-center gap-4 relative w-full z-50">
+      {/* ---------- DESKTOP NAV ---------- */}
       {!isMobile && (
-        <div className="flex items-center gap-4" ref={dropdownRef}>
+        <div ref={dropdownRef}>
           {!loggedIn ? (
-            <Link
-              href="/signin"
-              className="flex items-center gap-2 bg-[#4B55C3] hover:bg-[#3d49ad] text-white font-semibold px-5 py-2 rounded-full transition"
-            >
+            <Link href="/signin" className="flex items-center gap-2 bg-[#4B55C3] text-white px-5 py-2 rounded-full">
               <LogIn size={18} /> Sign In
             </Link>
           ) : (
             <div className="relative">
-              {/* ✅ Click to toggle */}
               <button
-                onClick={() => setDropdownOpen((prev) => !prev)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors font-semibold text-gray-800"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="flex gap-2 items-center px-3 py-2"
               >
                 <UserCircle size={18} />
                 <span className="truncate max-w-[120px]">{userName}</span>
                 <ChevronDown size={16} />
               </button>
 
-              {/* ✅ Dropdown stays open on hover OR after click */}
               {dropdownOpen && (
-                <div
-                  className="absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg z-50"
-                  onMouseEnter={() => setDropdownOpen(true)}
-                  onMouseLeave={() => setDropdownOpen(false)}
-                >
-                  <Link
-                    href="/dashboard"
-                    className="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-100"
-                  >
+                <div className="absolute right-0 mt-2 w-40 bg-white shadow border rounded-md z-50">
+                  <Link href="/dashboard" className="block px-4 py-2 hover:bg-gray-100">
                     Dashboard
                   </Link>
+
+                  {/* Admin Panel — insert when ready */}
+                  {/* {session?.user?.email === ADMIN && (
+                    <Link href="/admin/escrow" className="block px-4 py-2 text-indigo-600 hover:bg-indigo-50">
+                      Admin Panel
+                    </Link>
+                  )} */}
+
                   <button
                     onClick={() => signOut({ callbackUrl: "/signin" })}
-                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
                   >
                     Logout
                   </button>
@@ -94,41 +83,17 @@ export default function NavbarClient({
         </div>
       )}
 
-      {/* ✅ Mobile Dropdown Menu */}
+      {/* ---------- MOBILE MENU DROPDOWN ---------- */}
       {mobileMenuOpen && isMobile && (
-        <div className="absolute top-[60px] left-0 w-full bg-white shadow-md border-t flex flex-col items-end z-50">
-          {/* Navigation links */}
+  <div className="fixed top-[60px] left-0 w-full bg-white shadow-md border-t flex flex-col items-end z-50">
           <div className="w-full flex flex-col items-end space-y-2 p-4">
-            <Link href="/" className="px-4 py-2 text-gray-800 hover:bg-gray-50">
-              Home
-            </Link>
-            <Link
-              href="/about"
-              className="px-4 py-2 text-gray-800 hover:bg-gray-50"
-            >
-              About
-            </Link>
-            <Link
-              href="/post"
-              className="px-4 py-2 text-gray-800 hover:bg-gray-50"
-            >
-              Post
-            </Link>
-            <Link
-              href="/gigs"
-              className="px-4 py-2 text-gray-800 hover:bg-gray-50"
-            >
-              Apply
-            </Link>
-            <Link
-              href="/blog"
-              className="px-4 py-2 text-gray-800 hover:bg-gray-50"
-            >
-              Blog
-            </Link>
+            <Link href="/" className="px-4 py-2 text-gray-800 hover:bg-gray-50">Home</Link>
+            <Link href="/about" className="px-4 py-2 text-gray-800 hover:bg-gray-50">About</Link>
+            <Link href="/post" className="px-4 py-2 text-gray-800 hover:bg-gray-50">Post</Link>
+            <Link href="/gigs" className="px-4 py-2 text-gray-800 hover:bg-gray-50">Apply</Link>
+            <Link href="/blog" className="px-4 py-2 text-gray-800 hover:bg-gray-50">Blog</Link>
           </div>
 
-          {/* Auth Controls */}
           <div className="w-full border-t p-4">
             {!loggedIn ? (
               <Link
@@ -145,6 +110,17 @@ export default function NavbarClient({
                 >
                   Dashboard
                 </Link>
+
+                {/* Admin */}
+                {/* {loggedIn && session?.user?.email === ADMIN && (
+                  <Link
+                    href="/admin/escrow"
+                    className="block px-4 py-2 text-indigo-600 hover:bg-indigo-50 font-medium text-right"
+                  >
+                    Admin Panel
+                  </Link>
+                )} */}
+
                 <button
                   onClick={() => signOut({ callbackUrl: "/signin" })}
                   className="block w-full text-right px-4 py-2 text-red-600 hover:bg-gray-50"
@@ -155,6 +131,16 @@ export default function NavbarClient({
             )}
           </div>
         </div>
+      )}
+
+      {/* ---------- MOBILE HAMBURGER BUTTON ---------- */}
+      {isMobile && (
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="p-2"
+        >
+          <Menu size={24} />
+        </button>
       )}
     </nav>
   );

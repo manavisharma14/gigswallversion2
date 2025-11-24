@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
         data: {
           completed: true,
           paymentStatus: "released",
-          escrow: false
+
         }
       }),
       prisma.user.update({

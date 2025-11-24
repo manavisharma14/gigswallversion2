@@ -6,6 +6,7 @@ import DashboardLayout from './DashboardLayout';
 import ProfileSection from './ProfileSection';
 import PostedGigsSection from './PostedGigsSection';
 import AppliedGigsSection from './AppliedGigsSection';
+import { GigWithRelations, ApplicationWithRelations } from '@/types/prisma';
 
 import {
   UserIcon,
@@ -13,7 +14,7 @@ import {
   ClipboardDocumentCheckIcon,
 } from '@heroicons/react/24/outline';
 
-import { User, Gig, Application } from './types';
+import type { User } from '@/types/prisma';
 
 export default function DashboardClient({
   user,
@@ -21,8 +22,8 @@ export default function DashboardClient({
   appliedGigs,
 }: {
   user: User;
-  postedGigs: Gig[];
-  appliedGigs: Application[];
+  postedGigs: GigWithRelations[];
+  appliedGigs: ApplicationWithRelations[];
 }) {
   const [active, setActive] = useState('Profile');
 

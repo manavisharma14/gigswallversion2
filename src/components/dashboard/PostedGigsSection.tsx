@@ -6,11 +6,11 @@ import { TrashIcon } from '@heroicons/react/24/outline';
 import GigCard from './GigCard';
 import DeleteGigModal from './DeleteGigModal';
 import Toast from './Toast';
-import { Gig } from './types';
+import { GigWithRelations } from '@/types/prisma';
 import { useRouter } from 'next/navigation';
 
 interface Props {
-  gigs: Gig[];
+  gigs: GigWithRelations[];
 }
 
 export default function PostedGigsSection({ gigs }: Props) {

@@ -1,7 +1,10 @@
-// lib/dashboard-queries.ts
+// src/lib/dashboard-queries.ts
 import { prisma } from '@/lib/prisma';
-import { Gig, Application } from '@/components/dashboard/types';
+import { GigWithRelations, ApplicationWithRelations } from '@/types/prisma';
 
+// -------------------------------------------------------------------
+// getUserProfile
+// -------------------------------------------------------------------
 export async function getUserProfile(userId: string) {
   const [user, counts] = await Promise.all([
     prisma.user.findUnique({
@@ -17,6 +20,9 @@ export async function getUserProfile(userId: string) {
         type: true,
         walletBalance: true,
         createdAt: true,
+
+        totalRatings: true,
+        completedGigs: true,
       },
     }),
     Promise.all([
@@ -31,7 +37,6 @@ export async function getUserProfile(userId: string) {
   return {
     user: {
       ...user,
-      createdAt: user.createdAt.toISOString(),
       phone: user.phone ?? null,
       college: user.college ?? null,
       department: user.department ?? null,
@@ -45,12 +50,20 @@ export async function getUserProfile(userId: string) {
   };
 }
 
-export async function getPostedGigs(userId: string): Promise<Gig[]> {
-  const gigs = await prisma.gig.findMany({
+// -------------------------------------------------------------------
+// getPostedGigs – Poster view (with full applicant data)
+// -------------------------------------------------------------------
+// -------------------------------------------------------------------
+// getPostedGigs – Poster view (with full applicant data)
+// -------------------------------------------------------------------
+export async function getPostedGigs(userId: string): Promise<GigWithRelations[]> {
+  return await prisma.gig.findMany({
     where: { postedById: userId },
     include: {
       applications: {
         include: {
+          // THIS LINE IS THE FIX
+          gig: true,                     // <-- add this
           user: {
             select: {
               id: true,
@@ -59,8 +72,11 @@ export async function getPostedGigs(userId: string): Promise<Gig[]> {
               college: true,
               department: true,
               gradYear: true,
+              totalRatings: true,
+              completedGigs: true,
               phone: true,
               walletBalance: true,
+              type: true,
             },
           },
         },
@@ -69,91 +85,52 @@ export async function getPostedGigs(userId: string): Promise<Gig[]> {
     },
     orderBy: { createdAt: 'desc' },
   });
-
-  return gigs.map(gig => ({
-    id: gig.id,
-    title: gig.title,
-    description: gig.description,
-    budget: gig.budget,
-    category: gig.category,
-    college: gig.college,
-    isOpen: gig.isOpen,
-    status: gig.status,
-    createdAt: gig.createdAt.toISOString(),
-    postedById: gig.postedById,
-    applications: gig.applications.map(app => ({
-      id: app.id,
-      reason: app.reason,
-      experience: app.experience,
-      extraInfo: app.extra ?? null,
-      status: app.status.toLowerCase() as 'pending' | 'accepted' | 'rejected',
-      portfolio: app.portfolio,
-      gigId: app.gigId,
-      userId: app.userId,
-      createdAt: app.createdAt.toISOString(),
-
-      escrow: app.escrow ?? false,  
-      paymentStatus: app.paymentStatus ?? 'pending',
-      workSubmitted: app.workSubmitted ?? false,
-      completed: app.completed ?? false,
-      
-
-      user: app.user
-        ? {
-            id: app.user.id,
-            name: app.user.name,
-            email: app.user.email,
-            college: app.user.college,
-            department: app.user.department,
-            gradYear: app.user.gradYear,
-            phone: app.user.phone ?? null,
-            walletBalance: app.user.walletBalance ?? 0,
-            type: 'student' as const,
-            createdAt: '',
-          }
-        : undefined,
-    })),
-  }));
 }
 
-
-
-export async function getAppliedGigs(userId: string): Promise<Application[]> {
-  const apps = await prisma.application.findMany({
+// -------------------------------------------------------------------
+// getAppliedGigs – Freelancer view (MUST include gig.applications)
+// -------------------------------------------------------------------
+export async function getAppliedGigs(userId: string): Promise<ApplicationWithRelations[]> {
+  return await prisma.application.findMany({
     where: { userId },
-    include: { gig: true },
+    include: {
+      gig: {
+        include: {
+          applications: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  college: true,
+                  department: true,
+                  completedGigs: true,
+                  totalRatings: true,
+                  gradYear: true,
+                  phone: true,
+                  walletBalance: true,
+                  type: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          college: true,
+          department: true,
+          gradYear: true,
+          phone: true,
+          walletBalance: true,
+          type: true,
+        },
+      },
+    },
     orderBy: { createdAt: 'desc' },
   });
-
-  return apps.map(app => ({
-    id: app.id,
-    reason: app.reason,
-    experience: app.experience,
-    extraInfo: app.extra ?? null,
-    status: app.status.toLowerCase() as 'pending' | 'accepted' | 'rejected',
-    portfolio: app.portfolio,
-    gigId: app.gigId,
-    userId: app.userId,
-    createdAt: app.createdAt.toISOString(),
-
-    paymentStatus: app.paymentStatus ?? 'pending',
-    workSubmitted: app.workSubmitted ?? false,
-    completed: app.completed ?? false,
-    escrow: app.escrow ?? false,
-
-    gig: {
-      id: app.gig.id,
-      title: app.gig.title,
-      description: app.gig.description,
-      budget: app.gig.budget,
-      category: app.gig.category,
-      college: app.gig.college,
-      isOpen: app.gig.isOpen,
-      status: app.gig.status,
-      createdAt: app.gig.createdAt.toISOString(),
-      postedById: app.gig.postedById,
-    },
-  }));
 }
-
-

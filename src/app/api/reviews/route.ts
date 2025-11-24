@@ -24,9 +24,7 @@ export async function POST(req: NextRequest){
     })
 
     if(!app) return NextResponse.json({ error: "Application not found"}, {status: 401});
-    if(!app.completed){
-        return NextResponse.json({ error: "Gig not completed yet"}, {status: 400})
-    }
+
 
     // the client is the gig poster
     const gig = app.gig;

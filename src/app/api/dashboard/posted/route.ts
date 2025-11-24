@@ -24,6 +24,8 @@ export async function GET() {
                 college: true,
                 department: true,
                 gradYear: true,
+                totalRatings: true,
+                completedGigs: true
               },
             },
           },

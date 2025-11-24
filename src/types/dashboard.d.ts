@@ -9,6 +9,8 @@ export type User = {
     college: string | null;
     department: string | null;
     gradYear: string | null;
+    totalRatings: number,
+    completedGigs: number,
     gigPreference?: 'finder' | 'poster' | 'both' | null;
     type?: 'student' | 'other';
     isVerified?: boolean;

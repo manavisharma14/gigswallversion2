@@ -25,6 +25,14 @@ enum ApplicationStatus {
   completed
 }
 
+enum EscrowStatus {
+  NONE // default (no escrow)
+  PENDING // client clicked "Fund Escrow" & uploaded proof; awaiting admin
+  PAID // admin verified funds received (unlocks work)
+  RELEASED // after approval
+  REFUNDED
+}
+
 enum GigPreference {
   finder
   poster
@@ -35,140 +43,152 @@ enum GigPreference {
 // User & Core Models
 // ======================
 model User {
-  id             String     @id @default(auto()) @map("_id") @db.ObjectId
-  name           String
-  email          String     @unique
-  password       String?
-  college        String?
-  department     String?
-  gradYear       String?
-  gigPreference  GigPreference?
-  type           UserType   @default(other)
-  phone          String?
-  image          String?   
-  emailVerified  DateTime?  // Add this field
-  isVerified     Boolean    @default(false)
-  otpCode        String?
-  otpExpires     DateTime?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  email         String         @unique
+  password      String?
+  college       String?
+  department    String?
+  gradYear      String?
+  gigPreference GigPreference?
+  type          UserType       @default(other)
+  phone         String?
+  image         String?
+  emailVerified DateTime? // Add this field
+  isVerified    Boolean        @default(false)
+  otpCode       String?
+  otpExpires    DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
-  profileCompleted Boolean  @default(false)
-  profileQuestions  Json?
-  gigs           Gig[]      @relation("UserGigs")
-  applications   Application[]
-  accounts       Account[]
-  sessions       Session[]
+  profileCompleted Boolean       @default(false)
+  profileQuestions Json?
+  gigs             Gig[]         @relation("UserGigs")
+  applications     Application[]
+  accounts         Account[]
+  sessions         Session[]
 
   // payout + wallet
 
-  payoutContactId   String?    // Razorpay contact ID (for automated payouts)
-  payoutFundId      String?    // Razorpay fund account ID
-  hasPayoutSetup    Boolean    @default(false)
+  payoutContactId String? // Razorpay contact ID (for automated payouts)
+  payoutFundId    String? // Razorpay fund account ID
+  hasPayoutSetup  Boolean @default(false)
 
-  upiId             String?    
-  walletBalance     Int        @default(0)
+  upiId         String?
+  walletBalance Int     @default(0)
 
-  withdrawRequests  WithdrawRequest[]
+  withdrawRequests   WithdrawRequest[]
   walletTransactions WalletTransaction[]
 
-
   // review
-  averageRating     Float       @default(0)
-  totalRatings      Int         @default(0)
-  completedGigs     Int         @default(0)
+  averageRating Float @default(0)
+  totalRatings  Int   @default(0)
+  completedGigs Int   @default(0)
 
-  reviewsReceived   Review[]    @relation("FreelancerReviews")
-
+  reviewsReceived Review[] @relation("FreelancerReviews")
 }
 
 model WithdrawRequest {
-  id          String            @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String
-  amount      Int
-  status      String            @default("pending")
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
+  amount    Int
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user        User              @relation(fields: [userId], references: [id])
-
+  user User @relation(fields: [userId], references: [id])
 }
 
 model WalletTransaction {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id])
-  
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
   amount      Int
-  type        String   // "credit" | "debit"
-  source      String   // e.g. "gig_payment"
+  type        String // "credit" | "debit"
+  source      String // e.g. "gig_payment"
   description String?
-  
-  createdAt   DateTime @default(now())
+
+  createdAt DateTime @default(now())
 
   @@index([userId])
 }
 
 model Application {
-  id         String             @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String             @db.ObjectId
-  gigId      String             @db.ObjectId
+  id         String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String            @db.ObjectId
+  gigId      String            @db.ObjectId
   reason     String?
   experience String?
   portfolio  String?
   extra      String?
-  status     ApplicationStatus  @default(pending)
-  createdAt  DateTime           @default(now())
-  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  gig        Gig                @relation(fields: [gigId], references: [id], onDelete: Cascade)
+  status     ApplicationStatus @default(pending)
+  createdAt  DateTime          @default(now())
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gig        Gig               @relation(fields: [gigId], references: [id], onDelete: Cascade)
 
   // Payment + Escrow
-  amount             Int?
-  paymentStatus      String   @default("pending") // pending | paid | released | refunded
-  razorpayOrderId    String?
-  razorpayPaymentId  String?
-  razorpaySignature  String?
+  amount            Int?
+  paymentStatus     String  @default("pending") // pending | paid | released | refunded
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  razorpaySignature String?
 
   // Payout tracking
-  razorpayPayoutId   String?
+  razorpayPayoutId String?
 
-  escrow             Boolean  @default(false)
-  workSubmitted      Boolean  @default(false)
-  revisionRequested  Boolean  @default(false)
-  completed          Boolean  @default(false)
+
+  escrowStatus       EscrowStatus @default(NONE)
+  escrowAmount       Int?         // in paise (₹100 → 10000)
+  escrowTxnRef       String?      
+  escrowProofUrl     String?
+  escrowReleaseProofUrl String?
+  escrowFundedAt     DateTime?
+  escrowVerifiedAt   DateTime?
+  escrowReleasedAt   DateTime?
+
+  // === PAYOUT ===
+  payoutId           String?
+  payoutStatus       String?      // "pending", "processed", "failed"
+
+
+  workSubmitted     Boolean @default(false)
+  revisionRequested Boolean @default(false)
+  completed         Boolean @default(false)
 
   @@index([userId])
   @@index([gigId])
 }
 
 model Gig {
-  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
   title        String
   description  String
   budget       Int
   category     String
   college      String
-  isOpen       Boolean        @default(true)
-  status       String         @default("open")
-  createdAt    DateTime       @default(now())
-  postedById   String         @db.ObjectId
-  postedBy     User           @relation(fields: [postedById], references: [id], name: "UserGigs")
+  isOpen       Boolean       @default(true)
+  status       String        @default("open")
+  createdAt    DateTime      @default(now())
+  postedById   String        @db.ObjectId
+  postedBy     User          @relation(fields: [postedById], references: [id], name: "UserGigs")
   applications Application[]
-  messages     Message[]      @relation("GigMessages")
+  messages     Message[]     @relation("GigMessages")
   reviews      Review[]
+
 }
 
 model Message {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  gigId       String   @db.ObjectId
-  roomId      String
-  message     String
-  sender      String
-  recipient   String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  gigId     String   @db.ObjectId
+  roomId    String
+  message   String
+  sender    String
+  recipient String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  gig         Gig      @relation("GigMessages", fields: [gigId], references: [id])
+  gig Gig @relation("GigMessages", fields: [gigId], references: [id])
 }
 
 model PendingUser {
@@ -231,16 +251,15 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-
 model Review {
-  id              String        @id @default(auto()) @map("_id") @db.ObjectId
-  gigId           String        @db.ObjectId
-  clientId        String        @db.ObjectId
-  freelancerId    String        @db.ObjectId
-  rating          Int
-  reviewText      String?
-  createdAt       DateTime      @default(now())
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  gigId        String   @db.ObjectId
+  clientId     String   @db.ObjectId
+  freelancerId String   @db.ObjectId
+  rating       Int
+  reviewText   String?
+  createdAt    DateTime @default(now())
 
-  freelancer      User          @relation("FreelancerReviews", fields: [freelancerId], references:[id])
-  gig             Gig           @relation(fields: [gigId], references: [id])
+  freelancer User @relation("FreelancerReviews", fields: [freelancerId], references: [id])
+  gig        Gig  @relation(fields: [gigId], references: [id])
 }

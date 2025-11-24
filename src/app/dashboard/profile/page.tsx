@@ -13,6 +13,7 @@ export default async function ProfilePage() {
 
   return (
     <ProfileSection
+    
       user={user}
       postedCount={counts.posted}
       appliedCount={counts.applied}

@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       data: {
         completed: true,
         workSubmitted: false,
-        escrow: false,
+
         paymentStatus: 'released',
       },
     }),

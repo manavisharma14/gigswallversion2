@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import type { ComponentType, SVGProps } from "react";
 
+
 type IconType = ComponentType<SVGProps<SVGSVGElement>>;
 
 export default function DashboardLayout({
@@ -36,9 +37,9 @@ export default function DashboardLayout({
 
           <div 
             className="bg-[#4B55C3] text-white px-4 py-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
           >
-            {menuItems.map(item => (
+            {menuItems.map((item: { name: string; icon: IconType }) => (
               <button
                 key={item.name}
                 onClick={() => { setActive(item.name); setSidebarOpen(false); }}

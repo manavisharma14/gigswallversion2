@@ -1,21 +1,21 @@
+// src/components/dashboard/AppliedGigsSection.tsx
 'use client';
 
 import { useState } from 'react';
 import GigCard from './GigCard';
 import Toast from './Toast';
-import { Application } from './types';
+import { ApplicationWithRelations } from '@/types/prisma';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 interface Props {
-  applications: Application[];
+  applications: ApplicationWithRelations[]; // ← Use full relation type
   userId: string;
-
 }
 
 export default function AppliedGigsSection({
   applications,
-  userId,    
+  userId,
 }: Props) {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [openChatForGig, setOpenChatForGig] = useState<string | null>(null);
@@ -38,9 +38,10 @@ export default function AppliedGigsSection({
         {applications.length === 0 ? (
           <p className="text-center text-gray-600">No applications yet.</p>
         ) : (
-          applications.map(app => {
+          applications.map((app) => {
             const gig = app.gig;
             if (!gig) return null;
+
             const posterId = gig.postedById;
             const chatKey = `${gig.id}_${posterId}_${userId}`;
 

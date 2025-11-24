@@ -1,8 +1,7 @@
+// src/app/api/dashboard/posted/[gigId]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { getUserFromToken } from '@/lib/getUserFromServer'; // Ensure this path is correct
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { getUserFromToken } from '@/lib/getUserFromServer';
 
 export async function DELETE(
   req: NextRequest,
@@ -20,14 +19,16 @@ async function deleteGig(req: NextRequest, gigId: string) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
   const userId = userOrResponse.userId;
-  console.log('Authenticated userId:', userId); // Debugging
 
   /* --- find gig --- */
-  const gig = await prisma.gig.findUnique({ where: { id: gigId } });
+  const gig = await prisma.gig.findUnique({
+    where: { id: gigId },
+    select: { postedById: true },
+  });
+
   if (!gig) {
     return NextResponse.json({ message: 'Gig not found' }, { status: 404 });
   }
-  console.log('Gig found, postedById:', gig.postedById); // Debugging
 
   /* --- check ownership --- */
   if (gig.postedById !== userId) {
@@ -37,7 +38,25 @@ async function deleteGig(req: NextRequest, gigId: string) {
     );
   }
 
-  /* --- delete --- */
-  await prisma.gig.delete({ where: { id: gigId } });
-  return NextResponse.json({ message: 'Gig deleted successfully' }, { status: 200 });
+  /* --- delete children first (MongoDB doesn't cascade) --- */
+    /* --- delete children first (MongoDB doesn't cascade) --- */
+    try {
+      await prisma.$transaction(async (tx) => {
+        await tx.application.deleteMany({ where: { gigId } });
+        await tx.message.deleteMany({ where: { gigId } });
+        await tx.review.deleteMany({ where: { gigId } });
+        await tx.gig.delete({ where: { id: gigId } });
+      });
+  
+      return NextResponse.json({ message: "Gig deleted successfully" }, { status: 200 });
+    } catch (error: unknown) {
+      console.error("Delete gig error:", error);
+  
+      const message = error instanceof Error ? error.message : "Unknown error";
+  
+      return NextResponse.json(
+        { message: "Failed to delete gig", error: message },
+        { status: 500 }
+      );
+    }
 }

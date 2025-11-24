@@ -10,7 +10,9 @@ export type User = {
   type: 'student' | 'business' | 'other';
   walletBalance: number;
   createdAt: string;
-}
+  totalRatings: number;
+  averageRating: number;
+};
 
 export type Gig = {
   id: string;
@@ -23,6 +25,13 @@ export type Gig = {
   status: string;
   createdAt: string;
   postedById: string;
+
+  escrowStatus: string,
+  escrowAmount?: number,
+  escrowByUserId?: string,
+  escrowTxnRef?: string,
+  escrowProofUrl?: string,
+  escrowReleaseProofUrl?: string
   applications?: Application[];
 };
 
@@ -46,7 +55,8 @@ export type Application = {
   paymentStatus: string;
   workSubmitted: boolean;
   completed: boolean;
-  escrow: boolean; // or number if you change later
+  totalRatings: number,
+  averageRating: number,
 
   gigId: string;
   userId: string;
