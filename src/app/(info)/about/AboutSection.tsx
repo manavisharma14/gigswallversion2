@@ -90,8 +90,8 @@ export default function AboutPage() {
             the U.S. and India to make student freelancing a reality everywhere.
           </p>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 justify-items-center max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 justify-center mx-auto place-items-center">
           {team.map((member, i) => (
             <div
               key={member.name}
@@ -147,6 +147,7 @@ export default function AboutPage() {
             </div>
           ))}
         </div>
+        </div>
       </section>
 
       {/* --- Team Stories Section --- */}
@@ -184,7 +185,7 @@ export default function AboutPage() {
               name: "💸 Aryadeep Ray— Finance & Strategy",
               img: "/assets/aryadeep.png",
               text: "The numbers whisperer and deal-maker in one. Aryadeep’s the one balancing the books, pitching partnerships, and turning chaos into strategy (all before his second cup of coffee). He’s the team’s go-to for “how do we make this actually work?” moments: equal parts of a CFO, operator, and hype man for big ideas. If it involves money, metrics, or momentum, he’s already on it.",
-              reverse: false,
+              reverse: true,
             },
           ].map((person, idx) => (
             <div
