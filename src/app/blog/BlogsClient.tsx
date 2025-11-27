@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 "use client";
-
+import Image from 'next/image'
 import Link from "next/link";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
@@ -137,7 +137,7 @@ export default function BlogsClient({ initialBlogs }: { initialBlogs: any[] }) {
       <Link key={blog.id} href={`/blog/${blog.id}`}>
         <div className="border rounded-xl shadow hover:shadow-lg transition bg-white overflow-hidden p-4 cursor-pointer">
           {blog.coverImg && (
-            <img
+            <Image
               src={blog.coverImg}
               alt={blog.title}
               className="w-full h-40 object-cover rounded-md mb-3"
@@ -148,7 +148,7 @@ export default function BlogsClient({ initialBlogs }: { initialBlogs: any[] }) {
             {blog.content}
           </p>
           <div className="flex items-center gap-2 mt-3">
-            <img
+            <Image
               src={authorImage}
               alt={authorName}
               className="w-6 h-6 rounded-full"

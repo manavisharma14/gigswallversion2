@@ -24,20 +24,12 @@ const team = [
     img: "/assets/manav.png",
     linkedin: "https://www.linkedin.com/in/manav-sharma-612752236/",
     instagram: "https://www.instagram.com/__manavsharma/",
-  },
-  {
-    name: "Shrishti Das",
-    role: "Content",
-    img: "/assets/shrishti.jpeg",
-    linkedin: "https://www.linkedin.com/in/shrishti-das-/",
-    instagram: "https://www.instagram.com/shrisshh_tea/",
-  },
-  
+  },  
   {
     name: "Aryadeep Ray",
     role: "Finance & Strategy",
-    img: "/assets/aryadeep.png", // 👈 make sure this image exists in /public/assets
-    linkedin: "https://www.linkedin.com/in/aryadeepray/", // placeholder — replace with actual
+    img: "/assets/aryadeep.png", 
+    linkedin: "https://www.linkedin.com/in/aryadeepray/", 
     instagram: "https://www.instagram.com/_ray.aryadeep_",
   },
   
@@ -187,12 +179,6 @@ export default function AboutPage() {
               img: "/assets/manav.png",
               text: "If something needs doing, Manav’s probably already halfway through it. He’s the calm center during busy launches and the one with a backup plan for the backup plan. Basically, the team’s “it’ll get done” person.",
               reverse: false,
-            },
-            {
-              name: "✍️ Shrishti Das — Content",
-              img: "/assets/shrishti.jpeg",
-              text: "Shrishti is the voice and vibe of GigsWall. Whether it’s crafting stories, building community, or making content that actually hits, she’s the spark behind the scenes. Think of her as the one turning everyday updates into scroll-stopping moments.",
-              reverse: true,
             },
             {
               name: "💸 Aryadeep Ray— Finance & Strategy",

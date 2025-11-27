@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { notFound } from "next/navigation";
-
+import Image from 'next/image'
 export default async function BlogPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
@@ -27,7 +27,7 @@ export default async function BlogPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="max-w-3xl mx-auto p-6 pt-32">
       {blog.coverImg && (
-        <img
+        <Image
           src={blog.coverImg}
           alt={blog.title}
           className="w-full h-60 object-cover rounded-xl mb-6"
@@ -37,7 +37,7 @@ export default async function BlogPage({ params }: { params: Promise<{ id: strin
       <p className="text-sm text-gray-500 mb-4">{formattedDate}</p>
 
       <div className="flex items-center gap-2 mb-6">
-        <img
+        <Image
           src={blog.authorImage}
           alt={blog.authorName}
           className="w-9 h-9 rounded-full"
