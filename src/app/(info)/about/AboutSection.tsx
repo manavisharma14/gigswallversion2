@@ -25,14 +25,7 @@ const team = [
     linkedin: "https://www.linkedin.com/in/manav-sharma-612752236/",
     instagram: "https://www.instagram.com/__manavsharma/",
   },  
-  {
-    name: "Aryadeep Ray",
-    role: "Finance & Strategy",
-    img: "/assets/aryadeep.png", 
-    linkedin: "https://www.linkedin.com/in/aryadeepray/", 
-    instagram: "https://www.instagram.com/_ray.aryadeep_",
-  },
-  
+
 ];
 
 export default function AboutPage() {
@@ -91,7 +84,7 @@ export default function AboutPage() {
           </p>
         </div>
         <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 justify-center mx-auto place-items-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-10 justify-center mx-auto place-items-center">
           {team.map((member, i) => (
             <div
               key={member.name}
@@ -181,12 +174,7 @@ export default function AboutPage() {
               text: "If something needs doing, Manav’s probably already halfway through it. He’s the calm center during busy launches and the one with a backup plan for the backup plan. Basically, the team’s “it’ll get done” person.",
               reverse: false,
             },
-            {
-              name: "💸 Aryadeep Ray— Finance & Strategy",
-              img: "/assets/aryadeep.png",
-              text: "The numbers whisperer and deal-maker in one. Aryadeep’s the one balancing the books, pitching partnerships, and turning chaos into strategy (all before his second cup of coffee). He’s the team’s go-to for “how do we make this actually work?” moments: equal parts of a CFO, operator, and hype man for big ideas. If it involves money, metrics, or momentum, he’s already on it.",
-              reverse: true,
-            },
+
           ].map((person, idx) => (
             <div
               key={idx}
