@@ -86,6 +86,16 @@ model User {
   completedGigs Int   @default(0)
 
   reviewsReceived Review[] @relation("FreelancerReviews")
+
+  // AI profile snapshot
+
+  aiProfileSummary String?
+  aiSkillTags String[] @default([])
+  aiStrengthTags String[] @default([])
+  aiReliabilityTier String?
+  aiProfileEmbedding Float[] @default([])
+  aiProfileUpdatedAt DateTime?
+  aiEmbeddingVersion String?
 }
 
 model WithdrawRequest {
@@ -137,27 +147,55 @@ model Application {
   // Payout tracking
   razorpayPayoutId String?
 
-
-  escrowStatus       EscrowStatus @default(NONE)
-  escrowAmount       Int?         // in paise (₹100 → 10000)
-  escrowTxnRef       String?      
-  escrowProofUrl     String?
+  escrowStatus          EscrowStatus @default(NONE)
+  escrowAmount          Int? // in paise (₹100 → 10000)
+  escrowTxnRef          String?
+  escrowProofUrl        String?
   escrowReleaseProofUrl String?
-  escrowFundedAt     DateTime?
-  escrowVerifiedAt   DateTime?
-  escrowReleasedAt   DateTime?
+  escrowFundedAt        DateTime?
+  escrowVerifiedAt      DateTime?
+  escrowReleasedAt      DateTime?
 
   // === PAYOUT ===
-  payoutId           String?
-  payoutStatus       String?      // "pending", "processed", "failed"
-
+  payoutId     String?
+  payoutStatus String? // "pending", "processed", "failed"
 
   workSubmitted     Boolean @default(false)
   revisionRequested Boolean @default(false)
   completed         Boolean @default(false)
 
+  aiModelVersion String?
+
+  aiScore Int?
+
+  aiFitLabel String? // "strong_fit", "good_fit", "potential_fit"
+
+  aiHireProbability Int?
+
+  aiCapabilityScore Int?
+
+  aiCommunicationScore Int?
+
+  aiPortfolioScore Int?
+
+  aiReliabilityScore Int?
+
+  aiSummary String?
+
+  aiStrengths String[] @default([])
+
+aiConcerns String[] @default([])
+
+  aiSuggestedPosterAction String? // "interview", "message", "shortlist", "pass"
+  semanticMatchScore Int?
+
+  aiScoredAt DateTime?
+  applicationEmbedding Float[] @default([])
+  updatedAt DateTime @updatedAt
+
   @@index([userId])
   @@index([gigId])
+  @@index([gigId, semanticMatchScore])
 }
 
 model Gig {
@@ -176,6 +214,24 @@ model Gig {
   messages     Message[]     @relation("GigMessages")
   reviews      Review[]
 
+  // AI gig understanding
+
+  aiGigSummary String?
+
+  aiRequiredSkillTags String[] @default([])
+
+aiSoftSkillTags String[] @default([])
+
+  aiComplexityLevel String?
+
+  aiUrgencyLevel String?
+
+  aiIdealApplicant String?
+
+  aiGigEmbedding Float[] @default([])
+
+  aiGigUpdatedAt DateTime?
+  aiEmbeddingVersion String?
 }
 
 model Message {

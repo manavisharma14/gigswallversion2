@@ -4,9 +4,15 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { sendGigApplicationEmail } from '@/lib/emailSender';
 
+import {createEmbedding} from "@/lib/ai/embed"
+import {
+  cosineSimilarity,
+  similarityToPercent
+} from "@/lib/ai/cosine"
+
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ gigId: string }> } // Correct type for params
+  { params }: { params: Promise<{ gigId: string }> } 
 ) {
   try {
     const session = await getServerSession(authOptions);
