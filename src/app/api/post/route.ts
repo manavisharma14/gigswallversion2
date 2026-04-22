@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { getToken } from "next-auth/jwt";
 // import { sendNewGigEmail } from "@/lib/email/sendNewGigEmail";
+import { createEmbedding } from "@/lib/ai/embed"
+
+
 
 const prisma = new PrismaClient();
 
@@ -17,6 +20,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+        const gigText = `
+
+Title: ${title}
+
+Description: ${description}
+
+Category: ${category}
+
+Budget: ${budget}
+
+College: ${college}
+
+`;
+
+// generate embedding 
+
+    const aiGigEmbedding = await createEmbedding(gigText)
+
     // 1. Create the gig
     const newGig = await prisma.gig.create({
       data: {
@@ -27,6 +48,14 @@ export async function POST(req: NextRequest) {
         college,
         postedById: userId,
         status: "open",
+
+        aiGigEmbedding,
+
+        aiGigUpdatedAt: new Date(),
+
+        aiEmbeddingVersion:
+
+          "text-embedding-3-small",
       },
     });
 
