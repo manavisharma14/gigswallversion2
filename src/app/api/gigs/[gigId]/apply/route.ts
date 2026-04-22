@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { sendGigApplicationEmail } from '@/lib/emailSender';
 
-import {createEmbedding} from "@/lib/ai/embed"
+import { createEmbedding } from "@/lib/ai/embed"
 import {
   cosineSimilarity,
   similarityToPercent
@@ -12,7 +12,7 @@ import {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ gigId: string }> } 
+  { params }: { params: Promise<{ gigId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -23,6 +23,18 @@ export async function POST(
     const userId = session.user.id;
     const { gigId } = await params; // Await params to get gigId
     const { reason, experience, portfolio, extra } = await req.json();
+
+    const combinedText = `
+
+Reason: ${reason || ""}
+
+Experience: ${experience || ""}
+
+Portfolio: ${portfolio || ""}
+
+Extra: ${extra || ""}
+
+`;
 
     const gig = await prisma.gig.findUnique({ where: { id: gigId } });
     if (!gig) {
