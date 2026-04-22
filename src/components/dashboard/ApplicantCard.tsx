@@ -99,10 +99,10 @@ export default function ApplicantCard({
   const closeGig = async () => {
     // This function now only performs the API call.
     const res = await fetch(`/api/gigs/${gig.id}/close`, { method: 'PATCH' });
-  
+
     if (res.ok) {
       setToast({ message: "Gig closed successfully", type: "success" });
-  
+
       if (status === "accepted") {
         setReviewData({
           applicationId: application.id,
@@ -111,7 +111,7 @@ export default function ApplicantCard({
         });
         setShowRatingModal(true);
       }
-  
+
       router.refresh();
     } else {
       setToast({ message: "Failed to close gig", type: "error" });
@@ -196,7 +196,7 @@ export default function ApplicantCard({
               {workSubmitted && <Badge variant="purple">Work Submitted</Badge>}
               {completed && <Badge variant="indigo">Gig Completed</Badge>}
             </div> */}
-{/*
+            {/*
  <div className="flex items-center gap-1 text-xs text-yellow-600 font-medium">
   {application.user.totalRatings > 0 ? (
     <>
@@ -212,6 +212,13 @@ export default function ApplicantCard({
         </div>
 
         <div className="flex items-center gap-2">
+
+          {application.semanticMatchScore !== null &&
+            application.semanticMatchScore !== undefined && (
+              <Badge variant="indigo">
+                🔥 {application.semanticMatchScore}% Match
+              </Badge>
+            )}
           <Badge
             variant={
               status === 'accepted' ? 'success' :
@@ -313,43 +320,43 @@ export default function ApplicantCard({
         currentUserId === gig.postedById?.toString() &&
         status === "accepted" && (
           <button
-  onClick={() => setShowConfirmClose(true)}
-  className="text-xs px-3 py-1.5 rounded-full border border-red-300 text-red-700 bg-red-50 hover:bg-red-100 transition flex items-center gap-1"
->
-  Close Gig
-</button>
+            onClick={() => setShowConfirmClose(true)}
+            className="text-xs px-3 py-1.5 rounded-full border border-red-300 text-red-700 bg-red-50 hover:bg-red-100 transition flex items-center gap-1"
+          >
+            Close Gig
+          </button>
         )}
 
-{showConfirmClose && (
-  <div className="fixed inset-0 flex items-center shadow-xl justify-center z-50">
-    <div className="bg-white rounded-lg w-[90%] max-w-sm p-6 shadow-xl space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900">
-        Close Gig?
-      </h2>
-      <p className="text-sm text-gray-600">
-        Are you sure you want to close this gig? All applicants will be locked and no more actions can be taken.
-      </p>
+      {showConfirmClose && (
+        <div className="fixed inset-0 flex items-center shadow-xl justify-center z-50">
+          <div className="bg-white rounded-lg w-[90%] max-w-sm p-6 shadow-xl space-y-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Close Gig?
+            </h2>
+            <p className="text-sm text-gray-600">
+              Are you sure you want to close this gig? All applicants will be locked and no more actions can be taken.
+            </p>
 
-      <div className="flex justify-end gap-3 pt-2">
-        <button
-          onClick={() => setShowConfirmClose(false)}
-          className="px-3 py-1.5 text-sm rounded-md border border-gray-300 hover:bg-gray-100"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={async () => {
-            setShowConfirmClose(false);
-            await closeGig();
-          }}
-          className="px-3 py-1.5 text-sm rounded-md bg-red-600 text-white hover:bg-red-700"
-        >
-          Yes, Close Gig
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                onClick={() => setShowConfirmClose(false)}
+                className="px-3 py-1.5 text-sm rounded-md border border-gray-300 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setShowConfirmClose(false);
+                  await closeGig();
+                }}
+                className="px-3 py-1.5 text-sm rounded-md bg-red-600 text-white hover:bg-red-700"
+              >
+                Yes, Close Gig
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
 
       {isChatOpen && (
@@ -439,19 +446,19 @@ export default function ApplicantCard({
         </div>
       )} */}
 
-{reviewData && (
-  <RatingModal
-    isOpen={showRatingModal}
-    onClose={() => setShowRatingModal(false)}
-    applicationId={reviewData.applicationId}
-    freelancerName={reviewData.freelancerName}
-    gigTitle={reviewData.gigTitle}
-    onSubmitted={() => {
-      setShowRatingModal(false);
-      router.refresh();
-    }}
-  />
-)}
+      {reviewData && (
+        <RatingModal
+          isOpen={showRatingModal}
+          onClose={() => setShowRatingModal(false)}
+          applicationId={reviewData.applicationId}
+          freelancerName={reviewData.freelancerName}
+          gigTitle={reviewData.gigTitle}
+          onSubmitted={() => {
+            setShowRatingModal(false);
+            router.refresh();
+          }}
+        />
+      )}
 
     </div>
   );
