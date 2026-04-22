@@ -22,6 +22,6 @@ export function cosineSimilarity(
     return dot/denominator;
 }
 
-export default function similarityToPercent(score: number){
+export function similarityToPercent(score: number){
     return Math.round(((score + 1) / 2 ) * 100);
 }

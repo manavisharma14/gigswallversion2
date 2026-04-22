@@ -24,17 +24,6 @@ export async function POST(
     const { gigId } = await params; // Await params to get gigId
     const { reason, experience, portfolio, extra } = await req.json();
 
-    const combinedText = `
-
-Reason: ${reason || ""}
-
-Experience: ${experience || ""}
-
-Portfolio: ${portfolio || ""}
-
-Extra: ${extra || ""}
-
-`;
 
     const gig = await prisma.gig.findUnique({ where: { id: gigId } });
     if (!gig) {
@@ -59,6 +48,32 @@ Extra: ${extra || ""}
       );
     }
 
+    const combinedText = `
+      Reason: ${reason || ""}
+      Experience: ${experience || ""}
+      Portfolio: ${portfolio || ""}
+      Extra: ${extra || ""}
+    `;
+
+    const applicationEmbedding = await createEmbedding(combinedText);
+
+
+    let semanticMatchScore = 0;
+    if (
+      gig.aiGigEmbedding &&
+      gig.aiGigEmbedding.length > 0 &&
+      applicationEmbedding.length > 0
+    ) {
+      const similarity = cosineSimilarity(
+        applicationEmbedding,
+        gig.aiGigEmbedding
+      )
+
+      semanticMatchScore = similarityToPercent(similarity)
+    }
+
+
+
     const application = await prisma.application.create({
       data: {
         gigId,
@@ -67,6 +82,12 @@ Extra: ${extra || ""}
         experience,
         portfolio,
         extra,
+
+        applicationEmbedding,
+
+        semanticMatchScore,
+
+        aiModelVersion: "embedding-v1",
       },
     });
 

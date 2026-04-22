@@ -4,7 +4,7 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function createEmbeddings(text: string) : Promise<number[]>{
+export async function createEmbedding(text: string) : Promise<number[]>{
     const cleaned = text.replace(/\s+/g, " ").trim();
 
     if(!cleaned) return [];
