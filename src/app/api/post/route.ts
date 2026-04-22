@@ -1,13 +1,14 @@
 // app/api/gigs/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+// import { PrismaClient } from "@prisma/client";
 import { getToken } from "next-auth/jwt";
 // import { sendNewGigEmail } from "@/lib/email/sendNewGigEmail";
 import { createEmbedding } from "@/lib/ai/embed"
 
 
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
