@@ -1,5 +1,4 @@
 export const runtime = 'nodejs';
-
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getUserFromToken } from '@/lib/getUserFromServer';
@@ -53,8 +52,6 @@ export async function POST(req: NextRequest) {
     return userOrResponse;
   }
   const { userId } = userOrResponse;
-
-  
 
   try {
     const body = await req.json();
