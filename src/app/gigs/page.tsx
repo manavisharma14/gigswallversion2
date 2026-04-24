@@ -15,7 +15,7 @@ import { prisma } from '@/lib/prisma';
 //   createdAt: string;
 //   isOpen?: boolean;
 // }
-
+ 
 export async function generateMetadata() {
   return {
     title: 'Browse Freelance Gigs | GigsWall',
