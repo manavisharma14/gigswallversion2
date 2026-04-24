@@ -3,9 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 // import { PrismaClient } from "@prisma/client";
 import { getToken } from "next-auth/jwt";
 // import { sendNewGigEmail } from "@/lib/email/sendNewGigEmail";
-import { createEmbedding } from "@/lib/ai/embed"
-
-
+import { qstash } from "@/lib/qstash"
 
 // const prisma = new PrismaClient();
 import { prisma } from "@/lib/prisma";
@@ -21,25 +19,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-        const gigText = `
-
-Title: ${title}
-
-Description: ${description}
-
-Category: ${category}
-
-Budget: ${budget}
-
-College: ${college}
-
-`;
-
-// generate embedding 
-
-    const aiGigEmbedding = await createEmbedding(gigText)
-
-    // 1. Create the gig
     const newGig = await prisma.gig.create({
       data: {
         title,
@@ -49,16 +28,17 @@ College: ${college}
         college,
         postedById: userId,
         status: "open",
-
-        aiGigEmbedding,
-
-        aiGigUpdatedAt: new Date(),
-
-        aiEmbeddingVersion:
-
-          "text-embedding-3-small",
       },
     });
+
+    try{
+      await qstash.publishJSON({
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/api/jobs/process-gig`,
+      body: { gigId: newGig.id}
+    })
+    } catch(err: unknown){
+      console.error("Queue failed", err);
+    }
 
     console.log("✅ New gig created:", newGig.title);
 

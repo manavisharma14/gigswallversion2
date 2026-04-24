@@ -1,16 +1,13 @@
-// ✅ app/api/gigs/route.ts
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getUserFromToken } from '@/lib/getUserFromServer';
-import { sendNewGigEmail } from '@/lib/email/sendNewGigEmail';
+import { createEmbedding } from '@/lib/ai/embed';
+// import { sendNewGigEmail } from '@/lib/email/sendNewGigEmail';
 
 const prisma = new PrismaClient();
 
-// ------------------------
-// 📌 GET: Fetch all gigs
-// ------------------------
 export async function GET() {
   try {
     const gigs = await prisma.gig.findMany({
@@ -38,9 +35,23 @@ export async function POST(req: NextRequest) {
   }
   const { userId } = userOrResponse;
 
+  
+
   try {
     const body = await req.json();
     const { title, description, budget, category, college } = body;
+
+    const gigText = `
+  Title: ${title}
+  Description: ${description}
+  Category: ${category}
+  Budget: ${budget}
+  College: ${college}
+  `;
+
+const aiGigEmbedding = await createEmbedding(gigText);
+
+console.log("Gig Embedding Length:", aiGigEmbedding.length);
 
     //  Basic validation
     if (!title || !description || !budget || !category) {
@@ -62,16 +73,20 @@ export async function POST(req: NextRequest) {
 
     //  Create gig
     const newGig = await prisma.gig.create({
-      data: {
-        title,
-        description,
-        budget: parseInt(budget),
-        category,
-        college: gigCollege,
-        postedById: userId,
-        status: 'open',
-      },
-    });
+  data: {
+    title,
+    description,
+    budget: parseInt(budget),
+    category,
+    college: gigCollege,
+    postedById: userId,
+    status: 'open',
+
+    aiGigEmbedding,
+    aiGigUpdatedAt: new Date(),
+    aiEmbeddingVersion: "text-embedding-3-small",
+  },
+});
 
     console.log(` Gig created: ${newGig.title} | postedById: ${userId}`);
 
@@ -79,34 +94,34 @@ export async function POST(req: NextRequest) {
      const response = NextResponse.json(newGig, { status: 201 });
 
     //  Send emails in background (non-blocking)
-    setTimeout(async () => {
-      try {
-        const users = await prisma.user.findMany({
-          where: {
-            id: { not: userId },
-            type: 'student',
-            email: { not: '' },
-          },
-          select: { email: true },
-        });
+    // setTimeout(async () => {
+    //   try {
+    //     const users = await prisma.user.findMany({
+    //       where: {
+    //         id: { not: userId },
+    //         type: 'student',
+    //         email: { not: '' },
+    //       },
+    //       select: { email: true },
+    //     });
 
-        await Promise.all(
-          users
-            .filter((u) => u.email)
-            .map((user) =>
-              sendNewGigEmail({
-                to: user.email!,
-                gigTitle: title,
-                gigDescription: description,
-              })
-            )
-        );
+    //     await Promise.all(
+    //       users
+    //         .filter((u) => u.email)
+    //         .map((user) =>
+    //           sendNewGigEmail({
+    //             to: user.email!,
+    //             gigTitle: title,
+    //             gigDescription: description,
+    //           })
+    //         )
+    //     );
 
-        console.log(` Notification emails sent to ${users.length} users.`);
-      } catch (e) {
-        console.error(' Error sending notification emails:', e);
-      }
-    }, 0);
+    //     console.log(` Notification emails sent to ${users.length} users.`);
+    //   } catch (e) {
+    //     console.error(' Error sending notification emails:', e);
+    //   }
+    // }, 0);
 
      return response;
   } catch (error) {

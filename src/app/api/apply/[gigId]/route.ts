@@ -59,7 +59,7 @@ export async function POST(
       } catch (error) {
         console.error('Failed to send email notification:', error);
       }
-    }
+    } 
 
     return NextResponse.json(
       { message: 'Application submitted', application },

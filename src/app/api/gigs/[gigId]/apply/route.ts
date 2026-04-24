@@ -27,7 +27,7 @@ export async function POST(
 
     const gig = await prisma.gig.findUnique({ where: { id: gigId } });
     if (!gig) {
-      return NextResponse.json({ message: 'Gig not found' }, { status: 404 });
+      return NextResponse.json({ message: 'Gig not found' }, { status: 404 } );
     }
 
     if (gig.postedById === userId) {
@@ -60,18 +60,25 @@ export async function POST(
 
     let semanticMatchScore = 0;
     if (
-      gig.aiGigEmbedding &&
-      gig.aiGigEmbedding.length > 0 &&
-      applicationEmbedding.length > 0
-    ) {
-      const similarity = cosineSimilarity(
-        applicationEmbedding,
-        gig.aiGigEmbedding
-      )
+  gig.aiGigEmbedding &&
+  gig.aiGigEmbedding.length > 0 &&
+  applicationEmbedding.length > 0
+) {
+  const similarity = cosineSimilarity(
+    applicationEmbedding,
+    gig.aiGigEmbedding
+  );
 
-      semanticMatchScore = similarityToPercent(similarity)
-    }
+  console.log("------ AI MATCH DEBUG ------");
+  console.log("Gig Vector Length:", gig.aiGigEmbedding.length);
+  console.log("Application Vector Length:", applicationEmbedding.length);
+  console.log("Raw Similarity Score:", similarity);
 
+  semanticMatchScore = similarityToPercent(similarity);
+
+  console.log("Semantic Match %:", semanticMatchScore);
+  console.log("----------------------------");
+}
 
 
     const application = await prisma.application.create({
