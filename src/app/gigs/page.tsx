@@ -5,16 +5,16 @@ import React from 'react';
 import GigsListClient from './GigsListClient';
 import { prisma } from '@/lib/prisma';
 
-// interface Gig {
-//   id: string;
-//   title: string;
-//   category: string;
-//   budget: number;
-//   description: string;
-//   status: string;
-//   createdAt: string;
-//   isOpen?: boolean;
-// }
+interface Gig {
+  id: string;
+  title: string;
+  category: string;
+  budget: number;
+  description: string;
+  status: string;
+  createdAt: string;
+  isOpen?: boolean;
+}
  
 export async function generateMetadata() {
   return {
@@ -52,25 +52,14 @@ export default async function GigsPage() {
   // const { gigs: rawGigs } = await raw.json();
   // const gigs: Gig[] = Array.isArray(rawGigs) ? rawGigs : [];
 
-  const rawGigs = await prisma.gig.findMany({
-  take: 20,
-  orderBy: { createdAt: 'desc' },
-  select: {
-    id: true,
-    title: true,
-    category: true,
-    budget: true,
-    description: true,
-    status: true,
-    createdAt: true,
-    isOpen: true,
-  },
+const base = process.env.NEXT_PUBLIC_APP_URL!;
+
+const res = await fetch(`${base}/api/gigs`, {
+  cache: "no-store",
 });
 
-const gigs = rawGigs.map((gig) => ({
-  ...gig,
-  createdAt: gig.createdAt.toISOString(),
-}));
+const data = await res.json();
+const gigs: Gig[] = data.gigs;
 
   // build counts directly with Prisma
   const openIds = gigs

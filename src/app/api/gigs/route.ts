@@ -5,11 +5,24 @@ import { PrismaClient } from '@prisma/client';
 import { getUserFromToken } from '@/lib/getUserFromServer';
 import { createEmbedding } from '@/lib/ai/embed';
 // import { sendNewGigEmail } from '@/lib/email/sendNewGigEmail';
+import { redis } from "@/lib/redis"
 
 const prisma = new PrismaClient();
 
 export async function GET() {
   try {
+
+    const cacheKey = 'gigs:feed'
+
+    const cachedGigs = await redis.get(cacheKey);
+
+    if(cachedGigs){
+      console.log("returning gigs from redis cache")
+
+      return NextResponse.json({gigs: cachedGigs, source: 'cache'}, { status: 200})
+    }
+
+    // if not cached
     const gigs = await prisma.gig.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
@@ -19,7 +32,13 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({ gigs }, { status: 200 });
+    await redis.set(cacheKey, gigs, {
+      ex: 60
+    });
+
+    console.log('returned gigs from mongodb and + cached')
+
+    return NextResponse.json({ gigs, source: 'db' }, { status: 200 });
   } catch (error) {
     console.error('❌ Error fetching gigs:', error);
     return NextResponse.json({ error: 'Failed to fetch gigs' }, { status: 500 });

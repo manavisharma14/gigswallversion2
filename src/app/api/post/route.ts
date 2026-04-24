@@ -7,6 +7,7 @@ import { qstash } from "@/lib/qstash"
 
 // const prisma = new PrismaClient();
 import { prisma } from "@/lib/prisma";
+import { redis } from "@/lib/redis"
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,6 +31,8 @@ export async function POST(req: NextRequest) {
         status: "open",
       },
     });
+
+    await redis.del('gigs:feed')
 
     try{
       await qstash.publishJSON({

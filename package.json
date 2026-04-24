@@ -20,6 +20,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@stripe/stripe-js": "^7.6.1",
     "@upstash/qstash": "^2.10.1",
+    "@upstash/redis": "^1.37.0",
     "axios": "^1.13.1",
     "bad-words": "^4.0.0",
     "bcrypt": "^6.0.0",
