@@ -12,7 +12,7 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const userId = session?.user.id;
+  const userId = session.user.id;
   const cacheKey = `dashboard:applied:${userId}`
 
   const cached = await redis.get(cacheKey);
@@ -22,7 +22,7 @@ export async function GET() {
   }
 
   const applications = await prisma.application.findMany({
-    where: { userId: session.user.id },
+    where: { userId },
     include: { gig: true },
     orderBy: { createdAt: 'desc' },
   });
