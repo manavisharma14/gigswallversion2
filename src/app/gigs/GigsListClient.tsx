@@ -1,10 +1,12 @@
 'use client';
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import ApplyModal from '@/components/ApplyModal';
 import { Info } from 'lucide-react';
+
+
 
 interface Gig {
   id: string;
@@ -35,6 +37,51 @@ export default function GigsListClient({
   const [selectedGig, setSelectedGig] = useState<Gig | null>(gigs[0] || null);
   const [showModal, setShowModal] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
+
+  const [query, setQuery] = useState('');
+  const [displayGigs, setDisplayGigs] = useState(gigs);
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  useEffect(() => {
+  const timer = setTimeout(async () => {
+    if (!query.trim()) {
+      setDisplayGigs(gigs);
+      return;
+    }
+
+    try {
+      setSearchLoading(true);
+
+      const res = await fetch(
+        `/api/gigs/search?q=${encodeURIComponent(query)}`
+      );
+
+      const data = await res.json();
+
+      const results = data.gigs || [];
+
+      setDisplayGigs(results);
+
+      if (results.length > 0) {
+
+  setSelectedGig(results[0]);
+
+} else {
+
+  setSelectedGig(null);
+
+}
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSearchLoading(false);
+    }
+  }, 350);
+
+  return () => clearTimeout(timer);
+}, [query, gigs]);
+
+
 
   const handleSubmitApplication = (formData: ApplicationFormData) => {
     console.log('Application submitted:', {
@@ -89,7 +136,7 @@ export default function GigsListClient({
 
   return (
     <div className="min-h-screen bg-white font-bricolage mt-14 px-4 sm:px-6 md:px-12 py-10">
-      {selectedGig && selectedGig.status.toLowerCase() === 'open' && showModal && (
+      {selectedGig && selectedGig.status?.toLowerCase() === 'open' && showModal && (
         <ApplyModal
           gigId={selectedGig.id}
           gigTitle={selectedGig.title}
@@ -98,7 +145,7 @@ export default function GigsListClient({
         />
       )}
 
-<div className="mb-8 mx-5">
+          <div className="mb-8 mx-5">
             <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[#4B55C3]">
               Explore Gigs
             </h1>
@@ -106,15 +153,40 @@ export default function GigsListClient({
               Find campus-verified opportunities. Clean, minimal, welcoming.
             </p> */}
           </div>
+
+          <div className="mb-6">
+  <input
+    value={query}
+    onChange={(e) => setQuery(e.target.value)}
+    placeholder="Search gigs by skill, title, or intent..."
+    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4B55C3]"
+  />
+
+  {searchLoading && (
+    <p className="text-sm text-gray-500 mt-2">
+      Searching...
+    </p>
+  )}
+</div>
       <div className="flex flex-col md:grid md:grid-cols-3 gap-8">
 
         
         
         {/* Sidebar Gigs */}
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-y-auto max-h-[70vh] md:sticky md:top-24">
-          {gigs.map((gig) => {
+          {displayGigs.length === 0 && (
+  <div className="p-6 text-center">
+    <p className="text-sm font-medium text-gray-700">
+      No matching gigs found
+    </p>
+    <p className="text-xs text-gray-500 mt-1">
+      Try another skill, title, or category.
+    </p>
+  </div>
+)}
+          {displayGigs.map((gig) => {
             const isSelected = selectedGig?.id === gig.id;
-            const isOpen = gig.status.toLowerCase() === 'open' || gig.isOpen;
+            const isOpen = gig.status?.toLowerCase() === 'open' || gig.isOpen;
 
             return (
               <div
@@ -143,7 +215,7 @@ export default function GigsListClient({
               
               <div className="flex flex-col gap-2">
                 <h2 className="text-3xl font-extrabold text-[#4B55C3]">{selectedGig.title}</h2>
-                {selectedGig.status.toLowerCase() === 'open' && (
+                {selectedGig.status?.toLowerCase() === 'open' && (
                   <span className="self-start px-3 py-1 text-xs font-medium rounded-full bg-[#EFF2FF] text-[#4B55C3]">
                     Open for applications
                   </span>
@@ -159,7 +231,7 @@ export default function GigsListClient({
                 {selectedGig.description}
               </p>
 
-              {selectedGig.status.toLowerCase() === 'open' && (
+              {selectedGig.status?.toLowerCase() === 'open' && (
                 <div className="relative inline-block">
                   <div className="flex items-center gap-3">
                     

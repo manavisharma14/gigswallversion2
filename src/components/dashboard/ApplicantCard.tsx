@@ -9,19 +9,25 @@ import {
   BriefcaseIcon,
   LinkIcon,
   UserCircleIcon,
+  SparklesIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon,
 } from '@heroicons/react/24/outline';
 import { Menu } from '@headlessui/react';
 import ChatComponent from '../ChatComponent';
 import { ApplicationWithRelations, GigWithRelations } from '@/types/prisma';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { useState, useEffect } from 'react';
-import RatingModal from "../RatingModal"
+import { useState, useEffect, useMemo } from 'react';
+import RatingModal from '../RatingModal';
 
 interface Props {
-  application: ApplicationWithRelations;   // ← Full relation with gig.applications
-  gig: GigWithRelations;                   // ← Full gig with applications[]
-  setToast: (t: { message: string; type: 'success' | 'error' } | null) => void;
+  application: ApplicationWithRelations;
+  gig: GigWithRelations;
+  setToast: (
+    t: { message: string; type: 'success' | 'error' } | null
+  ) => void;
   isChatOpen: boolean;
   onChatToggle: () => void;
 }
@@ -31,23 +37,98 @@ const Badge = ({
   variant,
 }: {
   children: React.ReactNode;
-  variant: 'success' | 'warning' | 'info' | 'gray' | 'purple' | 'indigo';
+  variant:
+    | 'success'
+    | 'warning'
+    | 'info'
+    | 'gray'
+    | 'purple'
+    | 'indigo'
+    | 'red'
+    | 'green';
 }) => {
   const styles = {
-    success: 'bg-emerald-100 text-emerald-700 border-emerald-300',
-    warning: 'bg-amber-100 text-amber-700 border-amber-300',
-    info: 'bg-blue-100 text-blue-700 border-blue-300',
-    gray: 'bg-gray-50 text-gray-700 border-gray-200',
-    purple: 'bg-purple-100 text-purple-700 border-purple-300',
-    indigo: 'bg-indigo-100 text-indigo-700 border-indigo-300',
+    success: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    warning: 'bg-amber-100 text-amber-700 border-amber-200',
+    info: 'bg-blue-100 text-blue-700 border-blue-200',
+    gray: 'bg-gray-100 text-gray-700 border-gray-200',
+    purple: 'bg-purple-100 text-purple-700 border-purple-200',
+    indigo: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+    red: 'bg-red-100 text-red-700 border-red-200',
+    green: 'bg-green-100 text-green-700 border-green-200',
   }[variant];
 
   return (
-    <span className={`px-2.5 py-1 text-xs rounded-full border ${styles}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${styles}`}
+    >
       {children}
     </span>
   );
 };
+
+function getStatusConfig(status: string) {
+  switch (status) {
+    case 'accepted':
+      return {
+        label: 'Accepted',
+        variant: 'success' as const,
+        icon: <CheckCircleIcon className="h-3.5 w-3.5" />,
+      };
+    case 'rejected':
+      return {
+        label: 'Rejected',
+        variant: 'red' as const,
+        icon: <XCircleIcon className="h-3.5 w-3.5" />,
+      };
+    default:
+      return {
+        label: 'Pending',
+        variant: 'warning' as const,
+        icon: <ClockIcon className="h-3.5 w-3.5" />,
+      };
+  }
+}
+
+function getMatchMeta(score?: number | null) {
+  if (score == null) {
+    return {
+      label: 'Unscored',
+      variant: 'gray' as const,
+      highlight: false,
+    };
+  }
+
+  if (score >= 90) {
+    return {
+      label: 'Top Match',
+      variant: 'green' as const,
+      highlight: true,
+    };
+  }
+
+  if (score >= 75) {
+    return {
+      label: 'Strong Fit',
+      variant: 'indigo' as const,
+      highlight: true,
+    };
+  }
+
+  if (score >= 60) {
+    return {
+      label: 'Good Fit',
+      variant: 'info' as const,
+      highlight: false,
+    };
+  }
+
+  return {
+    label: 'Potential Fit',
+    variant: 'gray' as const,
+    highlight: false,
+  };
+}
 
 export default function ApplicantCard({
   application,
@@ -57,8 +138,6 @@ export default function ApplicantCard({
   onChatToggle,
 }: Props) {
   const router = useRouter();
-
-
 
   const {
     id: appId,
@@ -70,55 +149,62 @@ export default function ApplicantCard({
     extra: extraInfo,
     createdAt,
     escrowStatus,
-    // escrowAmount,
-    // workSubmitted,
-    // completed,
+    semanticMatchScore,
   } = application;
 
   const [expanded, setExpanded] = useState(false);
-
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [reviewData, setReviewData] = useState<{
     applicationId: string;
     freelancerName: string;
     gigTitle: string;
   } | null>(null);
-
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
 
   useEffect(() => {
-    const id = localStorage.getItem("userId");
-    console.log(" Logged-in userId from localStorage:", id);
-    console.log(" Gig postedById:", gig.postedById);
-    console.log(" Full gig object:", gig);
-    console.log(" Full application object:", application);
+    const id = localStorage.getItem('userId');
     setCurrentUserId(id);
-  }, [gig, application]);
+  }, []);
+
+  const statusMeta = useMemo(() => getStatusConfig(status), [status]);
+  const matchMeta = useMemo(
+    () => getMatchMeta(semanticMatchScore),
+    [semanticMatchScore]
+  );
 
   const closeGig = async () => {
-    // This function now only performs the API call.
-    const res = await fetch(`/api/gigs/${gig.id}/close`, { method: 'PATCH' });
-  
+    const res = await fetch(`/api/gigs/${gig.id}/close`, {
+      method: 'PATCH',
+    });
+
     if (res.ok) {
-      setToast({ message: "Gig closed successfully", type: "success" });
-  
-      if (status === "accepted") {
+      setToast({
+        message: 'Gig closed successfully',
+        type: 'success',
+      });
+
+      if (status === 'accepted') {
         setReviewData({
           applicationId: application.id,
-          freelancerName: user.name || "Freelancer",
-          gigTitle: gig.title || "Gig",
+          freelancerName: user.name || 'Freelancer',
+          gigTitle: gig.title || 'Gig',
         });
         setShowRatingModal(true);
       }
-  
+
       router.refresh();
     } else {
-      setToast({ message: "Failed to close gig", type: "error" });
+      setToast({
+        message: 'Failed to close gig',
+        type: 'error',
+      });
     }
   };
 
-  const updateStatus = async (newStatus: 'accepted' | 'pending' | 'rejected') => {
+  const updateStatus = async (
+    newStatus: 'accepted' | 'pending' | 'rejected'
+  ) => {
     try {
       const res = await fetch(`/api/applications/${appId}/status`, {
         method: 'PATCH',
@@ -128,7 +214,10 @@ export default function ApplicantCard({
 
       if (!res.ok) {
         const data = await res.json();
-        return setToast({ message: data.message ?? 'Failed', type: 'error' });
+        return setToast({
+          message: data.message ?? 'Failed',
+          type: 'error',
+        });
       }
 
       setToast({
@@ -136,224 +225,208 @@ export default function ApplicantCard({
           newStatus === 'accepted'
             ? 'Applicant accepted'
             : newStatus === 'rejected'
-              ? 'Applicant rejected'
-              : 'Moved to pending',
+            ? 'Applicant rejected'
+            : 'Moved to pending',
         type: 'success',
       });
+
       router.refresh();
     } catch {
-      setToast({ message: 'Network error', type: 'error' });
+      setToast({
+        message: 'Network error',
+        type: 'error',
+      });
     }
   };
 
-
-  const [showConfirmClose, setShowConfirmClose] = useState(false);
-  // const canShowPay = status === 'accepted' && gig.postedById === me && escrowStatus === 'NONE';
-
-  // const escrowPill = (() => {
-  //   if (escrowStatus === 'PAID') return <Badge variant="success">Payment Verified</Badge>;
-  //   if (escrowStatus === 'PENDING') return <Badge variant="warning">Proof Submitted</Badge>;
-  //   if (escrowStatus === 'RELEASED') return <Badge variant="info">Funds Released</Badge>;
-  //   return <Badge variant="gray">no escrow</Badge>;
-  // })();
-
-  // const releaseFunds = async () => {
-  //   if (!confirm(`Release ₹${escrowAmount} to ${user.name ?? 'freelancer'}?`)) return;
-
-  //   const res = await fetch('/api/escrow/release', {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({ applicationId: appId }),
-  //   });
-
-  //   const data = await res.json();
-  //   setToast({
-  //     message: res.ok ? 'Marked as Paid Out' : data.error ?? 'Failed',
-  //     type: res.ok ? 'success' : 'error',
-  //   });
-  //   if (res.ok) router.refresh();
-  // };
-
-
-
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-lg transition-all duration-200 space-y-4">
-      {/* HEADER */}
-      <div className="flex justify-between items-start">
-        <div className="flex gap-3">
-          <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold text-base">
+    <div
+      className={`rounded-3xl border bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg ${
+        matchMeta.highlight
+          ? 'border-indigo-200 ring-1 ring-indigo-100'
+          : 'border-gray-200'
+      }`}
+    >
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex min-w-0 gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-base font-bold text-white shadow-sm">
             {user.name?.[0]?.toUpperCase() ?? 'U'}
           </div>
 
-          <div className="space-y-0.5">
-            <p className="font-semibold text-gray-900 text-sm">{user.name}</p>
-            <p className="text-xs text-gray-600">{user.email}</p>
-            <p className="text-xs text-gray-400">
-              {user.college} • {user.department} • {user.gradYear}
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="truncate text-base font-bold text-gray-900">
+                {user.name || 'Unknown Applicant'}
+              </p>
+
+              {semanticMatchScore !== null &&
+                semanticMatchScore !== undefined && (
+                  <Badge variant={matchMeta.variant}>
+                    <SparklesIcon className="h-3.5 w-3.5" />
+                    {matchMeta.label} • {semanticMatchScore}%
+                  </Badge>
+                )}
+
+              <Badge variant={statusMeta.variant}>
+                {statusMeta.icon}
+                {statusMeta.label}
+              </Badge>
+            </div>
+
+            <p className="mt-1 truncate text-sm text-gray-600">
+              {user.email}
             </p>
-            {/* <div className="mt-1 flex gap-2 flex-wrap">
-              {escrowPill}
-              {workSubmitted && <Badge variant="purple">Work Submitted</Badge>}
-              {completed && <Badge variant="indigo">Gig Completed</Badge>}
-            </div> */}
-{/*
- <div className="flex items-center gap-1 text-xs text-yellow-600 font-medium">
-  {application.user.totalRatings > 0 ? (
-    <>
-      <span>⭐ {application.user.averageRating.toFixed(1)}</span>
-      <span className="text-gray-500">({application.user.totalRatings})</span>
-    </>
-  ) : (
-    <span className="text-gray-400">No reviews yet</span>
-  )}
-</div> 
-*/}
+
+            <p className="mt-1 text-xs text-gray-400">
+              {[user.college, user.department, user.gradYear]
+                .filter(Boolean)
+                .join(' • ') || 'No academic details'}
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Badge
-            variant={
-              status === 'accepted' ? 'success' :
-                status === 'pending' ? 'warning' :
-                  'gray'
-            }
-          >
-            {status}
-          </Badge>
+        <Menu as="div" className="relative shrink-0">
+          <Menu.Button className="rounded-full p-2 transition hover:bg-gray-100">
+            <EllipsisHorizontalIcon className="h-5 w-5 text-gray-500" />
+          </Menu.Button>
 
-          <Menu as="div" className="relative">
-            <Menu.Button className="p-1.5 rounded-full hover:bg-gray-100 transition">
-              <EllipsisHorizontalIcon className="w-5 h-5 text-gray-600" />
-            </Menu.Button>
-
-            <Menu.Items className="absolute right-0 bg-white border rounded-lg shadow-md w-40 z-50 py-1 text-sm">
-              <Menu.Item>
-                <button onClick={() => updateStatus('accepted')} className="block w-full text-left px-3 py-2 hover:bg-gray-100">
-                  Accept
-                </button>
-              </Menu.Item>
-              <Menu.Item>
-                <button onClick={() => updateStatus('pending')} className="block w-full text-left px-3 py-2 hover:bg-gray-100">
-                  Move to Pending
-                </button>
-              </Menu.Item>
-              <Menu.Item>
-                <button onClick={() => updateStatus('rejected')} className="block w-full text-left px-3 py-2 text-red-600 hover:bg-red-50">
-                  Reject
-                </button>
-              </Menu.Item>
-            </Menu.Items>
-          </Menu>
-        </div>
+          <Menu.Items className="absolute right-0 z-50 mt-2 w-44 overflow-hidden rounded-2xl border border-gray-200 bg-white py-1 shadow-lg">
+            <Menu.Item>
+              <button
+                onClick={() => updateStatus('accepted')}
+                className="block w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50"
+              >
+                Accept
+              </button>
+            </Menu.Item>
+            <Menu.Item>
+              <button
+                onClick={() => updateStatus('pending')}
+                className="block w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50"
+              >
+                Move to Pending
+              </button>
+            </Menu.Item>
+            <Menu.Item>
+              <button
+                onClick={() => updateStatus('rejected')}
+                className="block w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50"
+              >
+                Reject
+              </button>
+            </Menu.Item>
+          </Menu.Items>
+        </Menu>
       </div>
 
-      {/* APPLIED DATE */}
-      <p className="text-xs text-gray-400 flex items-center gap-1">
-        <CalendarIcon className="w-3.5 h-3.5" />
-        Applied {format(new Date(createdAt), 'MMM d, yyyy • h:mm a')}
-      </p>
+      {/* Sub row */}
+      <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-gray-500">
+        <span className="inline-flex items-center gap-1">
+          <CalendarIcon className="h-3.5 w-3.5" />
+          Applied {format(new Date(createdAt), 'MMM d, yyyy • h:mm a')}
+        </span>
 
-      {/* EXPANDABLE INFO */}
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="text-xs flex items-center gap-1 text-indigo-600 font-medium hover:underline"
-      >
-        View application details
-        <ChevronDownIcon className={`w-4 h-4 transition ${expanded && 'rotate-180'}`} />
-      </button>
+        {portfolio && (
+          <a
+            href={portfolio}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 font-medium text-indigo-600 hover:text-indigo-700"
+          >
+            <LinkIcon className="h-3.5 w-3.5" />
+            Portfolio
+          </a>
+        )}
+      </div>
 
-      {expanded && (
-        <div className="space-y-3 pl-1 border-l border-gray-200 ml-1">
-          {reason && (
-            <div className="text-sm text-gray-700">
-              <span className="flex gap-1 font-medium text-gray-800">
-                <UserCircleIcon className="h-4 w-4" /> Why this gig:
-              </span>
-              <p className="mt-1">{reason}</p>
-            </div>
-          )}
-          {experience && (
-            <div className="text-sm text-gray-700">
-              <span className="flex gap-1 font-medium text-gray-800">
-                <BriefcaseIcon className="h-4 w-4" /> Experience:
-              </span>
-              <p className="mt-1">{experience}</p>
-            </div>
-          )}
-          {portfolio && (
-            <a
-              href={portfolio}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-indigo-600 flex items-center gap-1 font-medium hover:underline"
+      {/* Quick summary */}
+      <div className="mt-4 rounded-2xl bg-gray-50 p-4">
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">
+          Application Snapshot
+        </p>
+        <p className="line-clamp-2 text-sm leading-6 text-gray-700">
+          {reason || experience || extraInfo || 'No application details provided.'}
+        </p>
+      </div>
+
+      {/* Actions */}
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <button
+          onClick={() => setExpanded((prev) => !prev)}
+          className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+        >
+          View Details
+          <ChevronDownIcon
+            className={`h-4 w-4 transition-transform ${
+              expanded ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
+
+        <button
+          onClick={onChatToggle}
+          className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+          title={
+            escrowStatus !== 'PAID'
+              ? 'Files unlock after payment screenshot is verified'
+              : ''
+          }
+        >
+          <ChatBubbleLeftIcon className="h-4 w-4" />
+          {isChatOpen ? 'Close Chat' : 'Message Applicant'}
+        </button>
+
+        {gig.isOpen &&
+          currentUserId &&
+          currentUserId === gig.postedById?.toString() &&
+          status === 'accepted' && (
+            <button
+              onClick={() => setShowConfirmClose(true)}
+              className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
             >
-              <LinkIcon className="h-4 w-4" /> Portfolio
-            </a>
+              Close Gig
+            </button>
           )}
-          {extraInfo && <p className="text-sm text-gray-700">{extraInfo}</p>}
+      </div>
+
+      {/* Expanded details */}
+      {expanded && (
+        <div className="mt-5 space-y-4 rounded-2xl border border-gray-100 bg-white p-4">
+          {reason && (
+            <div className="rounded-2xl bg-gray-50 p-4">
+              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-800">
+                <UserCircleIcon className="h-4 w-4 text-indigo-500" />
+                Why this gig
+              </div>
+              <p className="text-sm leading-6 text-gray-700">{reason}</p>
+            </div>
+          )}
+
+          {experience && (
+            <div className="rounded-2xl bg-gray-50 p-4">
+              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-800">
+                <BriefcaseIcon className="h-4 w-4 text-indigo-500" />
+                Relevant experience
+              </div>
+              <p className="text-sm leading-6 text-gray-700">{experience}</p>
+            </div>
+          )}
+
+          {extraInfo && (
+            <div className="rounded-2xl bg-gray-50 p-4">
+              <div className="mb-2 text-sm font-semibold text-gray-800">
+                Additional context
+              </div>
+              <p className="text-sm leading-6 text-gray-700">{extraInfo}</p>
+            </div>
+          )}
         </div>
       )}
 
-
-      {/* CHAT */}
-      <button
-        onClick={onChatToggle}
-        className="text-xs px-3 py-1.5 rounded-full border border-indigo-300 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition flex items-center gap-1"
-        title={escrowStatus !== 'PAID' ? 'Files unlock after payment screenshot is verified' : ''}
-      >
-        <ChatBubbleLeftIcon className="w-3.5 h-3.5" />
-        Message Applicant
-      </button>
-
-
-      {/* Show Close Gig only when one applicant is accepted */}
-      {gig.isOpen &&
-        currentUserId &&
-        currentUserId === gig.postedById?.toString() &&
-        status === "accepted" && (
-          <button
-  onClick={() => setShowConfirmClose(true)}
-  className="text-xs px-3 py-1.5 rounded-full border border-red-300 text-red-700 bg-red-50 hover:bg-red-100 transition flex items-center gap-1"
->
-  Close Gig
-</button>
-        )}
-
-{showConfirmClose && (
-  <div className="fixed inset-0 flex items-center shadow-xl justify-center z-50">
-    <div className="bg-white rounded-lg w-[90%] max-w-sm p-6 shadow-xl space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900">
-        Close Gig?
-      </h2>
-      <p className="text-sm text-gray-600">
-        Are you sure you want to close this gig? All applicants will be locked and no more actions can be taken.
-      </p>
-
-      <div className="flex justify-end gap-3 pt-2">
-        <button
-          onClick={() => setShowConfirmClose(false)}
-          className="px-3 py-1.5 text-sm rounded-md border border-gray-300 hover:bg-gray-100"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={async () => {
-            setShowConfirmClose(false);
-            await closeGig();
-          }}
-          className="px-3 py-1.5 text-sm rounded-md bg-red-600 text-white hover:bg-red-700"
-        >
-          Yes, Close Gig
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-
+      {/* Chat */}
       {isChatOpen && (
-        <div className="mt-2 border p-2 rounded-lg bg-gray-50">
+        <div className="mt-5 rounded-2xl border border-gray-200 bg-gray-50 p-3">
           <ChatComponent
             gigId={gig.id}
             posterId={gig.postedById}
@@ -366,93 +439,54 @@ export default function ApplicantCard({
         </div>
       )}
 
-      {/* UPI PAYMENT MODAL */}
-      {/* {showPaymentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-[360px] space-y-4">
-            <h2 className="font-semibold text-gray-900 text-lg">Upload Payment Proof to Start Work (Beta)
+      {/* Close confirmation */}
+      {showConfirmClose && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
+            <h2 className="text-lg font-bold text-gray-900">
+              Close Gig?
             </h2>
-            <p className="text-sm text-gray-600">
-              Send <span className="font-semibold text-black">₹{gig.budget}</span> to secure this gig.
+
+            <p className="mt-2 text-sm leading-6 text-gray-600">
+              Are you sure you want to close this gig? All applicants will be
+              locked and no more actions can be taken.
             </p>
-            <div className="bg-gray-50 p-3 rounded-md border text-xs space-y-1">
-              <p className="font-medium text-gray-800">Pay to UPI:</p>
-              <p className="font-mono text-sm text-indigo-700">
-                {process.env.NEXT_PUBLIC_ESCROW_UPI_ID ?? 'manav@upi'}
-              </p>
-              <p className="text-gray-500">Reference: GIG_{gig.id}_APP_{appId}</p>
-            </div>
 
-            <form
-              className="space-y-3"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                setSubmittingProof(true);
-                const form = e.currentTarget;
-                const file = (form.elements.namedItem('screenshot') as HTMLInputElement).files?.[0];
-                const txn = (form.elements.namedItem('txn') as HTMLInputElement).value;
-
-                if (!file || !txn) {
-                  setToast({ message: 'Upload screenshot & enter transaction id', type: 'error' });
-                  setSubmittingProof(false);
-                  return;
-                }
-
-                const data = new FormData();
-                data.append('file', file);
-                data.append('upiReference', txn);
-                data.append('gigId', gig.id);
-                data.append('applicationId', appId);
-                data.append('amount', gig.budget.toString());
-
-                const res = await fetch('/api/escrow/upload', { method: 'POST', body: data });
-
-                if (res.ok) {
-                  setToast({ message: "Proof uploaded — awaiting verification", type: 'success' });
-                  setShowPaymentModal(false);
-                  router.refresh();
-                } else {
-                  const j = await res.json().catch(() => ({}));
-                  setToast({ message: j?.error ?? 'Upload failed', type: 'error' });
-                }
-                setSubmittingProof(false);
-              }}
-            >
-              <input type="text" name="txn" placeholder="Transaction ID" className="w-full border rounded p-2 text-sm" required />
-              <input type="file" name="screenshot" accept="image/*" className="w-full border rounded p-2 text-sm" required />
+            <div className="mt-6 flex justify-end gap-3">
               <button
-                type="submit"
-                disabled={submittingProof}
-                className="w-full bg-indigo-600 text-white text-sm font-medium rounded-lg px-3 py-2 hover:bg-indigo-700 transition disabled:opacity-60"
+                onClick={() => setShowConfirmClose(false)}
+                className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
-                {submittingProof ? 'Uploading...' : 'Upload Proof & Submit'}
+                Cancel
               </button>
-            </form>
 
-            <button
-              onClick={() => setShowPaymentModal(false)}
-              className="text-xs text-gray-500 hover:underline w-full text-center"
-            >
-              Cancel
-            </button>
+              <button
+                onClick={async () => {
+                  setShowConfirmClose(false);
+                  await closeGig();
+                }}
+                className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+              >
+                Yes, Close Gig
+              </button>
+            </div>
           </div>
         </div>
-      )} */}
+      )}
 
-{reviewData && (
-  <RatingModal
-    isOpen={showRatingModal}
-    onClose={() => setShowRatingModal(false)}
-    applicationId={reviewData.applicationId}
-    freelancerName={reviewData.freelancerName}
-    gigTitle={reviewData.gigTitle}
-    onSubmitted={() => {
-      setShowRatingModal(false);
-      router.refresh();
-    }}
-  />
-)}
-
+      {reviewData && (
+        <RatingModal
+          isOpen={showRatingModal}
+          onClose={() => setShowRatingModal(false)}
+          applicationId={reviewData.applicationId}
+          freelancerName={reviewData.freelancerName}
+          gigTitle={reviewData.gigTitle}
+          onSubmitted={() => {
+            setShowRatingModal(false);
+            router.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }

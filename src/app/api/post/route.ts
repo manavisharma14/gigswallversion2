@@ -1,14 +1,26 @@
-// app/api/gigs/route.ts
+// app/api/post/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { getToken } from "next-auth/jwt";
 // import { sendNewGigEmail } from "@/lib/email/sendNewGigEmail";
-
-const prisma = new PrismaClient();
+import { qstash } from "@/lib/qstash"
+import { prisma } from "@/lib/prisma";
+import { redis, gigsRateLimit } from "@/lib/redis"
 
 export async function POST(req: NextRequest) {
   try {
     const { title, description, budget, category, college } = await req.json();
+
+    if (!title || !description || !budget || !category) {
+
+      return NextResponse.json(
+
+        { error: "Missing required fields" },
+
+        { status: 400 }
+
+      );
+
+    }
 
     const token = await getToken({ req });
     const userId = token?.id as string;
@@ -17,7 +29,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // 1. Create the gig
+    const { success, remaining, reset } = await gigsRateLimit.limit(userId);
+
+    if (!success) {
+      return NextResponse.json({
+        error: "too many gig posts. try again later",
+        remaining,
+        reset
+      }, {
+        status: 429
+      })
+    }
+
     const newGig = await prisma.gig.create({
       data: {
         title,
@@ -29,6 +52,17 @@ export async function POST(req: NextRequest) {
         status: "open",
       },
     });
+
+    await redis.del('gigs:feed')
+
+    try {
+      await qstash.publishJSON({
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/api/jobs/process-gig`,
+        body: { gigId: newGig.id }
+      })
+    } catch (err: unknown) {
+      console.error("Queue failed", err);
+    }
 
     console.log("✅ New gig created:", newGig.title);
 

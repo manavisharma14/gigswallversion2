@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { redis } from '@/lib/redis'
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -10,7 +11,16 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const userId = session.user.id;
+  const cacheKey = `dashboard:posted:${userId}`
+
   try {
+    const cached = await redis.get(cacheKey);
+
+    if(cached){
+      return NextResponse.json({ gigs: cached, source: "cache"})
+    }
+
     const gigs = await prisma.gig.findMany({
       where: { postedById: session.user.id },
       include: {
@@ -35,7 +45,9 @@ export async function GET() {
       orderBy: { createdAt: 'desc' },
     });
 
-    return NextResponse.json({ gigs });
+    await redis.set(cacheKey, gigs, { ex: 30})
+
+    return NextResponse.json({ gigs, source: "db" });
   } catch (error) {
     console.error('Error fetching posted gigs:', error);
     return NextResponse.json(

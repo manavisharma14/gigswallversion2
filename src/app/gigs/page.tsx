@@ -15,7 +15,7 @@ interface Gig {
   createdAt: string;
   isOpen?: boolean;
 }
-
+ 
 export async function generateMetadata() {
   return {
     title: 'Browse Freelance Gigs | GigsWall',
@@ -47,26 +47,48 @@ export async function generateMetadata() {
 
 export default async function GigsPage() {
   // fetch gigs (as you already do)
-  const base = process.env.NEXT_PUBLIC_BASE_URL!;
-  const raw = await fetch(`${base}/api/gigs`, { cache: 'no-store' });
-  const { gigs: rawGigs } = await raw.json();
-  const gigs: Gig[] = Array.isArray(rawGigs) ? rawGigs : [];
+  // const base = process.env.NEXT_PUBLIC_BASE_URL!;
+  // const raw = await fetch(`${base}/api/gigs`, { cache: 'no-store' });
+  // const { gigs: rawGigs } = await raw.json();
+  // const gigs: Gig[] = Array.isArray(rawGigs) ? rawGigs : [];
+
+const base = process.env.NEXT_PUBLIC_APP_URL!;
+
+const res = await fetch(`${base}/api/gigs`, {
+  cache: "no-store",
+});
+
+const data = await res.json();
+const gigs: Gig[] = data.gigs;
 
   // build counts directly with Prisma
   const openIds = gigs
     .filter((g) => g.status?.toLowerCase?.() === 'open' || g.isOpen)
     .map((g) => g.id);
 
-  const initialCounts: Record<string, number> = {};
-  await Promise.all(
-    openIds.map(async (gigId) => {
-      const c = await prisma.application.count({ where: { gigId } });
-      initialCounts[gigId] = c;
+  const groupedCounts = openIds.length
+  ? await prisma.application.groupBy({
+      by: ['gigId'],
+      _count: {
+        gigId: true,
+      },
+      where: {
+        gigId: {
+          in: openIds,
+        },
+      },
     })
-  );
+  : [];
+
+const initialCounts: Record<string, number> = {};
+
+groupedCounts.forEach((item) => {
+  initialCounts[item.gigId] = item._count.gigId;
+});
+  
 
   return (
-    <div className="mt-28 mx-32">
+    <div className="mt-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <GigsListClient gigs={gigs} initialCounts={initialCounts} />
     </div>
   );
