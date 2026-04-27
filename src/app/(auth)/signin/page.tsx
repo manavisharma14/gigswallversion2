@@ -88,7 +88,7 @@ export default function SignInPage() {
           </h1>
 
           <p className="text-white/50 text-[15px] leading-relaxed max-w-xs mb-10">
-            Connect with businesses that need your talent — on your schedule, at your price.
+            Connect with businesses that need your talent, on your schedule, at your price.
           </p>
 
           <div className="flex gap-8">
