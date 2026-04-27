@@ -91,7 +91,7 @@ export default function SignInPage() {
             Connect with businesses that need your talent, on your schedule, at your price.
           </p>
 
-          <div className="flex gap-8">
+          {/* <div className="flex gap-8">
             {[
               { val: "2,400+", lbl: "Active students" },
               { val: "₹18L+",  lbl: "Paid out" },
@@ -102,7 +102,7 @@ export default function SignInPage() {
                 <p className="text-xs text-white/40 mt-0.5">{s.lbl}</p>
               </div>
             ))}
-          </div>
+          </div> */}
         </div>
 
         <p className="relative z-10 text-xs text-white/25">© 2025 GigsWall · Built for students</p>
