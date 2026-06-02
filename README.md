@@ -2,7 +2,7 @@
 
 A two-sided hiring marketplace that connects freelancers with recruiters using semantic search and AI-powered candidate ranking. Built and shipped solo to 2,100 production users, validated by KU Accelerator ($6K award).
 
-**Live:** [gigswall.com](https://gigswall.com) &nbsp;·&nbsp; **Stack:** Next.js · MongoDB · Redis · FastAPI · OpenAI
+**Live:** [gigswall.com](https://gigswall.com) &nbsp;·&nbsp; **Stack:** Next.js · MongoDB · Redis · OpenAI
 
 ---
 
@@ -18,20 +18,17 @@ GigsWall uses semantic search and LLM reranking to understand what a recruiter a
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                        Next.js Frontend                  │
-│          Auth · Profiles · Gig Feed · Chat · Dashboard  │
-└────────────────────────┬────────────────────────────────┘
-                         │ REST + WebSocket
-┌────────────────────────▼────────────────────────────────┐
-│                     FastAPI Backend                      │
+│                       Next.js App                        │
 │                                                         │
-│   ┌─────────────┐  ┌──────────────┐  ┌──────────────┐  │
-│   │  Matching   │  │  AI Agents   │  │  Feed Engine │  │
-│   │  Service    │  │  (LangGraph) │  │  (WebSocket) │  │
-│   └──────┬──────┘  └──────┬───────┘  └──────┬───────┘  │
-│          │                │                  │          │
-│   ┌──────▼────────────────▼──────────────────▼───────┐  │
-│   │              Redis (pub/sub + caching)            │  │
+│   ┌──────────────┐  ┌──────────────┐  ┌─────────────┐  │
+│   │   UI / Pages │  │  API Routes  │  │  WebSocket  │  │
+│   │  (React/     │  │  (Matching · │  │  Feed Engine│  │
+│   │   Tailwind)  │  │  AI Agents · │  │  (pub/sub)  │  │
+│   │              │  │  Auth · Pay) │  │             │  │
+│   └──────────────┘  └──────┬───────┘  └──────┬──────┘  │
+│                             │                 │         │
+│   ┌─────────────────────────▼─────────────────▼──────┐  │
+│   │                Redis (pub/sub + caching)          │  │
 │   └──────────────────────┬────────────────────────────┘  │
 │                          │                              │
 │   ┌──────────────────────▼────────────────────────────┐  │
@@ -92,7 +89,7 @@ Fixed with targeted MongoDB indexes, Redis caching on hot paths, and async worke
 | Layer | Technology |
 |-------|-----------|
 | Frontend | Next.js, React, Tailwind CSS |
-| Backend | FastAPI (Python) |
+| Backend | Next.js API Routes |
 | Database | MongoDB (primary), Redis (cache + pub/sub) |
 | AI/ML | OpenAI embeddings, LLM reranking, LangGraph |
 | Auth | NextAuth |
