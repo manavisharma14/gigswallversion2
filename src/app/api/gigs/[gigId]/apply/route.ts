@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { sendGigApplicationEmail } from '@/lib/emailSender';
 import { qstash } from "@/lib/qstash"
 
 export async function POST(
@@ -22,7 +21,7 @@ export async function POST(
 
     const gig = await prisma.gig.findUnique({ where: { id: gigId } });
     if (!gig) {
-      return NextResponse.json({ message: 'Gig not found' }, { status: 404 } );
+      return NextResponse.json({ message: 'Gig not found' }, { status: 404 });
     }
 
     if (gig.postedById === userId) {
@@ -63,18 +62,13 @@ export async function POST(
       },
     });
 
-    // Notify the gig poster
-    const applicant = await prisma.user.findUnique({ where: { id: userId } });
-    const poster = await prisma.user.findUnique({ where: { id: gig.postedById } });
 
-    if (poster?.email && applicant?.name && applicant?.email) {
-      await sendGigApplicationEmail({
-        to: poster.email,
-        gigTitle: gig.title,
-        applicantName: applicant.name,
-        applicantEmail: applicant.email,
-      });
-    }
+    await qstash.publishJSON({
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/api/jobs/send-application-email`,
+      body: {
+        applicationId: application.id,
+      },
+    });
 
     return NextResponse.json({ message: 'Application submitted', application }, { status: 201 });
   } catch (error) {
