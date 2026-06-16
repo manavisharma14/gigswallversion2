@@ -62,6 +62,7 @@ export async function POST(
       },
     });
 
+  // added email worker
 
     await qstash.publishJSON({
       url: `${process.env.NEXT_PUBLIC_APP_URL}/api/jobs/send-application-email`,
