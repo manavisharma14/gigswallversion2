@@ -21,11 +21,42 @@ export async function GET(request: NextRequest) {
         const cached = await redis.get(cacheKey);
 
         if (cached) {
-            return NextResponse.json({ gigs: cached, source: "cache" }, { status: 200 })
+            console.log(`search cache hit: ${normalizedQuery}`);
+
+            return NextResponse.json(
+                {
+                    gigs: cached,
+                    source: "cache"
+                },
+                { status: 200 }
+            );
         }
 
         // generate query embedding
-        const queryEmbedding = await createEmbedding(query);
+
+        const embeddingCacheKey = `embedding:${normalizedQuery}`
+        const cachedEmbedding = await redis.get<number[]>(embeddingCacheKey)
+
+        let queryEmbedding: number[];
+
+        if (cachedEmbedding) {
+            queryEmbedding = cachedEmbedding;
+
+            console.log(`embedding cache hit : ${normalizedQuery}`)
+        } else {
+            queryEmbedding = await createEmbedding(normalizedQuery)
+
+            await redis.set(
+                embeddingCacheKey,
+                queryEmbedding,
+                {
+                    ex: 60 * 60 * 24 * 7 // 7 days 
+                }
+            );
+
+            console.log(`embedding cache miss ${normalizedQuery}`)
+        }
+
 
         // fetch gigs
         const gigs = await prisma.gig.findMany({
@@ -33,16 +64,16 @@ export async function GET(request: NextRequest) {
                 status: "open"
             },
             select: {
-  id: true,
-  title: true,
-  description: true,
-  category: true,
-  budget: true,
-  createdAt: true,
-  status: true,
-  isOpen: true,
-  aiGigEmbedding: true
-},
+                id: true,
+                title: true,
+                description: true,
+                category: true,
+                budget: true,
+                createdAt: true,
+                status: true,
+                isOpen: true,
+                aiGigEmbedding: true
+            },
             orderBy: { createdAt: "desc" },
             take: 50
         })
@@ -55,15 +86,15 @@ export async function GET(request: NextRequest) {
                 );
 
                 const safeGig = {
-  id: gig.id,
-  title: gig.title,
-  description: gig.description,
-  category: gig.category,
-  budget: gig.budget,
-  createdAt: gig.createdAt,
-  status: gig.status,
-  isOpen: gig.isOpen,
-};
+                    id: gig.id,
+                    title: gig.title,
+                    description: gig.description,
+                    category: gig.category,
+                    budget: gig.budget,
+                    createdAt: gig.createdAt,
+                    status: gig.status,
+                    isOpen: gig.isOpen,
+                };
 
                 return {
                     ...safeGig,

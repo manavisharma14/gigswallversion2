@@ -3,12 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { sendGigApplicationEmail } from '@/lib/emailSender';
-
-import { createEmbedding } from "@/lib/ai/embed"
-import {
-  cosineSimilarity,
-  similarityToPercent
-} from "@/lib/ai/cosine"
+import { qstash } from "@/lib/qstash"
 
 export async function POST(
   req: NextRequest,
@@ -48,39 +43,6 @@ export async function POST(
       );
     }
 
-    const combinedText = `
-      Reason: ${reason || ""}
-      Experience: ${experience || ""}
-      Portfolio: ${portfolio || ""}
-      Extra: ${extra || ""}
-    `;
-
-    const applicationEmbedding = await createEmbedding(combinedText);
-
-
-    let semanticMatchScore = 0;
-    if (
-  gig.aiGigEmbedding &&
-  gig.aiGigEmbedding.length > 0 &&
-  applicationEmbedding.length > 0
-) {
-  const similarity = cosineSimilarity(
-    applicationEmbedding,
-    gig.aiGigEmbedding
-  );
-
-  console.log("------ AI MATCH DEBUG ------");
-  console.log("Gig Vector Length:", gig.aiGigEmbedding.length);
-  console.log("Application Vector Length:", applicationEmbedding.length);
-  console.log("Raw Similarity Score:", similarity);
-
-  semanticMatchScore = similarityToPercent(similarity);
-
-  console.log("Semantic Match %:", semanticMatchScore);
-  console.log("----------------------------");
-}
-
-
     const application = await prisma.application.create({
       data: {
         gigId,
@@ -90,11 +52,14 @@ export async function POST(
         portfolio,
         extra,
 
-        applicationEmbedding,
-
-        semanticMatchScore,
-
         aiModelVersion: "embedding-v1",
+      },
+    });
+
+    await qstash.publishJSON({
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/api/jobs/process-applications`,
+      body: {
+        applicationId: application.id,
       },
     });
 
